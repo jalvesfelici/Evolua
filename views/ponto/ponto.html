@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ponto | Lobios</title>
+
+    <link rel="stylesheet" href="ponto.css">
+</head>
+
+<body>
+
+    <main class="ponto-container">
+
+        <!-- CABEÇALHO -->
+        <header class="ponto-header">
+
+            <div class="logo">
+                <span class="logo-icon">L</span>
+
+                <div>
+                    <h1>Lobios</h1>
+                    <span>Controle de Ponto</span>
+                </div>
+            </div>
+
+            <div class="usuario">
+                <span class="usuario-label">Funcionário</span>
+                <strong id="nomeUsuario">Usuário</strong>
+            </div>
+
+        </header>
+
+
+        <!-- CONTEÚDO -->
+        <section class="ponto-content">
+
+            <!-- RELÓGIO -->
+            <div class="relogio-card">
+
+                <p class="data-atual" id="dataAtual">
+                    Carregando...
+                </p>
+
+                <div class="relogio" id="relogio">
+                    00:00:00
+                </div>
+
+                <p class="status" id="status">
+                    Pronto para registrar seu ponto
+                </p>
+
+            </div>
+
+
+            <!-- REGISTRO -->
+            <div class="registro-card">
+
+                <div class="registro-info">
+
+                    <span class="icone-ponto">✓</span>
+
+                    <div>
+                        <h2 id="tituloRegistro">
+                            Registrar Entrada
+                        </h2>
+
+                        <p id="descricaoRegistro">
+                            Clique no botão abaixo para registrar sua entrada.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="btn-ponto"
+                    id="btnRegistrar"
+                    type="button">
+
+                    <span>Registrar Ponto</span>
+
+                </button>
+
+
+                <p class="aviso">
+                    Ao registrar, a data e o horário atual serão armazenados.
+                </p>
+
+            </div>
+
+
+            <!-- RESUMO DO DIA -->
+            <div class="resumo">
+
+                <div class="resumo-card">
+
+                    <span class="resumo-icone">↪</span>
+
+                    <div>
+                        <span>Entrada</span>
+                        <strong id="horaEntrada">--:--</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="resumo-card">
+
+                    <span class="resumo-icone">◷</span>
+
+                    <div>
+                        <span>Intervalo</span>
+                        <strong id="horaIntervalo">--:--</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="resumo-card">
+
+                    <span class="resumo-icone">↩</span>
+
+                    <div>
+                        <span>Retorno</span>
+                        <strong id="horaRetorno">--:--</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="resumo-card">
+
+                    <span class="resumo-icone">✓</span>
+
+                    <div>
+                        <span>Saída</span>
+                        <strong id="horaSaida">--:--</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- HISTÓRICO -->
+            <section class="historico">
+
+                <div class="historico-header">
+
+                    <div>
+                        <h2>Histórico de hoje</h2>
+                        <p>Registros realizados durante o dia</p>
+                    </div>
+
+                    <span class="contador" id="contador">
+                        0 registros
+                    </span>
+
+                </div>
+
+
+                <div class="tabela-container">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="historicoBody">
+
+                            <tr class="sem-registros">
+                                <td colspan="3">
+                                    Nenhum ponto registrado hoje.
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- HORAS TRABALHADAS -->
+            <div class="horas-card">
+
+                <div>
+                    <span>Horas trabalhadas hoje</span>
+                    <strong id="horasTrabalhadas">
+                        00:00:00
+                    </strong>
+                </div>
+
+                <div class="barra-container">
+
+                    <div
+                        class="barra-progresso"
+                        id="barraProgresso">
+                    </div>
+
+                </div>
+
+                <small>
+                    Jornada considerada: 8 horas
+                </small>
+
+            </div>
+
+        </section>
+
+
+        <!-- RODAPÉ -->
+        <footer>
+            © 2026 Lobios. Todos os direitos reservados.
+        </footer>
+
+    </main>
+
+
+    <div
+        class="notificacao"
+        id="notificacao">
+    </div>
+
+
+    <script src="ponto.js"></script>
+
+</body>
+
+</html>
