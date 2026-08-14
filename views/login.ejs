@@ -24,17 +24,17 @@
                 <h2>Bem-vindo!</h2>
                 <p>Entre com seus dados para acessar a plataforma.</p>
 
-                <form>
+                <form action="/login" method="POST">
 
                     <div class="input-group">
-                        <label for="usuario">Usuário</label>
-                        <input
-                            type="text"
-                            id="usuario"
-                            name="usuario"
-                            placeholder="Digite seu usuário"
-                            required
-                        >
+                        <label for="email">E-mail</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="Digite seu e-mail"
+                                required
+                            >
                     </div>
 
                     <div class="input-group">

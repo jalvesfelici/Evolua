@@ -1,0 +1,12 @@
+[33mcommit fca50f29f2300df9fc6bc1166f3cfa0c5dd378fd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/pastas-e-aba-de-ponto[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/Treinamento[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: jalvesfelici <221162024@eniac.edu.br>
+Date:   Thu Aug 13 00:36:12 2026 +0000
+
+    feat: configura conexão inicial com Supabase
+
+A	.gitignore
+A	config/supabase.js
+M	node_modules/.package-lock.json
+M	package-lock.json
+M	package.json
+A	teste-supabase.js
