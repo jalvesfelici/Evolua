@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Portal de Carreiras - Administração</title>
+
+  <!-- CSS principal -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Ícones -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+
+<body>
+
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+
+  <aside class="sidebar">
+
+    <div class="logo">
+
+      <div class="logo-icon">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+
+      <div>
+        <h2>Portal</h2>
+        <span>de Carreiras</span>
+      </div>
+
+    </div>
+
+
+    <!-- IDENTIFICAÇÃO DO ADMIN -->
+
+    <div class="admin-badge">
+
+      <i class="fa-solid fa-shield-halved"></i>
+
+      <div>
+        <strong>Área Administrativa</strong>
+        <span>Tecnologia</span>
+      </div>
+
+    </div>
+
+
+    <!-- MENU -->
+
+    <nav class="menu">
+
+      <button
+        class="menu-item active"
+        data-page="dashboard"
+      >
+        <i class="fa-solid fa-house"></i>
+        <span>Visão Geral</span>
+      </button>
+
+
+      <button
+        class="menu-item"
+        data-page="employees"
+      >
+        <i class="fa-solid fa-users"></i>
+        <span>Funcionários</span>
+      </button>
+
+
+      <button
+        class="menu-item"
+        data-page="trainings"
+      >
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Treinamentos</span>
+      </button>
+
+
+      <button
+        class="menu-item"
+        data-page="evaluations"
+      >
+        <i class="fa-solid fa-clipboard-check"></i>
+        <span>Avaliações</span>
+
+        <span
+          class="menu-counter"
+          id="evaluationMenuCounter"
+        >
+          3
+        </span>
+      </button>
+
+
+      <!-- FUNCIONALIDADES FUTURAS -->
+
+      <div class="menu-divider">
+        Gestão
+      </div>
+
+
+      <button class="menu-item disabled" disabled>
+        <i class="fa-solid fa-umbrella-beach"></i>
+        <span>Férias</span>
+      </button>
+
+
+      <button class="menu-item disabled" disabled>
+        <i class="fa-solid fa-clock"></i>
+        <span>Ponto</span>
+      </button>
+
+
+      <button class="menu-item disabled" disabled>
+        <i class="fa-solid fa-chart-column"></i>
+        <span>Desempenho</span>
+      </button>
+
+
+      <button class="menu-item disabled" disabled>
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Carreira</span>
+      </button>
+
+    </nav>
+
+
+    <!-- ADMIN LOGADO -->
+
+    <div class="sidebar-user">
+
+      <div class="avatar">
+        CA
+      </div>
+
+      <div class="user-info">
+
+        <strong>
+          Carlos Almeida
+        </strong>
+
+        <span>
+          Administrador • TI
+        </span>
+
+      </div>
+
+      <button class="logout-button">
+
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =====================================================
+       CONTEÚDO PRINCIPAL
+  ====================================================== -->
+
+  <main class="main-content">
+
+
+    <!-- ===================================================
+         TOPBAR
+    ==================================================== -->
+
+    <header class="topbar">
+
+      <div>
+
+        <h1 id="pageTitle">
+          Visão Geral
+        </h1>
+
+        <p id="pageSubtitle">
+          Acompanhe as principais informações do seu setor.
+        </p>
+
+      </div>
+
+
+      <div class="topbar-actions">
+
+        <button class="notification-button">
+
+          <i class="fa-regular fa-bell"></i>
+
+          <span class="notification-dot"></span>
+
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- ===================================================
+         DASHBOARD
+    ==================================================== -->
+
+    <section
+      class="page-section active-page"
+      id="dashboardPage"
+    >
+
+      <!-- RESUMO -->
+
+      <div class="summary-grid">
+
+        <article class="summary-card">
+
+          <div class="summary-icon purple">
+
+            <i class="fa-solid fa-users"></i>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Funcionários
+            </span>
+
+            <strong id="dashboardEmployees">
+              12
+            </strong>
+
+            <small>
+              No seu setor
+            </small>
+
+          </div>
+
+        </article>
+
+
+        <article class="summary-card">
+
+          <div class="summary-icon blue">
+
+            <i class="fa-solid fa-graduation-cap"></i>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Treinamentos
+            </span>
+
+            <strong id="dashboardTrainings">
+              4
+            </strong>
+
+            <small>
+              Cursos ativos
+            </small>
+
+          </div>
+
+        </article>
+
+
+        <article class="summary-card">
+
+          <div class="summary-icon orange">
+
+            <i class="fa-solid fa-hourglass-half"></i>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Aguardando avaliação
+            </span>
+
+            <strong id="dashboardEvaluations">
+              3
+            </strong>
+
+            <small>
+              Entregas
+            </small>
+
+          </div>
+
+        </article>
+
+
+        <article class="summary-card">
+
+          <div class="summary-icon green">
+
+            <i class="fa-solid fa-circle-check"></i>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Aprovados
+            </span>
+
+            <strong>
+              28
+            </strong>
+
+            <small>
+              Treinamentos concluídos
+            </small>
+
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- LINHA PRINCIPAL -->
+
+      <div class="dashboard-grid">
+
+
+        <!-- AVALIAÇÕES PENDENTES -->
+
+        <section class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <h2>
+                Avaliações pendentes
+              </h2>
+
+              <p>
+                Treinamentos enviados para sua análise.
+              </p>
+
+            </div>
+
+
+            <button
+              class="link-button"
+              onclick="changePage('evaluations')"
+            >
+              Ver todas
+            </button>
+
+          </div>
+
+
+          <div
+            class="simple-list"
+            id="dashboardEvaluationList"
+          >
+
+            <div class="simple-list-item">
+
+              <div class="list-avatar">
+                MS
+              </div>
+
+
+              <div class="list-main">
+
+                <strong>
+                  Maycon Santos
+                </strong>
+
+                <span>
+                  Excel Avançado
+                </span>
+
+              </div>
+
+
+              <span class="status-badge warning">
+                Aguardando
+              </span>
+
+            </div>
+
+
+            <div class="simple-list-item">
+
+              <div class="list-avatar">
+                AR
+              </div>
+
+
+              <div class="list-main">
+
+                <strong>
+                  Amanda Ribeiro
+                </strong>
+
+                <span>
+                  Segurança da Informação
+                </span>
+
+              </div>
+
+
+              <span class="status-badge warning">
+                Aguardando
+              </span>
+
+            </div>
+
+
+            <div class="simple-list-item">
+
+              <div class="list-avatar">
+                JL
+              </div>
+
+
+              <div class="list-main">
+
+                <strong>
+                  João Lima
+                </strong>
+
+                <span>
+                  LGPD nas Empresas
+                </span>
+
+              </div>
+
+
+              <span class="status-badge warning">
+                Aguardando
+              </span>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- AÇÕES RÁPIDAS -->
+
+        <section class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <h2>
+                Ações rápidas
+              </h2>
+
+              <p>
+                Acesse as principais funções administrativas.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="quick-actions">
+
+            <button
+              class="quick-action"
+              onclick="openEmployeeModal()"
+            >
+
+              <div class="quick-icon purple">
+
+                <i class="fa-solid fa-user-plus"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Novo funcionário
+                </strong>
+
+                <span>
+                  Criar acesso para colaborador
+                </span>
+
+              </div>
+
+            </button>
+
+
+            <button
+              class="quick-action"
+              onclick="openCourseModal()"
+            >
+
+              <div class="quick-icon blue">
+
+                <i class="fa-solid fa-plus"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Novo treinamento
+                </strong>
+
+                <span>
+                  Criar e publicar um curso
+                </span>
+
+              </div>
+
+            </button>
+
+
+            <button
+              class="quick-action"
+              onclick="changePage('evaluations')"
+            >
+
+              <div class="quick-icon orange">
+
+                <i class="fa-solid fa-clipboard-check"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Avaliar treinamentos
+                </strong>
+
+                <span>
+                  Analisar entregas pendentes
+                </span>
+
+              </div>
+
+            </button>
+
+          </div>
+
+        </section>
+
+      </div>
+
+
+      <!-- CURSOS DO SETOR -->
+
+      <section class="panel dashboard-training-panel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>
+              Treinamentos recentes
+            </h2>
+
+            <p>
+              Cursos publicados pelo seu setor.
+            </p>
+
+          </div>
+
+
+          <button
+            class="link-button"
+            onclick="changePage('trainings')"
+          >
+            Gerenciar treinamentos
+          </button>
+
+        </div>
+
+
+        <div
+          class="training-mini-grid"
+          id="dashboardTrainingList"
+        >
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- ===================================================
+         FUNCIONÁRIOS
+    ==================================================== -->
+
+    <section
+      class="page-section"
+      id="employeesPage"
+    >
+
+      <div class="section-toolbar">
+
+        <div class="search-box">
+
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+          <input
+            type="text"
+            id="employeeSearch"
+            placeholder="Pesquisar funcionário..."
+          />
+
+        </div>
+
+
+        <button
+          class="primary-button toolbar-button"
+          onclick="openEmployeeModal()"
+        >
+
+          <i class="fa-solid fa-plus"></i>
+
+          Novo funcionário
+
+        </button>
+
+      </div>
+
+
+      <section class="panel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>
+              Funcionários do setor
+            </h2>
+
+            <p>
+              Usuários cadastrados sob sua responsabilidade.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Funcionário
+                </th>
+
+                <th>
+                  Usuário
+                </th>
+
+                <th>
+                  Cargo
+                </th>
+
+                <th>
+                  Setor
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Ações
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="employeesTableBody">
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- ===================================================
+         TREINAMENTOS
+    ==================================================== -->
+
+    <section
+      class="page-section"
+      id="trainingsPage"
+    >
+
+      <div class="section-toolbar">
+
+        <div class="search-box">
+
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+          <input
+            type="text"
+            id="trainingSearch"
+            placeholder="Pesquisar treinamento..."
+          />
+
+        </div>
+
+
+        <div class="toolbar-right">
+
+          <select id="trainingAreaFilter">
+
+            <option value="">
+              Todas as áreas
+            </option>
+
+            <option value="Tecnologia">
+              Tecnologia
+            </option>
+
+            <option value="Desenvolvimento">
+              Desenvolvimento
+            </option>
+
+            <option value="Comunicação">
+              Comunicação
+            </option>
+
+            <option value="Liderança">
+              Liderança
+            </option>
+
+            <option value="Compliance">
+              Compliance
+            </option>
+
+          </select>
+
+
+          <button
+            class="primary-button toolbar-button"
+            onclick="openCourseModal()"
+          >
+
+            <i class="fa-solid fa-plus"></i>
+
+            Novo treinamento
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="admin-training-grid"
+        id="adminTrainingGrid"
+      >
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         AVALIAÇÕES
+    ==================================================== -->
+
+    <section
+      class="page-section"
+      id="evaluationsPage"
+    >
+
+      <div class="evaluation-tabs">
+
+        <button
+          class="evaluation-tab active"
+          data-evaluation-status="pending"
+        >
+          Aguardando avaliação
+        </button>
+
+
+        <button
+          class="evaluation-tab"
+          data-evaluation-status="approved"
+        >
+          Aprovados
+        </button>
+
+
+        <button
+          class="evaluation-tab"
+          data-evaluation-status="rejected"
+        >
+          Reprovados
+        </button>
+
+      </div>
+
+
+      <div
+        class="evaluation-list"
+        id="evaluationList"
+      >
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =====================================================
+       MODAL - NOVO FUNCIONÁRIO
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="employeeModal"
+  >
+
+    <div class="modal standard-modal">
+
+      <button
+        class="close-modal"
+        onclick="closeModal('employeeModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div class="modal-header">
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-user-plus"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Novo funcionário
+          </h2>
+
+          <p>
+            Crie o acesso de um colaborador do seu setor.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <form
+        id="employeeForm"
+        onsubmit="createEmployee(event)"
+      >
+
+        <div class="form-grid">
+
+
+          <div class="form-group full">
+
+            <label>
+              Nome completo
+            </label>
+
+            <input
+              type="text"
+              id="employeeName"
+              placeholder="Ex.: João da Silva"
+              required
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Usuário
+            </label>
+
+            <input
+              type="text"
+              id="employeeUsername"
+              placeholder="joao.silva"
+              required
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Senha inicial
+            </label>
+
+            <input
+              type="password"
+              id="employeePassword"
+              placeholder="Senha temporária"
+              required
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Cargo
+            </label>
+
+            <input
+              type="text"
+              id="employeeRole"
+              placeholder="Ex.: Desenvolvedor Júnior"
+              required
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              Setor
+            </label>
+
+            <select
+              id="employeeSector"
+              required
+            >
+
+              <option value="Tecnologia">
+                Tecnologia
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-information">
+
+          <i class="fa-solid fa-circle-info"></i>
+
+          <p>
+            Nesta versão frontend o usuário será criado apenas
+            visualmente. A integração com Supabase será realizada
+            posteriormente.
+          </p>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="closeModal('employeeModal')"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+
+            <i class="fa-solid fa-user-plus"></i>
+
+            Criar funcionário
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       MODAL - NOVO TREINAMENTO
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="courseModal"
+  >
+
+    <div class="modal large-modal">
+
+      <button
+        class="close-modal"
+        onclick="closeModal('courseModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div class="modal-header">
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-graduation-cap"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Criar treinamento
+          </h2>
+
+          <p>
+            Cadastre o curso, público e atividades.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <form
+        id="courseForm"
+        onsubmit="createCourse(event)"
+      >
+
+
+        <!-- DADOS GERAIS -->
+
+        <div class="form-section">
+
+          <div class="form-section-title">
+
+            <span>
+              1
+            </span>
+
+            <div>
+
+              <h3>
+                Informações do treinamento
+              </h3>
+
+              <p>
+                Dados principais que aparecerão para os colaboradores.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-grid">
+
+            <div class="form-group full">
+
+              <label>
+                Título do treinamento
+              </label>
+
+              <input
+                id="courseTitle"
+                type="text"
+                placeholder="Ex.: Excel Avançado"
+                required
+              />
+
+            </div>
+
+
+            <div class="form-group full">
+
+              <label>
+                Descrição
+              </label>
+
+              <textarea
+                id="courseDescription"
+                rows="4"
+                placeholder="Descreva o objetivo do treinamento..."
+                required
+              ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Carga horária
+              </label>
+
+              <div class="input-with-suffix">
+
+                <input
+                  id="courseHours"
+                  type="number"
+                  min="1"
+                  placeholder="8"
+                  required
+                />
+
+                <span>
+                  horas
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Área
+              </label>
+
+              <select
+                id="courseArea"
+                required
+              >
+
+                <option value="">
+                  Selecione
+                </option>
+
+                <option value="Tecnologia">
+                  Tecnologia
+                </option>
+
+                <option value="Desenvolvimento">
+                  Desenvolvimento
+                </option>
+
+                <option value="Comunicação">
+                  Comunicação
+                </option>
+
+                <option value="Liderança">
+                  Liderança
+                </option>
+
+                <option value="Compliance">
+                  Compliance
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Nível
+              </label>
+
+              <select
+                id="courseLevel"
+                required
+              >
+
+                <option value="Básico">
+                  Básico
+                </option>
+
+                <option value="Intermediário">
+                  Intermediário
+                </option>
+
+                <option value="Avançado">
+                  Avançado
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Setor responsável
+              </label>
+
+              <select
+                id="courseResponsibleSector"
+                required
+              >
+
+                <option value="Tecnologia">
+                  Tecnologia
+                </option>
+
+                <option value="RH">
+                  RH
+                </option>
+
+                <option value="Financeiro">
+                  Financeiro
+                </option>
+
+                <option value="Comercial">
+                  Comercial
+                </option>
+
+                <option value="Marketing">
+                  Marketing
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <!-- CURSO EXTERNO -->
+
+          <label class="toggle-card">
+
+            <input
+              type="checkbox"
+              id="externalCourse"
+              onchange="toggleExternalCourse()"
+            />
+
+
+            <span class="toggle-switch"></span>
+
+
+            <div>
+
+              <strong>
+                Curso externo
+              </strong>
+
+              <span>
+                O treinamento será realizado em outra plataforma.
+              </span>
+
+            </div>
+
+          </label>
+
+
+          <div
+            class="external-link-area"
+            id="externalLinkArea"
+          >
+
+            <div class="form-group">
+
+              <label>
+                Link do curso externo
+              </label>
+
+              <input
+                type="url"
+                id="externalCourseLink"
+                placeholder="https://..."
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- PÚBLICO -->
+
+        <div class="form-section">
+
+          <div class="form-section-title">
+
+            <span>
+              2
+            </span>
+
+            <div>
+
+              <h3>
+                Público do treinamento
+              </h3>
+
+              <p>
+                Defina para quem este treinamento será recomendado.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-grid">
+
+            <div class="form-group">
+
+              <label>
+                Setor
+              </label>
+
+              <select
+                id="courseTargetSector"
+                required
+              >
+
+                <option value="Tecnologia">
+                  Tecnologia
+                </option>
+
+                <option value="RH">
+                  RH
+                </option>
+
+                <option value="Financeiro">
+                  Financeiro
+                </option>
+
+                <option value="Comercial">
+                  Comercial
+                </option>
+
+                <option value="Marketing">
+                  Marketing
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Classificação
+              </label>
+
+              <select
+                id="courseRequirement"
+                required
+              >
+
+                <option value="Obrigatório">
+                  Obrigatório
+                </option>
+
+                <option value="Recomendado">
+                  Recomendado
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ATIVIDADES -->
+
+        <div class="form-section">
+
+          <div class="form-section-title activity-section-heading">
+
+            <div class="number-title">
+
+              <span>
+                3
+              </span>
+
+              <div>
+
+                <h3>
+                  Atividades
+                </h3>
+
+                <p>
+                  Crie as etapas que o funcionário deverá concluir.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="outline-button"
+              onclick="addActivity()"
+            >
+
+              <i class="fa-solid fa-plus"></i>
+
+              Adicionar atividade
+
+            </button>
+
+          </div>
+
+
+          <div
+            class="activity-builder-list"
+            id="activityBuilderList"
+          >
+
+            <div class="empty-activities">
+
+              <i class="fa-regular fa-clipboard"></i>
+
+              <strong>
+                Nenhuma atividade adicionada
+              </strong>
+
+              <span>
+                Clique em "Adicionar atividade" para começar.
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="closeModal('courseModal')"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            Publicar treinamento
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       MODAL - AVALIAR TREINAMENTO
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="evaluationModal"
+  >
+
+    <div class="modal large-modal">
+
+      <button
+        class="close-modal"
+        onclick="closeModal('evaluationModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div id="evaluationModalContent">
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       MODAL - VISUALIZAR CURSO
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="courseDetailsModal"
+  >
+
+    <div class="modal standard-modal">
+
+      <button
+        class="close-modal"
+        onclick="closeModal('courseDetailsModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div id="courseDetailsContent">
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       MODAL - CONFIRMAÇÃO
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="confirmationModal"
+  >
+
+    <div class="modal confirmation-modal">
+
+      <div class="confirmation-icon danger-icon">
+
+        <i class="fa-solid fa-trash"></i>
+
+      </div>
+
+
+      <h2>
+        Remover treinamento?
+      </h2>
+
+      <p>
+        O treinamento deixará de aparecer para os colaboradores.
+        O histórico de cursos já concluídos continuará preservado.
+      </p>
+
+
+      <div class="modal-actions">
+
+        <button
+          class="secondary-button"
+          onclick="closeModal('confirmationModal')"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          class="danger-button"
+          id="confirmDeleteButton"
+        >
+          Remover
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+  
+  <script src="app.js"></script>
+
+</body>
+</html>
