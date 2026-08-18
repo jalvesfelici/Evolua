@@ -1,26 +1,34 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
+
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
-  <title>Portal de Carreiras - Administração</title>
+  <title>
+    Evolua+ | Administração
+  </title>
 
-  <!-- CSS principal -->
-  <link rel="stylesheet" href="style.css" />
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 
-  <!-- Ícones -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
+  >
+
 </head>
 
+
 <body>
+
 
   <!-- =====================================================
        SIDEBAR
@@ -28,135 +36,242 @@
 
   <aside class="sidebar">
 
+
+    <!-- LOGO -->
+
     <div class="logo">
 
       <div class="logo-icon">
+
         <i class="fa-solid fa-chart-line"></i>
+
       </div>
 
+
       <div>
-        <h2>Portal</h2>
-        <span>de Carreiras</span>
+
+        <h2>
+          Evolua+
+        </h2>
+
+        <span>
+          Portal de Carreiras
+        </span>
+
       </div>
 
     </div>
 
 
-    <!-- IDENTIFICAÇÃO DO ADMIN -->
+
+    <!-- =================================================
+         IDENTIFICAÇÃO ADMIN
+    ================================================== -->
 
     <div class="admin-badge">
 
       <i class="fa-solid fa-shield-halved"></i>
 
+
       <div>
-        <strong>Área Administrativa</strong>
-        <span>Tecnologia</span>
+
+        <strong>
+          Área Administrativa
+        </strong>
+
+        <span id="adminSector">
+          Acesso geral
+        </span>
+
       </div>
 
     </div>
 
 
-    <!-- MENU -->
+
+    <!-- =================================================
+         MENU
+    ================================================== -->
 
     <nav class="menu">
+
+
+      <!-- VISÃO GERAL -->
 
       <button
         class="menu-item active"
         data-page="dashboard"
       >
+
         <i class="fa-solid fa-house"></i>
-        <span>Visão Geral</span>
+
+        <span>
+          Visão Geral
+        </span>
+
       </button>
 
+
+
+      <!-- FUNCIONÁRIOS -->
 
       <button
         class="menu-item"
         data-page="employees"
       >
+
         <i class="fa-solid fa-users"></i>
-        <span>Funcionários</span>
+
+        <span>
+          Funcionários
+        </span>
+
       </button>
 
+
+
+      <!-- TREINAMENTOS -->
 
       <button
         class="menu-item"
         data-page="trainings"
       >
+
         <i class="fa-solid fa-graduation-cap"></i>
-        <span>Treinamentos</span>
+
+        <span>
+          Treinamentos
+        </span>
+
       </button>
 
+
+
+      <!-- AVALIAÇÕES -->
 
       <button
         class="menu-item"
         data-page="evaluations"
       >
+
         <i class="fa-solid fa-clipboard-check"></i>
-        <span>Avaliações</span>
+
+        <span>
+          Avaliações
+        </span>
+
 
         <span
           class="menu-counter"
           id="evaluationMenuCounter"
         >
-          3
+          0
         </span>
+
       </button>
 
 
-      <!-- FUNCIONALIDADES FUTURAS -->
+
+      <!-- =================================================
+           FUNÇÕES FUTURAS
+      ================================================== -->
 
       <div class="menu-divider">
         Gestão
       </div>
 
 
-      <button class="menu-item disabled" disabled>
+      <button
+        class="menu-item disabled"
+        disabled
+      >
+
         <i class="fa-solid fa-umbrella-beach"></i>
-        <span>Férias</span>
+
+        <span>
+          Férias
+        </span>
+
       </button>
 
 
-      <button class="menu-item disabled" disabled>
+      <button
+        class="menu-item disabled"
+        disabled
+      >
+
         <i class="fa-solid fa-clock"></i>
-        <span>Ponto</span>
+
+        <span>
+          Ponto
+        </span>
+
       </button>
 
 
-      <button class="menu-item disabled" disabled>
+      <button
+        class="menu-item disabled"
+        disabled
+      >
+
         <i class="fa-solid fa-chart-column"></i>
-        <span>Desempenho</span>
+
+        <span>
+          Desempenho
+        </span>
+
       </button>
 
 
-      <button class="menu-item disabled" disabled>
+      <button
+        class="menu-item disabled"
+        disabled
+      >
+
         <i class="fa-solid fa-briefcase"></i>
-        <span>Carreira</span>
+
+        <span>
+          Carreira
+        </span>
+
       </button>
 
     </nav>
 
 
-    <!-- ADMIN LOGADO -->
+
+    <!-- =================================================
+         ADMIN LOGADO
+    ================================================== -->
 
     <div class="sidebar-user">
 
-      <div class="avatar">
-        CA
+
+      <div
+        class="avatar"
+        id="adminAvatar"
+      >
+        AP
       </div>
+
 
       <div class="user-info">
 
-        <strong>
-          Carlos Almeida
+        <strong id="adminName">
+          Administrador Principal
         </strong>
 
-        <span>
-          Administrador • TI
+        <span id="adminRole">
+          Administrador Principal
         </span>
 
       </div>
 
-      <button class="logout-button">
+
+      <button
+        class="logout-button"
+        title="Sair"
+      >
 
         <i class="fa-solid fa-arrow-right-from-bracket"></i>
 
@@ -167,6 +282,7 @@
   </aside>
 
 
+
   <!-- =====================================================
        CONTEÚDO PRINCIPAL
   ====================================================== -->
@@ -174,9 +290,9 @@
   <main class="main-content">
 
 
-    <!-- ===================================================
-         TOPBAR
-    ==================================================== -->
+    <!-- =================================================
+         TOPO
+    ================================================== -->
 
     <header class="topbar">
 
@@ -192,28 +308,28 @@
 
       </div>
 
-
-      <div class="topbar-actions">
-
-        
-
-      </div>
-
     </header>
 
 
-    <!-- ===================================================
+
+    <!-- =====================================================
          DASHBOARD
-    ==================================================== -->
+    ====================================================== -->
 
     <section
       class="page-section active-page"
       id="dashboardPage"
     >
 
-      <!-- RESUMO -->
+
+      <!-- =================================================
+           RESUMO
+      ================================================== -->
 
       <div class="summary-grid">
+
+
+        <!-- FUNCIONÁRIOS -->
 
         <article class="summary-card">
 
@@ -231,17 +347,20 @@
             </span>
 
             <strong id="dashboardEmployees">
-              12
+              0
             </strong>
 
             <small>
-              No seu setor
+              Cadastrados
             </small>
 
           </div>
 
         </article>
 
+
+
+        <!-- TREINAMENTOS -->
 
         <article class="summary-card">
 
@@ -259,7 +378,7 @@
             </span>
 
             <strong id="dashboardTrainings">
-              4
+              0
             </strong>
 
             <small>
@@ -270,6 +389,9 @@
 
         </article>
 
+
+
+        <!-- AVALIAÇÕES -->
 
         <article class="summary-card">
 
@@ -287,7 +409,7 @@
             </span>
 
             <strong id="dashboardEvaluations">
-              3
+              0
             </strong>
 
             <small>
@@ -298,6 +420,9 @@
 
         </article>
 
+
+
+        <!-- APROVADOS -->
 
         <article class="summary-card">
 
@@ -314,8 +439,8 @@
               Aprovados
             </span>
 
-            <strong>
-              28
+            <strong id="dashboardApproved">
+              0
             </strong>
 
             <small>
@@ -329,7 +454,10 @@
       </div>
 
 
-      <!-- LINHA PRINCIPAL -->
+
+      <!-- =================================================
+           CONTEÚDO PRINCIPAL DO DASHBOARD
+      ================================================== -->
 
       <div class="dashboard-grid">
 
@@ -367,93 +495,15 @@
             class="simple-list"
             id="dashboardEvaluationList"
           >
-
-            <div class="simple-list-item">
-
-              <div class="list-avatar">
-                MS
-              </div>
-
-
-              <div class="list-main">
-
-                <strong>
-                  Maycon Santos
-                </strong>
-
-                <span>
-                  Excel Avançado
-                </span>
-
-              </div>
-
-
-              <span class="status-badge warning">
-                Aguardando
-              </span>
-
-            </div>
-
-
-            <div class="simple-list-item">
-
-              <div class="list-avatar">
-                AR
-              </div>
-
-
-              <div class="list-main">
-
-                <strong>
-                  Amanda Ribeiro
-                </strong>
-
-                <span>
-                  Segurança da Informação
-                </span>
-
-              </div>
-
-
-              <span class="status-badge warning">
-                Aguardando
-              </span>
-
-            </div>
-
-
-            <div class="simple-list-item">
-
-              <div class="list-avatar">
-                JL
-              </div>
-
-
-              <div class="list-main">
-
-                <strong>
-                  João Lima
-                </strong>
-
-                <span>
-                  LGPD nas Empresas
-                </span>
-
-              </div>
-
-
-              <span class="status-badge warning">
-                Aguardando
-              </span>
-
-            </div>
-
           </div>
 
         </section>
 
 
-        <!-- AÇÕES RÁPIDAS -->
+
+        <!-- =================================================
+             AÇÕES RÁPIDAS
+        ================================================== -->
 
         <section class="panel">
 
@@ -475,6 +525,9 @@
 
 
           <div class="quick-actions">
+
+
+            <!-- NOVO FUNCIONÁRIO -->
 
             <button
               class="quick-action"
@@ -503,6 +556,40 @@
             </button>
 
 
+
+            <!-- NOVO ADMINISTRADOR -->
+
+            <button
+              class="quick-action"
+              id="newAdminButton"
+              onclick="openAdminModal()"
+            >
+
+              <div class="quick-icon green">
+
+                <i class="fa-solid fa-user-shield"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Novo administrador
+                </strong>
+
+                <span>
+                  Criar administrador de setor
+                </span>
+
+              </div>
+
+            </button>
+
+
+
+            <!-- NOVO TREINAMENTO -->
+
             <button
               class="quick-action"
               onclick="openCourseModal()"
@@ -529,6 +616,9 @@
 
             </button>
 
+
+
+            <!-- AVALIAR TREINAMENTOS -->
 
             <button
               class="quick-action"
@@ -563,7 +653,10 @@
       </div>
 
 
-      <!-- CURSOS DO SETOR -->
+
+      <!-- =================================================
+           TREINAMENTOS RECENTES
+      ================================================== -->
 
       <section class="panel dashboard-training-panel">
 
@@ -576,7 +669,7 @@
             </h2>
 
             <p>
-              Cursos publicados pelo seu setor.
+              Cursos publicados na plataforma.
             </p>
 
           </div>
@@ -603,16 +696,21 @@
     </section>
 
 
-    <!-- ===================================================
+
+    <!-- =====================================================
          FUNCIONÁRIOS
-    ==================================================== -->
+    ====================================================== -->
 
     <section
       class="page-section"
       id="employeesPage"
     >
 
+
       <div class="section-toolbar">
+
+
+        <!-- PESQUISA -->
 
         <div class="search-box">
 
@@ -621,25 +719,51 @@
           <input
             type="text"
             id="employeeSearch"
-            placeholder="Pesquisar funcionário..."
-          />
+            placeholder="Pesquisar por nome, matrícula, e-mail ou cargo..."
+          >
 
         </div>
 
 
-        <button
-          class="primary-button toolbar-button"
-          onclick="openEmployeeModal()"
-        >
 
-          <i class="fa-solid fa-plus"></i>
+        <!-- BOTÕES -->
 
-          Novo funcionário
+        <div class="toolbar-user-actions">
 
-        </button>
+
+          <button
+            class="outline-button toolbar-button"
+            id="newAdminToolbarButton"
+            onclick="openAdminModal()"
+          >
+
+            <i class="fa-solid fa-user-shield"></i>
+
+            Novo administrador
+
+          </button>
+
+
+          <button
+            class="primary-button toolbar-button"
+            onclick="openEmployeeModal()"
+          >
+
+            <i class="fa-solid fa-plus"></i>
+
+            Novo funcionário
+
+          </button>
+
+        </div>
 
       </div>
 
+
+
+      <!-- =================================================
+           TABELA
+      ================================================== -->
 
       <section class="panel">
 
@@ -648,16 +772,17 @@
           <div>
 
             <h2>
-              Funcionários do setor
+              Usuários cadastrados
             </h2>
 
             <p>
-              Usuários cadastrados sob sua responsabilidade.
+              Colaboradores e administradores cadastrados na plataforma.
             </p>
 
           </div>
 
         </div>
+
 
 
         <div class="table-wrapper">
@@ -673,7 +798,11 @@
                 </th>
 
                 <th>
-                  Usuário
+                  Matrícula
+                </th>
+
+                <th>
+                  E-mail
                 </th>
 
                 <th>
@@ -682,6 +811,10 @@
 
                 <th>
                   Setor
+                </th>
+
+                <th>
+                  Perfil
                 </th>
 
                 <th>
@@ -708,10 +841,9 @@
 
     </section>
 
-
-    <!-- ===================================================
+        <!-- =====================================================
          TREINAMENTOS
-    ==================================================== -->
+    ====================================================== -->
 
     <section
       class="page-section"
@@ -719,6 +851,9 @@
     >
 
       <div class="section-toolbar">
+
+
+        <!-- PESQUISA -->
 
         <div class="search-box">
 
@@ -728,12 +863,16 @@
             type="text"
             id="trainingSearch"
             placeholder="Pesquisar treinamento..."
-          />
+          >
 
         </div>
 
 
+
         <div class="toolbar-right">
+
+
+          <!-- FILTRO POR ÁREA -->
 
           <select id="trainingAreaFilter">
 
@@ -764,6 +903,9 @@
           </select>
 
 
+
+          <!-- NOVO TREINAMENTO -->
+
           <button
             class="primary-button toolbar-button"
             onclick="openCourseModal()"
@@ -780,6 +922,9 @@
       </div>
 
 
+
+      <!-- CARDS DE TREINAMENTO -->
+
       <div
         class="admin-training-grid"
         id="adminTrainingGrid"
@@ -789,16 +934,21 @@
     </section>
 
 
-    <!-- ===================================================
+
+    <!-- =====================================================
          AVALIAÇÕES
-    ==================================================== -->
+    ====================================================== -->
 
     <section
       class="page-section"
       id="evaluationsPage"
     >
 
+
+      <!-- ABAS -->
+
       <div class="evaluation-tabs">
+
 
         <button
           class="evaluation-tab active"
@@ -826,6 +976,9 @@
       </div>
 
 
+
+      <!-- LISTA -->
+
       <div
         class="evaluation-list"
         id="evaluationList"
@@ -837,9 +990,18 @@
   </main>
 
 
+
   <!-- =====================================================
-       MODAL - NOVO FUNCIONÁRIO
+       MODAL - CRIAR USUÁRIO
   ====================================================== -->
+  <!--
+    O MESMO MODAL SERÁ UTILIZADO PARA:
+
+    1. criar colaborador
+    2. criar administrador de setor
+
+    O JavaScript decide qual perfil será criado.
+  -->
 
   <div
     class="modal-overlay"
@@ -848,7 +1010,11 @@
 
     <div class="modal standard-modal">
 
+
+      <!-- FECHAR -->
+
       <button
+        type="button"
         class="close-modal"
         onclick="closeModal('employeeModal')"
       >
@@ -858,7 +1024,13 @@
       </button>
 
 
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
       <div class="modal-header">
+
 
         <div class="modal-title-icon">
 
@@ -869,18 +1041,23 @@
 
         <div>
 
-          <h2>
+          <h2 id="employeeModalTitle">
             Novo funcionário
           </h2>
 
-          <p>
-            Crie o acesso de um colaborador do seu setor.
+          <p id="employeeModalDescription">
+            Crie o acesso de um colaborador.
           </p>
 
         </div>
 
       </div>
 
+
+
+      <!-- =================================================
+           FORMULÁRIO
+      ================================================== -->
 
       <form
         id="employeeForm"
@@ -890,106 +1067,181 @@
         <div class="form-grid">
 
 
+          <!-- =================================================
+               NOME
+          ================================================== -->
+
           <div class="form-group full">
 
-            <label>
+            <label for="employeeName">
               Nome completo
             </label>
+
 
             <input
               type="text"
               id="employeeName"
               placeholder="Ex.: João da Silva"
               required
-            />
+            >
 
           </div>
 
 
+
+          <!-- =================================================
+               MATRÍCULA
+          ================================================== -->
+
           <div class="form-group">
 
-            <label>
-              Usuário
+            <label for="employeeRegistration">
+              Matrícula
             </label>
+
 
             <input
               type="text"
-              id="employeeUsername"
-              placeholder="joao.silva"
+              id="employeeRegistration"
+              placeholder="Ex.: 20260001"
               required
-            />
+            >
 
           </div>
 
 
+
+          <!-- =================================================
+               E-MAIL
+          ================================================== -->
+
           <div class="form-group">
 
-            <label>
-              Senha inicial
+            <label for="employeeEmail">
+              E-mail
             </label>
+
 
             <input
-              type="password"
-              id="employeePassword"
-              placeholder="Senha temporária"
+              type="email"
+              id="employeeEmail"
+              placeholder="joao.silva@empresa.com"
+              autocomplete="email"
               required
-            />
+            >
 
           </div>
 
 
+
+          <!-- =================================================
+               CARGO
+          ================================================== -->
+
           <div class="form-group">
 
-            <label>
+            <label for="employeeRole">
               Cargo
             </label>
+
 
             <input
               type="text"
               id="employeeRole"
               placeholder="Ex.: Desenvolvedor Júnior"
               required
-            />
+            >
 
           </div>
 
 
+
+          <!-- =================================================
+               SETOR
+          ================================================== -->
+
           <div class="form-group">
 
-            <label>
+            <label for="employeeSector">
               Setor
             </label>
+
+
+            <!--
+              O JavaScript preencherá automaticamente
+              as opções deste select.
+
+              ADMIN PRINCIPAL:
+              poderá escolher qualquer setor.
+
+              ADMIN DE SETOR:
+              ficará preso ao próprio setor.
+            -->
 
             <select
               id="employeeSector"
               required
             >
-
-              <option value="Tecnologia">
-                Tecnologia
-              </option>
-
             </select>
+
+          </div>
+
+
+
+          <!-- =================================================
+               SENHA
+          ================================================== -->
+
+          <div class="form-group full">
+
+            <label for="employeePassword">
+              Senha inicial
+            </label>
+
+
+            <input
+              type="password"
+              id="employeePassword"
+              placeholder="Digite uma senha com pelo menos 6 caracteres"
+              minlength="6"
+              autocomplete="new-password"
+              required
+            >
 
           </div>
 
         </div>
 
 
+
+        <!-- =================================================
+             INFORMAÇÃO
+        ================================================== -->
+
         <div class="form-information">
 
           <i class="fa-solid fa-circle-info"></i>
 
+
           <p>
-            Nesta versão frontend o usuário será criado apenas
-            visualmente. A integração com Supabase será realizada
-            posteriormente.
+
+            O e-mail será utilizado para realizar o login no Evolua+.
+
+            A matrícula será utilizada como identificação interna
+            do colaborador.
+
           </p>
 
         </div>
 
 
+
+        <!-- =================================================
+             AÇÕES
+        ================================================== -->
+
         <div class="modal-actions">
+
 
           <button
             type="button"
@@ -1000,14 +1252,19 @@
           </button>
 
 
+
           <button
             type="submit"
             class="primary-button"
+            id="employeeSubmitButton"
           >
 
             <i class="fa-solid fa-user-plus"></i>
 
-            Criar funcionário
+
+            <span id="employeeSubmitText">
+              Criar funcionário
+            </span>
 
           </button>
 
@@ -1018,6 +1275,7 @@
     </div>
 
   </div>
+
 
 
   <!-- =====================================================
@@ -1031,7 +1289,11 @@
 
     <div class="modal large-modal">
 
+
+      <!-- FECHAR -->
+
       <button
+        type="button"
         class="close-modal"
         onclick="closeModal('courseModal')"
       >
@@ -1041,7 +1303,13 @@
       </button>
 
 
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
       <div class="modal-header">
+
 
         <div class="modal-title-icon">
 
@@ -1065,21 +1333,32 @@
       </div>
 
 
+
+      <!-- =================================================
+           FORMULÁRIO
+      ================================================== -->
+
       <form
         id="courseForm"
         onsubmit="createCourse(event)"
       >
 
 
-        <!-- DADOS GERAIS -->
+        <!-- =================================================
+             SEÇÃO 1
+             INFORMAÇÕES GERAIS
+        ================================================== -->
 
         <div class="form-section">
 
+
           <div class="form-section-title">
+
 
             <span>
               1
             </span>
+
 
             <div>
 
@@ -1096,29 +1375,38 @@
           </div>
 
 
+
           <div class="form-grid">
+
+
+            <!-- TÍTULO -->
 
             <div class="form-group full">
 
-              <label>
+              <label for="courseTitle">
                 Título do treinamento
               </label>
+
 
               <input
                 id="courseTitle"
                 type="text"
                 placeholder="Ex.: Excel Avançado"
                 required
-              />
+              >
 
             </div>
 
 
+
+            <!-- DESCRIÇÃO -->
+
             <div class="form-group full">
 
-              <label>
+              <label for="courseDescription">
                 Descrição
               </label>
+
 
               <textarea
                 id="courseDescription"
@@ -1130,11 +1418,15 @@
             </div>
 
 
+
+            <!-- CARGA HORÁRIA -->
+
             <div class="form-group">
 
-              <label>
+              <label for="courseHours">
                 Carga horária
               </label>
+
 
               <div class="input-with-suffix">
 
@@ -1144,7 +1436,7 @@
                   min="1"
                   placeholder="8"
                   required
-                />
+                >
 
                 <span>
                   horas
@@ -1155,11 +1447,15 @@
             </div>
 
 
+
+            <!-- ÁREA -->
+
             <div class="form-group">
 
-              <label>
+              <label for="courseArea">
                 Área
               </label>
+
 
               <select
                 id="courseArea"
@@ -1195,11 +1491,15 @@
             </div>
 
 
+
+            <!-- NÍVEL -->
+
             <div class="form-group">
 
-              <label>
+              <label for="courseLevel">
                 Nível
               </label>
+
 
               <select
                 id="courseLevel"
@@ -1223,16 +1523,34 @@
             </div>
 
 
+
+            <!-- =================================================
+                 SETOR RESPONSÁVEL
+            ================================================== -->
+
             <div class="form-group">
 
-              <label>
+              <label for="courseResponsibleSector">
                 Setor responsável
               </label>
+
 
               <select
                 id="courseResponsibleSector"
                 required
               >
+
+                <option value="Operacional">
+                  Operacional
+                </option>
+
+                <option value="Logística">
+                  Logística
+                </option>
+
+                <option value="Administrativo">
+                  Administrativo
+                </option>
 
                 <option value="Tecnologia">
                   Tecnologia
@@ -1246,10 +1564,6 @@
                   Financeiro
                 </option>
 
-                <option value="Comercial">
-                  Comercial
-                </option>
-
                 <option value="Marketing">
                   Marketing
                 </option>
@@ -1261,18 +1575,23 @@
           </div>
 
 
-          <!-- CURSO EXTERNO -->
+
+          <!-- =================================================
+               CURSO EXTERNO
+          ================================================== -->
 
           <label class="toggle-card">
+
 
             <input
               type="checkbox"
               id="externalCourse"
               onchange="toggleExternalCourse()"
-            />
+            >
 
 
-            <span class="toggle-switch"></span>
+            <span class="toggle-switch">
+            </span>
 
 
             <div>
@@ -1290,6 +1609,11 @@
           </label>
 
 
+
+          <!-- =================================================
+               LINK EXTERNO
+          ================================================== -->
+
           <div
             class="external-link-area"
             id="externalLinkArea"
@@ -1297,15 +1621,16 @@
 
             <div class="form-group">
 
-              <label>
+              <label for="externalCourseLink">
                 Link do curso externo
               </label>
+
 
               <input
                 type="url"
                 id="externalCourseLink"
                 placeholder="https://..."
-              />
+              >
 
             </div>
 
@@ -1314,15 +1639,22 @@
         </div>
 
 
-        <!-- PÚBLICO -->
+
+        <!-- =================================================
+             SEÇÃO 2
+             PÚBLICO
+        ================================================== -->
 
         <div class="form-section">
 
+
           <div class="form-section-title">
+
 
             <span>
               2
             </span>
+
 
             <div>
 
@@ -1331,7 +1663,7 @@
               </h3>
 
               <p>
-                Defina para quem este treinamento será recomendado.
+                Defina para qual setor o curso será disponibilizado.
               </p>
 
             </div>
@@ -1339,18 +1671,35 @@
           </div>
 
 
+
           <div class="form-grid">
+
+
+            <!-- SETOR DESTINO -->
 
             <div class="form-group">
 
-              <label>
+              <label for="courseTargetSector">
                 Setor
               </label>
+
 
               <select
                 id="courseTargetSector"
                 required
               >
+
+                <option value="Operacional">
+                  Operacional
+                </option>
+
+                <option value="Logística">
+                  Logística
+                </option>
+
+                <option value="Administrativo">
+                  Administrativo
+                </option>
 
                 <option value="Tecnologia">
                   Tecnologia
@@ -1364,10 +1713,6 @@
                   Financeiro
                 </option>
 
-                <option value="Comercial">
-                  Comercial
-                </option>
-
                 <option value="Marketing">
                   Marketing
                 </option>
@@ -1377,11 +1722,15 @@
             </div>
 
 
+
+            <!-- CLASSIFICAÇÃO -->
+
             <div class="form-group">
 
-              <label>
+              <label for="courseRequirement">
                 Classificação
               </label>
+
 
               <select
                 id="courseRequirement"
@@ -1404,18 +1753,23 @@
 
         </div>
 
-
-        <!-- ATIVIDADES -->
+                <!-- =================================================
+             SEÇÃO 3
+             ATIVIDADES DO TREINAMENTO
+        ================================================== -->
 
         <div class="form-section">
 
+
           <div class="form-section-title activity-section-heading">
+
 
             <div class="number-title">
 
               <span>
                 3
               </span>
+
 
               <div>
 
@@ -1432,6 +1786,9 @@
             </div>
 
 
+
+            <!-- ADICIONAR ATIVIDADE -->
+
             <button
               type="button"
               class="outline-button"
@@ -1447,6 +1804,16 @@
           </div>
 
 
+
+          <!-- =================================================
+               LISTA DINÂMICA DE ATIVIDADES
+
+               O JavaScript adicionará aqui:
+               - atividade de texto
+               - arquivo
+               - link
+          ================================================== -->
+
           <div
             class="activity-builder-list"
             id="activityBuilderList"
@@ -1456,9 +1823,11 @@
 
               <i class="fa-regular fa-clipboard"></i>
 
+
               <strong>
                 Nenhuma atividade adicionada
               </strong>
+
 
               <span>
                 Clique em "Adicionar atividade" para começar.
@@ -1471,15 +1840,24 @@
         </div>
 
 
+
+        <!-- =================================================
+             BOTÕES DO FORMULÁRIO DE TREINAMENTO
+        ================================================== -->
+
         <div class="modal-actions">
+
 
           <button
             type="button"
             class="secondary-button"
             onclick="closeModal('courseModal')"
           >
+
             Cancelar
+
           </button>
+
 
 
           <button
@@ -1502,9 +1880,19 @@
   </div>
 
 
+
   <!-- =====================================================
-       MODAL - AVALIAR TREINAMENTO
+       MODAL
+       AVALIAR TREINAMENTO
   ====================================================== -->
+  <!--
+    O conteúdo desse modal será criado
+    dinamicamente pelo JavaScript.
+
+    Quando o administrador clicar em "Avaliar",
+    a função openEvaluation() preencherá
+    evaluationModalContent.
+  -->
 
   <div
     class="modal-overlay"
@@ -1513,7 +1901,11 @@
 
     <div class="modal large-modal">
 
+
+      <!-- FECHAR -->
+
       <button
+        type="button"
         class="close-modal"
         onclick="closeModal('evaluationModal')"
       >
@@ -1523,6 +1915,11 @@
       </button>
 
 
+
+      <!--
+        Conteúdo gerado pelo app.js
+      -->
+
       <div id="evaluationModalContent">
       </div>
 
@@ -1531,9 +1928,26 @@
   </div>
 
 
+
   <!-- =====================================================
-       MODAL - VISUALIZAR CURSO
+       MODAL
+       DETALHES DO CURSO
   ====================================================== -->
+  <!--
+    Utilizado quando o administrador clicar
+    no botão "Visualizar" de um treinamento.
+
+    O JavaScript colocará aqui:
+
+    - título
+    - descrição
+    - carga horária
+    - nível
+    - setor
+    - classificação
+    - atividades
+    - link externo, se existir
+  -->
 
   <div
     class="modal-overlay"
@@ -1542,7 +1956,11 @@
 
     <div class="modal standard-modal">
 
+
+      <!-- FECHAR -->
+
       <button
+        type="button"
         class="close-modal"
         onclick="closeModal('courseDetailsModal')"
       >
@@ -1552,6 +1970,12 @@
       </button>
 
 
+
+      <!--
+        Conteúdo criado dinamicamente
+        pelo JavaScript.
+      -->
+
       <div id="courseDetailsContent">
       </div>
 
@@ -1560,9 +1984,26 @@
   </div>
 
 
+
   <!-- =====================================================
-       MODAL - CONFIRMAÇÃO
+       MODAL
+       CONFIRMAÇÃO DE EXCLUSÃO DO CURSO
   ====================================================== -->
+  <!--
+    Nós não apagaremos definitivamente o histórico
+    de um treinamento.
+
+    A ideia é utilizar um "soft delete":
+
+    ativo = false
+
+    Assim:
+
+    - o curso deixa de aparecer;
+    - o histórico continua existindo;
+    - as horas já conquistadas pelo funcionário
+      não serão perdidas.
+  -->
 
   <div
     class="modal-overlay"
@@ -1571,6 +2012,9 @@
 
     <div class="modal confirmation-modal">
 
+
+      <!-- ÍCONE -->
+
       <div class="confirmation-icon danger-icon">
 
         <i class="fa-solid fa-trash"></i>
@@ -1578,31 +2022,56 @@
       </div>
 
 
+
+      <!-- TÍTULO -->
+
       <h2>
         Remover treinamento?
       </h2>
 
+
+
+      <!-- EXPLICAÇÃO -->
+
       <p>
-        O treinamento deixará de aparecer para os colaboradores.
-        O histórico de cursos já concluídos continuará preservado.
+
+        O treinamento deixará de aparecer
+        para os colaboradores.
+
+        O histórico de cursos já concluídos
+        continuará preservado.
+
       </p>
 
 
+
+      <!-- BOTÕES -->
+
       <div class="modal-actions">
 
+
         <button
+          type="button"
           class="secondary-button"
           onclick="closeModal('confirmationModal')"
         >
+
           Cancelar
+
         </button>
 
 
+
         <button
+          type="button"
           class="danger-button"
           id="confirmDeleteButton"
         >
+
+          <i class="fa-solid fa-trash"></i>
+
           Remover
+
         </button>
 
       </div>
@@ -1610,8 +2079,16 @@
     </div>
 
   </div>
-  
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
   <script src="app.js"></script>
 
+
 </body>
+
 </html>

@@ -14,16 +14,20 @@
     Evolua+ | Login
   </title>
 
-  <!--
-    Como style.css está na mesma pasta
-    que este index.html, utilizamos apenas:
-  -->
+  <!-- =====================================================
+       CSS DA TELA
+  ====================================================== -->
+
   <link
     rel="stylesheet"
     href="style.css"
   >
 
-  <!-- Font Awesome -->
+
+  <!-- =====================================================
+       FONT AWESOME
+  ====================================================== -->
+
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -34,16 +38,27 @@
 
 <body>
 
+
+  <!-- =====================================================
+       CONTAINER PRINCIPAL
+  ====================================================== -->
+
   <main class="login-container">
+
+
+    <!-- ===================================================
+         CARD DE LOGIN
+    ==================================================== -->
 
     <section class="login-box">
 
 
-      <!-- ==================================================
+      <!-- =================================================
            LOGO
-      =================================================== -->
+      ================================================== -->
 
       <div class="logo">
+
 
         <div class="logo-icon">
 
@@ -58,6 +73,7 @@
             Evolua<span>+</span>
           </h1>
 
+
           <p>
             Portal de Gestão de Carreira
           </p>
@@ -68,11 +84,14 @@
 
 
 
-      <!-- ==================================================
+      <!-- =================================================
            FORMULÁRIO
-      =================================================== -->
+      ================================================== -->
 
       <div class="login-form">
+
+
+        <!-- CABEÇALHO -->
 
         <div class="login-header">
 
@@ -87,30 +106,45 @@
         </div>
 
 
-        <form id="loginForm">
+
+        <!-- =================================================
+             FORMULÁRIO DE LOGIN
+        ================================================== -->
+
+        <form
+          id="loginForm"
+          novalidate
+        >
 
 
-          <!-- USUÁRIO -->
+          <!-- ===============================================
+               E-MAIL
+          ================================================ -->
 
           <div class="input-group">
 
-            <label for="usuario">
-
-              Usuário
-
+            <label for="email">
+              E-mail
             </label>
 
 
             <div class="input-container">
 
-              <i class="fa-regular fa-user"></i>
+
+              <!-- ÍCONE -->
+
+              <i class="fa-regular fa-envelope"></i>
+
+
+              <!-- INPUT -->
 
               <input
-                type="text"
-                id="usuario"
-                name="usuario"
-                placeholder="Digite seu usuário"
-                autocomplete="username"
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Digite seu e-mail"
+                autocomplete="email"
+                spellcheck="false"
                 required
               >
 
@@ -120,21 +154,26 @@
 
 
 
-          <!-- SENHA -->
+          <!-- ===============================================
+               SENHA
+          ================================================ -->
 
           <div class="input-group">
 
             <label for="senha">
-
               Senha
-
             </label>
 
 
             <div class="input-container">
 
+
+              <!-- ÍCONE -->
+
               <i class="fa-solid fa-lock"></i>
 
+
+              <!-- INPUT -->
 
               <input
                 type="password"
@@ -146,11 +185,17 @@
               >
 
 
+
+              <!-- ===========================================
+                   MOSTRAR / ESCONDER SENHA
+              ============================================ -->
+
               <button
                 type="button"
                 class="password-button"
                 id="passwordButton"
                 title="Mostrar senha"
+                aria-label="Mostrar senha"
               >
 
                 <i
@@ -166,20 +211,22 @@
 
 
 
-          <!-- ==================================================
-               MENSAGEM
-          =================================================== -->
+          <!-- =================================================
+               MENSAGEM DE ERRO / SUCESSO
+          ================================================== -->
 
           <div
             class="login-message"
             id="loginMessage"
-          ></div>
+            role="alert"
+          >
+          </div>
 
 
 
-          <!-- ==================================================
+          <!-- =================================================
                BOTÃO ENTRAR
-          =================================================== -->
+          ================================================== -->
 
           <button
             type="submit"
@@ -196,9 +243,10 @@
       </div>
 
 
-      <!-- ==================================================
+
+      <!-- =================================================
            RODAPÉ DO CARD
-      =================================================== -->
+      ================================================== -->
 
       <div class="login-footer">
 
@@ -210,13 +258,19 @@
 
       </div>
 
+
     </section>
 
   </main>
 
 
-  <!-- JavaScript -->
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
   <script src="app.js"></script>
+
 
 </body>
 
