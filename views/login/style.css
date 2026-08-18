@@ -1,0 +1,404 @@
+/* ==========================================================
+   CONFIGURAÇÕES GERAIS
+========================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+body {
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  background: #f5f7fb;
+
+  color: #1f2937;
+}
+
+
+
+/* ==========================================================
+   CONTAINER PRINCIPAL
+========================================================== */
+
+.login-container {
+  min-height: 100vh;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 30px;
+}
+
+
+
+/* ==========================================================
+   CARD DE LOGIN
+========================================================== */
+
+.login-box {
+  width: 100%;
+
+  max-width: 420px;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  padding: 38px;
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 10px 35px
+    rgba(0, 0, 0, 0.07);
+}
+
+
+
+/* ==========================================================
+   LOGO
+========================================================== */
+
+.logo {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  margin-bottom: 35px;
+}
+
+
+.logo-icon {
+  width: 48px;
+
+  height: 48px;
+
+  background: #6557e8;
+
+  color: white;
+
+  border-radius: 13px;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  font-size: 21px;
+}
+
+
+.logo-text h1 {
+  font-size: 27px;
+
+  color: #1f2937;
+}
+
+
+.logo-text h1 span {
+  color: #6557e8;
+}
+
+
+.logo-text p {
+  margin-top: 3px;
+
+  color: #9ca3af;
+
+  font-size: 11px;
+}
+
+
+
+/* ==========================================================
+   CABEÇALHO DO LOGIN
+========================================================== */
+
+.login-header {
+  margin-bottom: 28px;
+}
+
+
+.login-header h2 {
+  font-size: 23px;
+
+  margin-bottom: 7px;
+
+  color: #1f2937;
+}
+
+
+.login-header p {
+  color: #6b7280;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+
+/* ==========================================================
+   GRUPO DOS INPUTS
+========================================================== */
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+
+.input-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 12px;
+
+  font-weight: bold;
+
+  color: #374151;
+}
+
+
+
+/* ==========================================================
+   INPUT COM ÍCONE
+========================================================== */
+
+.input-container {
+  width: 100%;
+
+  height: 46px;
+
+  display: flex;
+
+  align-items: center;
+
+  border: 1px solid #d1d5db;
+
+  border-radius: 9px;
+
+  padding: 0 13px;
+
+  background: white;
+
+  transition: 0.2s;
+}
+
+
+.input-container:focus-within {
+  border-color: #6557e8;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(101, 87, 232, 0.1);
+}
+
+
+.input-container > i {
+  color: #9ca3af;
+
+  margin-right: 10px;
+
+  font-size: 14px;
+}
+
+
+.input-container input {
+  flex: 1;
+
+  height: 100%;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color: #1f2937;
+
+  font-size: 14px;
+}
+
+
+.input-container input::placeholder {
+  color: #b1b5bd;
+}
+
+
+
+/* ==========================================================
+   MOSTRAR / ESCONDER SENHA
+========================================================== */
+
+.password-button {
+  width: auto;
+
+  border: none;
+
+  background: transparent;
+
+  color: #9ca3af;
+
+  padding: 7px;
+
+  cursor: pointer;
+
+  font-size: 14px;
+}
+
+
+.password-button:hover {
+  color: #6557e8;
+
+  background: transparent;
+}
+
+
+
+/* ==========================================================
+   MENSAGEM DO LOGIN
+========================================================== */
+
+.login-message {
+  display: none;
+
+  margin-bottom: 15px;
+
+  padding: 10px 12px;
+
+  border-radius: 8px;
+
+  font-size: 11px;
+}
+
+
+.login-message.error {
+  display: block;
+
+  background: #fee2e2;
+
+  color: #b91c1c;
+
+  border: 1px solid #fecaca;
+}
+
+
+.login-message.success {
+  display: block;
+
+  background: #dcfce7;
+
+  color: #166534;
+
+  border: 1px solid #bbf7d0;
+}
+
+
+
+/* ==========================================================
+   BOTÃO ENTRAR
+========================================================== */
+
+.login-button {
+  width: 100%;
+
+  height: 46px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: #6557e8;
+
+  color: white;
+
+  font-size: 14px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+
+.login-button:hover {
+  background: #5144d6;
+}
+
+
+.login-button:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+
+
+
+/* ==========================================================
+   RODAPÉ
+========================================================== */
+
+.login-footer {
+  margin-top: 25px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #e5e7eb;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #9ca3af;
+
+  font-size: 10px;
+}
+
+
+.login-footer i {
+  color: #6557e8;
+}
+
+
+
+/* ==========================================================
+   RESPONSIVIDADE
+========================================================== */
+
+@media (max-width: 500px) {
+
+  .login-container {
+    padding: 18px;
+  }
+
+
+  .login-box {
+    padding: 28px 22px;
+  }
+
+
+  .logo {
+    justify-content: flex-start;
+  }
+
+}

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>
+    Portal de Carreiras - Treinamentos
+  </title>
+
+  <!-- CSS principal -->
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+</head>
+
+
+<body>
+
+
+  <!-- =====================================================
+       MENU LATERAL
+  ====================================================== -->
+
+  <aside class="sidebar">
+
+
+    <!-- LOGO -->
+
+    <div class="logo">
+
+      <div class="logo-icon">
+
+        <i class="fa-solid fa-chart-line"></i>
+
+      </div>
+
+
+      <div>
+
+        <h2>
+          Portal
+        </h2>
+
+        <span>
+          de Carreiras
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- MENU -->
+
+    <nav class="menu">
+
+
+      <a
+        href="#"
+        class="menu-item"
+      >
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+          Dashboard
+        </span>
+
+      </a>
+
+
+      <a
+        href="#"
+        class="menu-item"
+      >
+
+        <i class="fa-solid fa-calendar-days"></i>
+
+        <span>
+          Férias
+        </span>
+
+      </a>
+
+
+      <a
+        href="#"
+        class="menu-item"
+      >
+
+        <i class="fa-solid fa-clock"></i>
+
+        <span>
+          Ponto
+        </span>
+
+      </a>
+
+
+      <a
+        href="#"
+        class="menu-item active"
+      >
+
+        <i class="fa-solid fa-graduation-cap"></i>
+
+        <span>
+          Treinamentos
+        </span>
+
+      </a>
+
+
+      <a
+        href="#"
+        class="menu-item"
+      >
+
+        <i class="fa-solid fa-briefcase"></i>
+
+        <span>
+          Carreira
+        </span>
+
+      </a>
+
+
+      <a
+        href="#"
+        class="menu-item"
+      >
+
+        <i class="fa-solid fa-comments"></i>
+
+        <span>
+          Feedbacks
+        </span>
+
+      </a>
+
+    </nav>
+
+
+    <!-- =================================================
+         USUÁRIO TEMPORÁRIO
+    ================================================== -->
+
+    <div class="sidebar-user">
+
+      <div
+        class="avatar"
+        id="userAvatar"
+      >
+        MS
+      </div>
+
+
+      <div class="user-info">
+
+        <strong id="userName">
+          Maycon Santos
+        </strong>
+
+        <span id="userRole">
+          Desenvolvedor Júnior
+        </span>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- =====================================================
+       CONTEÚDO PRINCIPAL
+  ====================================================== -->
+
+  <main class="main-content">
+
+
+    <!-- =================================================
+         CABEÇALHO
+    ================================================== -->
+
+    <header class="topbar">
+
+
+      <div>
+
+        <h1>
+          Treinamentos
+        </h1>
+
+        <p>
+          Desenvolva suas habilidades e acompanhe seu aprendizado.
+        </p>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         RESUMO
+    ====================================================== -->
+
+    <section class="summary-grid">
+
+
+      <!-- OBRIGATÓRIOS -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon purple">
+
+          <i class="fa-solid fa-circle-exclamation"></i>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Obrigatórios
+          </span>
+
+          <strong id="mandatoryCount">
+            0
+          </strong>
+
+          <small>
+            Para o seu setor
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- EM ANDAMENTO -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon blue">
+
+          <i class="fa-solid fa-spinner"></i>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Em andamento
+          </span>
+
+          <strong id="inProgressCount">
+            0
+          </strong>
+
+          <small>
+            Treinamentos
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONCLUÍDOS -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon green">
+
+          <i class="fa-solid fa-circle-check"></i>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Concluídos
+          </span>
+
+          <strong id="completedCount">
+            0
+          </strong>
+
+          <small>
+            Treinamentos
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- CARGA HORÁRIA -->
+
+      <div class="summary-card">
+
+        <div class="summary-icon orange">
+
+          <i class="fa-solid fa-clock"></i>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Carga horária
+          </span>
+
+          <strong id="totalHours">
+            0h
+          </strong>
+
+          <small>
+            Concluídas
+          </small>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         TREINAMENTOS DO USUÁRIO
+    ====================================================== -->
+
+    <section class="section">
+
+
+      <div class="section-header">
+
+        <h2>
+          Seus treinamentos
+        </h2>
+
+        <p>
+          Cursos obrigatórios e recomendados para o seu setor.
+        </p>
+
+      </div>
+
+
+      <!--
+        IMPORTANTE:
+
+        Os cards NÃO ficam mais escritos no HTML.
+
+        O JavaScript vai buscar:
+
+        GET /api/cursos
+
+        e inserir os cursos neste container.
+      -->
+
+      <div
+        class="training-grid"
+        id="userTrainingGrid"
+      >
+
+        <!-- Loading inicial -->
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando treinamentos...
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         TODOS OS TREINAMENTOS
+    ====================================================== -->
+
+    <section class="section">
+
+
+      <div class="section-header">
+
+        <h2>
+          Todos os treinamentos
+        </h2>
+
+        <p>
+          Explore todos os cursos disponibilizados pela empresa.
+        </p>
+
+      </div>
+
+
+
+      <!-- =================================================
+           BUSCA E FILTROS
+      ================================================== -->
+
+      <div class="filters">
+
+
+        <!-- PESQUISA -->
+
+        <div class="search-box">
+
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar treinamento..."
+          />
+
+        </div>
+
+
+        <!-- FILTROS -->
+
+        <div
+          class="filter-buttons"
+          id="filterButtons"
+        >
+
+          <!--
+            Os filtros serão criados dinamicamente
+            conforme as áreas cadastradas pelo Admin.
+          -->
+
+          <button
+            type="button"
+            class="filter-button active"
+            data-area="Todos"
+          >
+            Todos
+          </button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           CATÁLOGO
+      ================================================== -->
+
+      <div
+        class="catalog-grid"
+        id="courseCatalog"
+      >
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando catálogo...
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =====================================================
+       MODAL DO CURSO
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="courseModal"
+  >
+
+
+    <div class="course-modal">
+
+
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
+
+      <button
+        class="close-modal"
+        type="button"
+        onclick="closeCourseModal()"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
+      <div class="course-modal-header">
+
+
+        <div class="course-modal-icon">
+
+          <i
+            class="fa-solid fa-graduation-cap"
+            id="modalCourseIcon"
+          ></i>
+
+        </div>
+
+
+        <div>
+
+          <span
+            class="modal-badge"
+            id="modalCourseBadge"
+          >
+            Treinamento
+          </span>
+
+
+          <h2 id="modalCourseTitle">
+            Curso
+          </h2>
+
+
+          <p id="modalCourseArea">
+            Área
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           INFORMAÇÕES DO CURSO
+      ================================================== -->
+
+      <div class="course-information">
+
+
+        <!-- CARGA HORÁRIA -->
+
+        <div>
+
+          <span>
+            Carga horária
+          </span>
+
+          <strong>
+
+            <i class="fa-regular fa-clock"></i>
+
+            <span id="modalCourseHours">
+              0 horas
+            </span>
+
+          </strong>
+
+        </div>
+
+
+        <!-- NÍVEL -->
+
+        <div>
+
+          <span>
+            Nível
+          </span>
+
+          <strong>
+
+            <i class="fa-solid fa-signal"></i>
+
+            <span id="modalCourseLevel">
+              Básico
+            </span>
+
+          </strong>
+
+        </div>
+
+
+        <!-- SETOR RESPONSÁVEL -->
+
+        <div>
+
+          <span>
+            Setor responsável
+          </span>
+
+          <strong>
+
+            <i class="fa-solid fa-building"></i>
+
+            <span id="modalCourseSector">
+              -
+            </span>
+
+          </strong>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           DESCRIÇÃO
+      ================================================== -->
+
+      <div class="course-description">
+
+        <h3>
+          Sobre o treinamento
+        </h3>
+
+
+        <p id="modalCourseDescription">
+        </p>
+
+
+        <p class="course-instruction-text">
+
+          As atividades devem ser realizadas fora do Portal.
+          Quando houver uma atividade para comprovação,
+          anexe o arquivo solicitado.
+
+        </p>
+
+      </div>
+
+
+
+      <!-- =================================================
+           CURSO EXTERNO
+      ================================================== -->
+
+      <div
+        class="external-course-box"
+        id="externalCourseBox"
+      >
+
+        <div class="external-course-info">
+
+          <div class="external-course-icon">
+
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+          </div>
+
+
+          <div>
+
+            <strong>
+              Curso realizado em plataforma externa
+            </strong>
+
+            <span>
+              Utilize o botão abaixo para acessar o treinamento.
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <a
+          href="#"
+          id="externalCourseLink"
+          class="external-course-button"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+          Acessar curso
+
+        </a>
+
+      </div>
+
+
+
+      <!-- =================================================
+           PROGRESSO
+      ================================================== -->
+
+      <div class="course-progress-area">
+
+
+        <div class="course-progress-header">
+
+
+          <div>
+
+            <h3>
+              Seu progresso
+            </h3>
+
+
+            <span id="courseProgressText">
+              0 de 0 atividades concluídas
+            </span>
+
+          </div>
+
+
+          <strong id="courseProgressPercentage">
+            0%
+          </strong>
+
+        </div>
+
+
+        <div class="course-progress-bar">
+
+          <div
+            id="courseProgressFill"
+            class="course-progress-fill"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           ATIVIDADES
+      ================================================== -->
+
+      <div class="activities-section">
+
+
+        <div class="activities-title">
+
+          <div>
+
+            <h3>
+              Atividades do treinamento
+            </h3>
+
+            <p>
+              Realize as atividades e envie os arquivos solicitados.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!--
+          As atividades agora serão criadas
+          dinamicamente pelo JavaScript.
+
+          Elas vêm da tabela:
+
+          atividades_curso
+        -->
+
+        <div id="courseActivities">
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           CURSO CONCLUÍDO NO FRONTEND
+      ================================================== -->
+
+      <div
+        class="course-completed-message"
+        id="courseCompletedMessage"
+      >
+
+        <i class="fa-solid fa-circle-check"></i>
+
+
+        <div>
+
+          <strong>
+            Todas as atividades foram concluídas!
+          </strong>
+
+          <span>
+            Quando implementarmos os usuários,
+            este treinamento será enviado para avaliação.
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
+  <script src="app.js"></script>
+
+
+</body>
+
+</html>
