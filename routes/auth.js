@@ -105,16 +105,14 @@ router.post(
       } =
         await supabase
           .from(
-            "usuario"
+            "usuarios"
           )
           .select(
             `
               id,
               nome,
               email,
-              matricula,
               cargo,
-              setor,
               perfil,
               ativo
             `
