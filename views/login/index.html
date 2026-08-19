@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Evolua+ | Login
+  </title>
+
+  <!-- =====================================================
+       CSS DA TELA
+  ====================================================== -->
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+
+  <!-- =====================================================
+       FONT AWESOME
+  ====================================================== -->
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!-- =====================================================
+       CONTAINER PRINCIPAL
+  ====================================================== -->
+
+  <main class="login-container">
+
+
+    <!-- ===================================================
+         CARD DE LOGIN
+    ==================================================== -->
+
+    <section class="login-box">
+
+
+      <!-- =================================================
+           LOGO
+      ================================================== -->
+
+      <div class="logo">
+
+
+        <div class="logo-icon">
+
+          <i class="fa-solid fa-chart-line"></i>
+
+        </div>
+
+
+        <div class="logo-text">
+
+          <h1>
+            Evolua<span>+</span>
+          </h1>
+
+
+          <p>
+            Portal de Gestão de Carreira
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           FORMULÁRIO
+      ================================================== -->
+
+      <div class="login-form">
+
+
+        <!-- CABEÇALHO -->
+
+        <div class="login-header">
+
+          <h2>
+            Bem-vindo!
+          </h2>
+
+          <p>
+            Entre com seus dados para acessar a plataforma.
+          </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             FORMULÁRIO DE LOGIN
+        ================================================== -->
+
+        <form
+          id="loginForm"
+          novalidate
+        >
+
+
+          <!-- ===============================================
+               E-MAIL
+          ================================================ -->
+
+          <div class="input-group">
+
+            <label for="email">
+              E-mail
+            </label>
+
+
+            <div class="input-container">
+
+
+              <!-- ÍCONE -->
+
+              <i class="fa-regular fa-envelope"></i>
+
+
+              <!-- INPUT -->
+
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Digite seu e-mail"
+                autocomplete="email"
+                spellcheck="false"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+
+          <!-- ===============================================
+               SENHA
+          ================================================ -->
+
+          <div class="input-group">
+
+            <label for="senha">
+              Senha
+            </label>
+
+
+            <div class="input-container">
+
+
+              <!-- ÍCONE -->
+
+              <i class="fa-solid fa-lock"></i>
+
+
+              <!-- INPUT -->
+
+              <input
+                type="password"
+                id="senha"
+                name="senha"
+                placeholder="Digite sua senha"
+                autocomplete="current-password"
+                required
+              >
+
+
+
+              <!-- ===========================================
+                   MOSTRAR / ESCONDER SENHA
+              ============================================ -->
+
+              <button
+                type="button"
+                class="password-button"
+                id="passwordButton"
+                title="Mostrar senha"
+                aria-label="Mostrar senha"
+              >
+
+                <i
+                  class="fa-regular fa-eye"
+                  id="passwordIcon"
+                ></i>
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               MENSAGEM DE ERRO / SUCESSO
+          ================================================== -->
+
+          <div
+            class="login-message"
+            id="loginMessage"
+            role="alert"
+          >
+          </div>
+
+
+
+          <!-- =================================================
+               BOTÃO ENTRAR
+          ================================================== -->
+
+          <button
+            type="submit"
+            class="login-button"
+            id="loginButton"
+          >
+
+            Entrar
+
+          </button>
+
+        </form>
+
+      </div>
+
+
+
+      <!-- =================================================
+           RODAPÉ DO CARD
+      ================================================== -->
+
+      <div class="login-footer">
+
+        <i class="fa-solid fa-shield-halved"></i>
+
+        <span>
+          Acesso exclusivo para colaboradores cadastrados.
+        </span>
+
+      </div>
+
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
+  <script src="app.js"></script>
+
+
+</body>
+
+</html>

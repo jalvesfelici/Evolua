@@ -1,151 +1,325 @@
 // ==========================================================
-// PORTAL DE CARREIRAS
+// EVOLUA+
 // ADMIN - APP.JS
 // ==========================================================
 //
-// SITUAÇÃO ATUAL DO PROJETO:
+// SITUAÇÃO ATUAL:
 //
-// FUNCIONÁRIOS:
-// - Ainda simulados no frontend.
+// USUÁRIOS:
+// - vêm do Supabase através do backend;
+// - exigem usuário autenticado;
 //
 // TREINAMENTOS:
-// - Vêm do Supabase através do backend.
+// - vêm do Supabase através do backend;
 //
 // ATIVIDADES:
-// - Vêm do Supabase através do backend.
+// - vêm do Supabase;
 //
 // AVALIAÇÕES:
-// - Ainda simuladas no frontend.
+// - ainda estão simuladas;
 //
-// FLUXO DOS CURSOS:
-//
-// app.js
-//    ↓
-// fetch("/api/cursos")
-//    ↓
-// server.js
-//    ↓
-// routes/cursos.js
-//    ↓
-// config/supabase.js
-//    ↓
-// Supabase
+// LOGIN:
+// - já utiliza Supabase Auth;
+// - usuário e token ficam no localStorage.
 //
 // ==========================================================
 
 
 
 // ==========================================================
-// FUNCIONÁRIOS MOCKADOS
+// DADOS DA SESSÃO
 // ==========================================================
 //
-// Esta parte continuará simulada por enquanto.
-// Futuramente criaremos a tabela de funcionários
-// e integraremos também ao Supabase.
+// Após o login salvamos:
+//
+// access_token
+// usuario_logado
+//
+// Agora a tela Admin utiliza esses dados.
+//
+// NÃO precisamos mais deixar UUID do admin
+// escrito manualmente no JavaScript.
 //
 // ==========================================================
 
-let employees = [
-
-  {
-    id: 1,
-
-    name:
-      "Maycon Santos",
-
-    username:
-      "maycon.santos",
-
-    role:
-      "Desenvolvedor Júnior",
-
-    sector:
-      "Tecnologia",
-
-    status:
-      "Ativo"
-  },
+const accessToken =
+  localStorage.getItem(
+    "access_token"
+  );
 
 
-  {
-    id: 2,
-
-    name:
-      "Amanda Ribeiro",
-
-    username:
-      "amanda.ribeiro",
-
-    role:
-      "Analista de Sistemas",
-
-    sector:
-      "Tecnologia",
-
-    status:
-      "Ativo"
-  },
+let currentAdmin =
+  null;
 
 
-  {
-    id: 3,
+// Tentamos recuperar o usuário logado.
+try {
 
-    name:
-      "João Lima",
+  const storedUser =
+    localStorage.getItem(
+      "usuario_logado"
+    );
 
-    username:
-      "joao.lima",
 
-    role:
-      "Analista de Suporte",
+  if (storedUser) {
 
-    sector:
-      "Tecnologia",
+    currentAdmin =
+      JSON.parse(
+        storedUser
+      );
 
-    status:
-      "Ativo"
   }
+
+} catch (error) {
+
+  console.error(
+    "Erro ao recuperar usuário logado:",
+    error
+  );
+
+}
+
+
+
+// ==========================================================
+// VERIFICAR SESSÃO
+// ==========================================================
+//
+// Se alguém tentar abrir:
+//
+// /admin/
+//
+// diretamente sem login,
+// voltamos para:
+//
+// /login/
+//
+// ==========================================================
+
+function validateAdminSession() {
+
+  // Sem token ou usuário.
+  if (
+    !accessToken ||
+    !currentAdmin
+  ) {
+
+    window.location.href =
+      "/login/";
+
+    return false;
+
+  }
+
+
+  // Somente administradores podem entrar nesta tela.
+  if (
+    currentAdmin.perfil !==
+      "admin_principal"
+    &&
+    currentAdmin.perfil !==
+      "admin_setor"
+  ) {
+
+    window.location.href =
+      "/treinamentos/";
+
+    return false;
+
+  }
+
+
+  // Usuário precisa estar ativo.
+  if (
+    currentAdmin.ativo ===
+    false
+  ) {
+
+    clearSession();
+
+    window.location.href =
+      "/login/";
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+
+// ==========================================================
+// LIMPAR SESSÃO
+// ==========================================================
+
+function clearSession() {
+
+  localStorage.removeItem(
+    "access_token"
+  );
+
+
+  localStorage.removeItem(
+    "usuario_logado"
+  );
+
+}
+
+
+
+// ==========================================================
+// HEADERS AUTENTICADOS
+// ==========================================================
+//
+// Utilizaremos esta função nas chamadas protegidas.
+//
+// Exemplo:
+//
+// Authorization:
+// Bearer eyJhbGci...
+//
+// O backend utiliza esse token para descobrir
+// quem realmente está fazendo a solicitação.
+//
+// ==========================================================
+
+function getAuthHeaders(
+  includeJson = false
+) {
+
+  const headers = {
+
+    Authorization:
+      `Bearer ${accessToken}`
+
+  };
+
+
+  if (includeJson) {
+
+    headers["Content-Type"] =
+      "application/json";
+
+  }
+
+
+  return headers;
+
+}
+
+
+
+// ==========================================================
+// TRATAR SESSÃO EXPIRADA
+// ==========================================================
+
+function handleUnauthorized(
+  response
+) {
+
+  if (
+    response.status === 401
+  ) {
+
+    clearSession();
+
+
+    alert(
+      "Sua sessão expirou. Faça login novamente."
+    );
+
+
+    window.location.href =
+      "/login/";
+
+
+    return true;
+
+  }
+
+
+  return false;
+
+}
+
+
+
+// ==========================================================
+// SETORES OFICIAIS
+// ==========================================================
+
+const sectors = [
+
+  "Operacional",
+
+  "Logística",
+
+  "Administrativo",
+
+  "Tecnologia",
+
+  "RH",
+
+  "Financeiro",
+
+  "Marketing"
 
 ];
 
 
 
 // ==========================================================
+// USUÁRIOS
+// ==========================================================
+
+let employees =
+  [];
+
+
+
+// ==========================================================
+// TIPO DE USUÁRIO SENDO CRIADO
+// ==========================================================
+//
+// colaborador
+//
+// ou:
+//
+// admin_setor
+//
+// ==========================================================
+
+let currentUserCreationProfile =
+  "colaborador";
+
+
+
+// ==========================================================
 // CURSOS
 // ==========================================================
-//
-// IMPORTANTE:
-//
-// Antes os cursos ficavam escritos diretamente
-// dentro deste array.
-//
-// Agora o array começa vazio.
-//
-// Ele será preenchido automaticamente pela nossa API:
-//
-// GET /api/cursos
-//
-// ==========================================================
 
-let courses = [];
+let courses =
+  [];
 
 
 
 // ==========================================================
-// AVALIAÇÕES MOCKADAS
+// AVALIAÇÕES
 // ==========================================================
 //
-// Ainda não estamos trabalhando na integração
-// das avaliações.
-//
-// Por isso esta parte continua simulada.
+// Esta parte ainda é temporária.
 //
 // ==========================================================
 
 let evaluations = [
 
   {
-    id: 1,
+
+    id:
+      1,
 
     employee:
       "Maycon Santos",
@@ -174,37 +348,46 @@ let evaluations = [
     activities: [
 
       {
+
         title:
           "Leia o material introdutório",
 
         file:
           "resumo-introducao.pdf"
+
       },
 
 
       {
+
         title:
           "Crie uma planilha de controle financeiro",
 
         file:
           "planilha-financeira.xlsx"
+
       },
 
 
       {
+
         title:
           "Crie uma tabela dinâmica",
 
         file:
           "tabela-dinamica.xlsx"
+
       }
 
     ]
+
   },
 
 
   {
-    id: 2,
+
+    id:
+      2,
 
     employee:
       "Amanda Ribeiro",
@@ -233,19 +416,24 @@ let evaluations = [
     activities: [
 
       {
+
         title:
           "Leia o material de segurança",
 
         file:
           "atividade-seguranca.pdf"
+
       }
 
     ]
+
   },
 
 
   {
-    id: 3,
+
+    id:
+      3,
 
     employee:
       "João Lima",
@@ -274,14 +462,17 @@ let evaluations = [
     activities: [
 
       {
+
         title:
           "Enviar certificado externo",
 
         file:
           "certificado-lgpd.pdf"
+
       }
 
     ]
+
   }
 
 ];
@@ -291,43 +482,14 @@ let evaluations = [
 // ==========================================================
 // ATIVIDADES TEMPORÁRIAS
 // ==========================================================
-//
-// Quando o administrador estiver criando um curso,
-// as atividades ficam temporariamente neste array.
-//
-// Exemplo:
-//
-// temporaryActivities = [
-//   {
-//     temporaryId: 123,
-//     title: "Criar uma planilha",
-//     description: "...",
-//     type: "Texto",
-//     resource: ""
-//   }
-// ];
-//
-// Quando clicar em "Publicar treinamento",
-// enviaremos tudo para:
-//
-// POST /api/cursos
-//
-// ==========================================================
 
-let temporaryActivities = [];
+let temporaryActivities =
+  [];
 
 
 
 // ==========================================================
-// STATUS ATUAL DAS AVALIAÇÕES
-// ==========================================================
-//
-// Define qual aba está selecionada:
-//
-// pending
-// approved
-// rejected
-//
+// STATUS DAS AVALIAÇÕES
 // ==========================================================
 
 let currentEvaluationStatus =
@@ -337,11 +499,6 @@ let currentEvaluationStatus =
 
 // ==========================================================
 // CURSO QUE SERÁ REMOVIDO
-// ==========================================================
-//
-// Guardamos temporariamente o ID do curso
-// quando o administrador clicar na lixeira.
-//
 // ==========================================================
 
 let courseToDelete =
@@ -403,15 +560,7 @@ const pageData = {
 
 
 // ==========================================================
-// FUNÇÃO AUXILIAR - ESCAPAR HTML
-// ==========================================================
-//
-// Como alguns dados vêm do banco e depois são colocados
-// dentro de innerHTML, utilizamos esta função.
-//
-// Ela evita que caracteres especiais sejam interpretados
-// como HTML.
-//
+// ESCAPAR HTML
 // ==========================================================
 
 function escapeHTML(value) {
@@ -460,55 +609,44 @@ function escapeHTML(value) {
 // ==========================================================
 // ALTERAR PÁGINA
 // ==========================================================
-//
-// Esta função controla a navegação interna da tela Admin.
-//
-// Exemplo:
-//
-// changePage("trainings");
-//
-// ==========================================================
 
-function changePage(pageName) {
+function changePage(
+  pageName
+) {
 
-  // ========================================================
-  // ESCONDER TODAS AS PÁGINAS
-  // ========================================================
-
+  // Esconder páginas.
   document
     .querySelectorAll(
       ".page-section"
     )
-    .forEach(page => {
+    .forEach(
+      page => {
 
-      page.classList.remove(
-        "active-page"
-      );
+        page.classList.remove(
+          "active-page"
+        );
 
-    });
+      }
+    );
 
 
-  // ========================================================
-  // REMOVER ITEM ATIVO DO MENU
-  // ========================================================
-
+  // Remover destaque do menu.
   document
     .querySelectorAll(
       ".menu-item"
     )
-    .forEach(item => {
+    .forEach(
+      item => {
 
-      item.classList.remove(
-        "active"
-      );
+        item.classList.remove(
+          "active"
+        );
 
-    });
+      }
+    );
 
 
-  // ========================================================
-  // MOSTRAR PÁGINA SELECIONADA
-  // ========================================================
-
+  // Mostrar página.
   const page =
     document.getElementById(
       `${pageName}Page`
@@ -524,10 +662,7 @@ function changePage(pageName) {
   }
 
 
-  // ========================================================
-  // DESTACAR ITEM DO MENU
-  // ========================================================
-
+  // Destacar menu.
   const menuItem =
     document.querySelector(
       `[data-page="${pageName}"]`
@@ -543,28 +678,39 @@ function changePage(pageName) {
   }
 
 
-  // ========================================================
-  // ALTERAR TÍTULO
-  // ========================================================
-
+  // Alterar título.
   if (
     pageData[pageName]
   ) {
 
-    document
-      .getElementById(
+    const title =
+      document.getElementById(
         "pageTitle"
-      )
-      .textContent =
-        pageData[pageName].title;
+      );
 
 
-    document
-      .getElementById(
+    const subtitle =
+      document.getElementById(
         "pageSubtitle"
-      )
-      .textContent =
-        pageData[pageName].subtitle;
+      );
+
+
+    if (title) {
+
+      title.textContent =
+        pageData[pageName]
+          .title;
+
+    }
+
+
+    if (subtitle) {
+
+      subtitle.textContent =
+        pageData[pageName]
+          .subtitle;
+
+    }
 
   }
 
@@ -573,61 +719,66 @@ function changePage(pageName) {
 
 
 // ==========================================================
-// CLIQUES DOS BOTÕES DO MENU
+// CLIQUES NO MENU
 // ==========================================================
 
 document
   .querySelectorAll(
     ".menu-item[data-page]"
   )
-  .forEach(button => {
+  .forEach(
+    button => {
 
-    button.addEventListener(
-      "click",
-      () => {
+      button.addEventListener(
+        "click",
+        () => {
 
-        changePage(
-          button.dataset.page
-        );
+          changePage(
+            button.dataset.page
+          );
 
-      }
-    );
+        }
+      );
 
-  });
+    }
+  );
 
 
 
 // ==========================================================
-// GERAR INICIAIS DO FUNCIONÁRIO
-// ==========================================================
-//
-// Exemplo:
-//
-// Maycon Santos
-//
-// Resultado:
-//
-// MS
-//
+// GERAR INICIAIS
 // ==========================================================
 
 function getInitials(name) {
 
+  if (!name) {
+
+    return "";
+
+  }
+
+
   return name
+
     .split(" ")
+
     .filter(
       word =>
         word.length > 0
     )
+
     .slice(
       0,
       2
     )
+
     .map(
       word =>
         word[0]
     )
+
     .join("")
+
     .toUpperCase();
 
 }
@@ -662,7 +813,6 @@ function openModal(id) {
   );
 
 
-  // Impede a rolagem da tela que está atrás.
   document.body.style.overflow =
     "hidden";
 
@@ -694,7 +844,6 @@ function closeModal(id) {
   );
 
 
-  // Libera a rolagem novamente.
   document.body.style.overflow =
     "auto";
 
@@ -703,10 +852,334 @@ function closeModal(id) {
 
 
 // ==========================================================
-// ABRIR MODAL DE FUNCIONÁRIO
+// RENDERIZAR ADMIN LOGADO
+// ==========================================================
+//
+// Agora os dados vêm do usuário realmente autenticado.
+//
+// Banco:
+//
+// nome
+// setor
+// cargo
+// perfil
+//
+// ==========================================================
+
+function renderCurrentAdmin() {
+
+  if (!currentAdmin) {
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // SETOR
+  // ========================================================
+
+  const adminSector =
+    document.getElementById(
+      "adminSector"
+    );
+
+
+  if (adminSector) {
+
+    if (
+      currentAdmin.perfil ===
+      "admin_principal"
+    ) {
+
+      adminSector.textContent =
+        "Acesso geral";
+
+    } else {
+
+      adminSector.textContent =
+        currentAdmin.setor;
+
+    }
+
+  }
+
+
+  // ========================================================
+  // AVATAR
+  // ========================================================
+
+  const adminAvatar =
+    document.getElementById(
+      "adminAvatar"
+    );
+
+
+  if (adminAvatar) {
+
+    adminAvatar.textContent =
+      getInitials(
+        currentAdmin.nome
+      );
+
+  }
+
+
+  // ========================================================
+  // NOME
+  // ========================================================
+
+  const adminName =
+    document.getElementById(
+      "adminName"
+    );
+
+
+  if (adminName) {
+
+    adminName.textContent =
+      currentAdmin.nome;
+
+  }
+
+
+  // ========================================================
+  // FUNÇÃO
+  // ========================================================
+
+  const adminRole =
+    document.getElementById(
+      "adminRole"
+    );
+
+
+  if (adminRole) {
+
+    if (
+      currentAdmin.perfil ===
+      "admin_principal"
+    ) {
+
+      adminRole.textContent =
+        "Administrador Principal";
+
+    } else {
+
+      adminRole.textContent =
+        `Administrador • ${currentAdmin.setor}`;
+
+    }
+
+  }
+
+
+  // ========================================================
+  // BOTÃO NOVO ADMIN DO DASHBOARD
+  // ========================================================
+
+  const newAdminButton =
+    document.getElementById(
+      "newAdminButton"
+    );
+
+
+  if (newAdminButton) {
+
+    newAdminButton.style.display =
+
+      currentAdmin.perfil ===
+      "admin_principal"
+
+        ? "inline-flex"
+
+        : "none";
+
+  }
+
+
+  // ========================================================
+  // BOTÃO NOVO ADMIN DA PÁGINA FUNCIONÁRIOS
+  // ========================================================
+
+  const newAdminToolbarButton =
+    document.getElementById(
+      "newAdminToolbarButton"
+    );
+
+
+  if (
+    newAdminToolbarButton
+  ) {
+
+    newAdminToolbarButton.style.display =
+
+      currentAdmin.perfil ===
+      "admin_principal"
+
+        ? "inline-flex"
+
+        : "none";
+
+  }
+
+}
+
+
+
+// ==========================================================
+// PREENCHER SETORES
+// ==========================================================
+
+function populateSectorSelect() {
+
+  const select =
+    document.getElementById(
+      "employeeSector"
+    );
+
+
+  if (
+    !select ||
+    !currentAdmin
+  ) {
+
+    return;
+
+  }
+
+
+  select.innerHTML =
+    "";
+
+
+  // ========================================================
+  // ADMIN DE SETOR
+  // ========================================================
+  //
+  // Não pode escolher outro setor.
+  //
+
+  if (
+    currentAdmin.perfil ===
+    "admin_setor"
+  ) {
+
+    const option =
+      document.createElement(
+        "option"
+      );
+
+
+    option.value =
+      currentAdmin.setor;
+
+
+    option.textContent =
+      currentAdmin.setor;
+
+
+    select.appendChild(
+      option
+    );
+
+
+    select.disabled =
+      true;
+
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // ADMIN PRINCIPAL
+  // ========================================================
+
+  select.disabled =
+    false;
+
+
+  sectors.forEach(
+    sector => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        sector;
+
+
+      option.textContent =
+        sector;
+
+
+      select.appendChild(
+        option
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// ABRIR NOVO FUNCIONÁRIO
 // ==========================================================
 
 function openEmployeeModal() {
+
+  currentUserCreationProfile =
+    "colaborador";
+
+
+  prepareUserModal();
+
+}
+
+
+
+// ==========================================================
+// ABRIR NOVO ADMINISTRADOR
+// ==========================================================
+
+function openAdminModal() {
+
+  if (
+    !currentAdmin ||
+    currentAdmin.perfil !==
+      "admin_principal"
+  ) {
+
+    alert(
+      "Somente o Administrador Principal pode criar administradores."
+    );
+
+    return;
+
+  }
+
+
+  currentUserCreationProfile =
+    "admin_setor";
+
+
+  prepareUserModal();
+
+}
+
+
+
+// ==========================================================
+// PREPARAR MODAL
+// ==========================================================
+
+function prepareUserModal() {
 
   const form =
     document.getElementById(
@@ -721,6 +1194,94 @@ function openEmployeeModal() {
   }
 
 
+  populateSectorSelect();
+
+
+  const modalTitle =
+    document.getElementById(
+      "employeeModalTitle"
+    );
+
+
+  const modalDescription =
+    document.getElementById(
+      "employeeModalDescription"
+    );
+
+
+  const submitText =
+    document.getElementById(
+      "employeeSubmitText"
+    );
+
+
+  // ========================================================
+  // ADMINISTRADOR
+  // ========================================================
+
+  if (
+    currentUserCreationProfile ===
+    "admin_setor"
+  ) {
+
+    if (modalTitle) {
+
+      modalTitle.textContent =
+        "Novo administrador";
+
+    }
+
+
+    if (modalDescription) {
+
+      modalDescription.textContent =
+        "Crie um administrador responsável por um setor.";
+
+    }
+
+
+    if (submitText) {
+
+      submitText.textContent =
+        "Criar administrador";
+
+    }
+
+  }
+
+
+  // ========================================================
+  // COLABORADOR
+  // ========================================================
+
+  else {
+
+    if (modalTitle) {
+
+      modalTitle.textContent =
+        "Novo funcionário";
+
+    }
+
+
+    if (modalDescription) {
+
+      modalDescription.textContent =
+        "Crie o acesso de um colaborador.";
+
+    }
+
+
+    if (submitText) {
+
+      submitText.textContent =
+        "Criar funcionário";
+
+    }
+
+  }
+
+
   openModal(
     "employeeModal"
   );
@@ -730,24 +1291,195 @@ function openEmployeeModal() {
 
 
 // ==========================================================
-// CRIAR FUNCIONÁRIO
+// CONVERTER USUÁRIO DA API
+// ==========================================================
+
+function mapApiUser(
+  apiUser
+) {
+
+  return {
+
+    id:
+      apiUser.id,
+
+    name:
+      apiUser.nome,
+
+    registration:
+      apiUser.matricula,
+
+    email:
+      apiUser.email,
+
+    role:
+      apiUser.cargo,
+
+    sector:
+      apiUser.setor,
+
+    profile:
+      apiUser.perfil,
+
+    status:
+      apiUser.ativo
+        ? "Ativo"
+        : "Inativo"
+
+  };
+
+}
+
+
+
+// ==========================================================
+// CARREGAR USUÁRIOS DA API
 // ==========================================================
 //
-// IMPORTANTE:
+// ALTERAÇÃO IMPORTANTE:
 //
-// Continua funcionando apenas no frontend.
+// Agora enviamos:
 //
-// Ainda NÃO estamos criando usuários reais.
+// Authorization: Bearer TOKEN
+//
+// Não precisamos mais dizer ao backend
+// manualmente quem é o administrador.
 //
 // ==========================================================
 
-function createEmployee(event) {
+async function loadUsersFromApi() {
+
+  try {
+
+    console.log(
+      "Buscando usuários..."
+    );
+
+
+    const response =
+      await fetch(
+        "/api/usuarios",
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    // Sessão expirada.
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        result.error ||
+        "Não foi possível carregar os usuários."
+      );
+
+    }
+
+
+    const apiUsers =
+
+      Array.isArray(result)
+
+        ? result
+
+        : result.usuarios || [];
+
+
+    employees =
+      apiUsers.map(
+        mapApiUser
+      );
+
+
+    renderEmployees();
+
+
+    updateDashboardCounters();
+
+
+    console.log(
+      `${employees.length} usuário(s) carregado(s).`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao carregar usuários:",
+      error
+    );
+
+
+    employees =
+      [];
+
+
+    renderEmployees();
+
+
+    updateDashboardCounters();
+
+  }
+
+}
+
+
+
+// ==========================================================
+// CRIAR USUÁRIO
+// ==========================================================
+//
+// NOVO FLUXO:
+//
+// Admin logado
+//      ↓
+// token
+//      ↓
+// POST /api/usuarios
+//      ↓
+// Node.js
+//      ↓
+// valida token
+//      ↓
+// identifica admin
+//      ↓
+// verifica perfil/setor
+//      ↓
+// Supabase Auth
+//      +
+// tabela usuario
+//
+// ==========================================================
+
+async function createEmployee(
+  event
+) {
 
   event.preventDefault();
 
 
   // ========================================================
-  // PEGAR OS CAMPOS
+  // CAMPOS
   // ========================================================
 
   const name =
@@ -759,13 +1491,31 @@ function createEmployee(event) {
       .trim();
 
 
-  const username =
+  const registration =
     document
       .getElementById(
-        "employeeUsername"
+        "employeeRegistration"
       )
       .value
       .trim();
+
+
+  const email =
+    document
+      .getElementById(
+        "employeeEmail"
+      )
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    document
+      .getElementById(
+        "employeePassword"
+      )
+      .value;
 
 
   const role =
@@ -777,64 +1527,284 @@ function createEmployee(event) {
       .trim();
 
 
+  const sectorSelect =
+    document.getElementById(
+      "employeeSector"
+    );
+
+
+  // ========================================================
+  // DEFINIR SETOR
+  // ========================================================
+
   const sector =
-    document
-      .getElementById(
-        "employeeSector"
-      )
-      .value;
+
+    currentAdmin.perfil ===
+    "admin_setor"
+
+      ? currentAdmin.setor
+
+      : sectorSelect.value;
+
 
 
   // ========================================================
-  // CRIAR OBJETO
+  // VALIDAÇÕES
   // ========================================================
 
-  const employee = {
+  if (
+    !name ||
+    !registration ||
+    !email ||
+    !password ||
+    !role ||
+    !sector
+  ) {
 
-    id:
-      Date.now(),
+    alert(
+      "Preencha todos os campos."
+    );
 
-    name,
+    return;
 
-    username,
+  }
 
-    role,
 
-    sector,
+  if (
+    password.length < 6
+  ) {
 
-    status:
-      "Ativo"
+    alert(
+      "A senha inicial deve possuir pelo menos 6 caracteres."
+    );
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // VALIDAÇÃO DE ADMIN
+  // ========================================================
+
+  if (
+    currentUserCreationProfile ===
+      "admin_setor"
+    &&
+    currentAdmin.perfil !==
+      "admin_principal"
+  ) {
+
+    alert(
+      "Você não possui permissão para criar administradores."
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // DADOS DO NOVO USUÁRIO
+  // ========================================================
+  //
+  // IMPORTANTE:
+  //
+  // admin_id FOI REMOVIDO.
+  //
+  // Quem cria o usuário será identificado
+  // automaticamente através do token.
+  //
+  // ========================================================
+
+  const userData = {
+
+    nome:
+      name,
+
+    matricula:
+      registration,
+
+    email:
+      email,
+
+    senha:
+      password,
+
+    cargo:
+      role,
+
+    setor:
+      sector,
+
+    perfil:
+      currentUserCreationProfile
 
   };
 
 
-  // ========================================================
-  // ADICIONAR AO ARRAY
-  // ========================================================
-
-  employees.push(
-    employee
-  );
-
 
   // ========================================================
-  // ATUALIZAR INTERFACE
+  // BOTÃO
   // ========================================================
 
-  renderEmployees();
+  const submitButton =
+    document.getElementById(
+      "employeeSubmitButton"
+    );
 
 
-  updateDashboardCounters();
+  const submitText =
+    document.getElementById(
+      "employeeSubmitText"
+    );
 
 
-  closeModal(
-    "employeeModal"
-  );
+  const originalText =
+    submitText
+      ? submitText.textContent
+      : "";
 
 
-  alert(
-    "Funcionário criado apenas no frontend."
-  );
+  try {
+
+    if (submitButton) {
+
+      submitButton.disabled =
+        true;
+
+    }
+
+
+    if (submitText) {
+
+      submitText.textContent =
+        "Criando...";
+
+    }
+
+
+
+    // ======================================================
+    // POST /api/usuarios
+    // ======================================================
+
+    const response =
+      await fetch(
+        "/api/usuarios",
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders(
+              true
+            ),
+
+          body:
+            JSON.stringify(
+              userData
+            )
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+
+    // ======================================================
+    // ERRO
+    // ======================================================
+
+    if (!response.ok) {
+
+      throw new Error(
+        result.error ||
+        result.details ||
+        "Não foi possível criar o usuário."
+      );
+
+    }
+
+
+
+    // ======================================================
+    // SUCESSO
+    // ======================================================
+
+    closeModal(
+      "employeeModal"
+    );
+
+
+    await loadUsersFromApi();
+
+
+    if (
+      currentUserCreationProfile ===
+      "admin_setor"
+    ) {
+
+      alert(
+        "Administrador criado com sucesso!"
+      );
+
+    } else {
+
+      alert(
+        "Funcionário criado com sucesso!"
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao criar usuário:",
+      error
+    );
+
+
+    alert(
+      error.message
+    );
+
+
+  } finally {
+
+    if (submitButton) {
+
+      submitButton.disabled =
+        false;
+
+    }
+
+
+    if (submitText) {
+
+      submitText.textContent =
+        originalText;
+
+    }
+
+  }
 
 }
 
@@ -859,10 +1829,6 @@ function renderEmployees() {
   }
 
 
-  // ========================================================
-  // TEXTO DA PESQUISA
-  // ========================================================
-
   const searchInput =
     document.getElementById(
       "employeeSearch"
@@ -870,10 +1836,14 @@ function renderEmployees() {
 
 
   const search =
+
     searchInput
-      ? searchInput.value
-        .trim()
-        .toLowerCase()
+
+      ? searchInput
+          .value
+          .trim()
+          .toLowerCase()
+
       : "";
 
 
@@ -886,18 +1856,33 @@ function renderEmployees() {
       employee => {
 
         const name =
-          employee.name
-            .toLowerCase();
+          String(
+            employee.name || ""
+          ).toLowerCase();
 
 
-        const username =
-          employee.username
-            .toLowerCase();
+        const registration =
+          String(
+            employee.registration || ""
+          ).toLowerCase();
+
+
+        const email =
+          String(
+            employee.email || ""
+          ).toLowerCase();
 
 
         const role =
-          employee.role
-            .toLowerCase();
+          String(
+            employee.role || ""
+          ).toLowerCase();
+
+
+        const sector =
+          String(
+            employee.sector || ""
+          ).toLowerCase();
 
 
         return (
@@ -908,7 +1893,13 @@ function renderEmployees() {
 
           ||
 
-          username.includes(
+          registration.includes(
+            search
+          )
+
+          ||
+
+          email.includes(
             search
           )
 
@@ -918,22 +1909,24 @@ function renderEmployees() {
             search
           )
 
+          ||
+
+          sector.includes(
+            search
+          )
+
         );
 
       }
     );
 
 
-  // ========================================================
-  // LIMPAR TABELA
-  // ========================================================
-
   tbody.innerHTML =
     "";
 
 
   // ========================================================
-  // NENHUM FUNCIONÁRIO
+  // SEM USUÁRIOS
   // ========================================================
 
   if (
@@ -949,7 +1942,7 @@ function renderEmployees() {
     row.innerHTML = `
 
       <td
-        colspan="6"
+        colspan="8"
         style="
           text-align: center;
           padding: 30px;
@@ -957,7 +1950,7 @@ function renderEmployees() {
         "
       >
 
-        Nenhum funcionário encontrado.
+        Nenhum usuário encontrado.
 
       </td>
 
@@ -974,8 +1967,9 @@ function renderEmployees() {
   }
 
 
+
   // ========================================================
-  // CRIAR LINHAS
+  // USUÁRIOS
   // ========================================================
 
   filtered.forEach(
@@ -987,6 +1981,33 @@ function renderEmployees() {
         );
 
 
+      let profileText =
+        "Colaborador";
+
+
+      if (
+        employee.profile ===
+        "admin_setor"
+      ) {
+
+        profileText =
+          "Admin. do setor";
+
+      }
+
+
+      if (
+        employee.profile ===
+        "admin_principal"
+      ) {
+
+        profileText =
+          "Admin. principal";
+
+      }
+
+
+
       row.innerHTML = `
 
         <td>
@@ -995,14 +2016,18 @@ function renderEmployees() {
 
             <div class="table-avatar">
 
-              ${getInitials(employee.name)}
+              ${getInitials(
+                employee.name
+              )}
 
             </div>
 
 
             <strong>
 
-              ${escapeHTML(employee.name)}
+              ${escapeHTML(
+                employee.name
+              )}
 
             </strong>
 
@@ -1013,21 +2038,36 @@ function renderEmployees() {
 
         <td>
 
-          ${escapeHTML(employee.username)}
+          ${escapeHTML(
+            employee.registration
+          )}
 
         </td>
 
 
         <td>
 
-          ${escapeHTML(employee.role)}
+          ${escapeHTML(
+            employee.email
+          )}
 
         </td>
 
 
         <td>
 
-          ${escapeHTML(employee.sector)}
+          ${escapeHTML(
+            employee.role
+          )}
+
+        </td>
+
+
+        <td>
+
+          ${escapeHTML(
+            employee.sector
+          )}
 
         </td>
 
@@ -1037,11 +2077,38 @@ function renderEmployees() {
           <span
             class="
               status-badge
-              success
+              purple-status
             "
           >
 
-            ${escapeHTML(employee.status)}
+            ${escapeHTML(
+              profileText
+            )}
+
+          </span>
+
+        </td>
+
+
+        <td>
+
+          <span
+            class="
+              status-badge
+              ${
+                employee.status ===
+                "Ativo"
+
+                  ? "success"
+
+                  : "danger"
+              }
+            "
+          >
+
+            ${escapeHTML(
+              employee.status
+            )}
 
           </span>
 
@@ -1081,7 +2148,7 @@ function renderEmployees() {
 
 
 // ==========================================================
-// PESQUISA DE FUNCIONÁRIO
+// PESQUISAR FUNCIONÁRIOS
 // ==========================================================
 
 const employeeSearchInput =
@@ -1102,53 +2169,42 @@ if (
 
 }
 
-
-
 // ==========================================================
 // CONVERTER CURSO DA API PARA O FORMATO DO FRONTEND
 // ==========================================================
 //
-// A API retorna:
+// A API retorna nomes em português.
+//
+// Exemplo:
 //
 // titulo
 // descricao
 // carga_horaria
 // setor_responsavel
 //
-// Mas o frontend que já criamos utiliza:
+// A interface utiliza:
 //
 // title
 // description
 // hours
 // responsibleSector
 //
-// Em vez de refazer a tela inteira,
-// fazemos uma tradução aqui.
-//
 // ==========================================================
 
-function mapApiCourse(
-  apiCourse
-) {
+function mapApiCourse(apiCourse) {
 
-  // Pegamos as atividades vindas da API.
   const apiActivities =
-    apiCourse.atividades_curso
-    || [];
+    apiCourse.atividades_curso || [];
 
 
-  // Ordenamos pela coluna "ordem".
+  // Ordenamos as atividades.
   apiActivities.sort(
     (a, b) => {
 
       return (
-        Number(
-          a.ordem || 0
-        )
+        Number(a.ordem || 0)
         -
-        Number(
-          b.ordem || 0
-        )
+        Number(b.ordem || 0)
       );
 
     }
@@ -1156,10 +2212,6 @@ function mapApiCourse(
 
 
   return {
-
-    // ======================================================
-    // CURSO
-    // ======================================================
 
     id:
       apiCourse.id,
@@ -1202,8 +2254,7 @@ function mapApiCourse(
 
 
     externalLink:
-      apiCourse.link_externo
-      || "",
+      apiCourse.link_externo || "",
 
 
     active:
@@ -1213,10 +2264,6 @@ function mapApiCourse(
     createdAt:
       apiCourse.created_at,
 
-
-    // ======================================================
-    // ATIVIDADES
-    // ======================================================
 
     activities:
       apiActivities.map(
@@ -1237,8 +2284,7 @@ function mapApiCourse(
 
 
             description:
-              activity.descricao
-              || "",
+              activity.descricao || "",
 
 
             type:
@@ -1246,8 +2292,7 @@ function mapApiCourse(
 
 
             resource:
-              activity.recurso
-              || "",
+              activity.recurso || "",
 
 
             order:
@@ -1267,14 +2312,6 @@ function mapApiCourse(
 // ==========================================================
 // CARREGAR CURSOS DA API
 // ==========================================================
-//
-// Esta função substitui os cursos mockados.
-//
-// Fazemos:
-//
-// GET /api/cursos
-//
-// ==========================================================
 
 async function loadCoursesFromApi() {
 
@@ -1283,10 +2320,6 @@ async function loadCoursesFromApi() {
       "adminTrainingGrid"
     );
 
-
-  // ========================================================
-  // MOSTRAR CARREGAMENTO
-  // ========================================================
 
   if (container) {
 
@@ -1302,18 +2335,12 @@ async function loadCoursesFromApi() {
           "
         ></i>
 
-
         <strong>
-
           Carregando treinamentos...
-
         </strong>
 
-
         <span>
-
           Buscando dados do servidor.
-
         </span>
 
       </div>
@@ -1325,66 +2352,42 @@ async function loadCoursesFromApi() {
 
   try {
 
-    // ======================================================
-    // CONSULTAR NOSSO BACKEND
-    // ======================================================
-
     const response =
       await fetch(
-        "/api/cursos"
+        "/api/cursos",
+        {
+
+          method:
+            "GET"
+
+        }
       );
 
-
-    // ======================================================
-    // TRANSFORMAR RESPOSTA EM JSON
-    // ======================================================
 
     const data =
       await response.json();
 
 
-    // ======================================================
-    // VERIFICAR ERRO HTTP
-    // ======================================================
-
-    if (
-      !response.ok
-    ) {
+    if (!response.ok) {
 
       throw new Error(
-        data.erro
-        ||
+        data.erro ||
         "Não foi possível carregar os cursos."
       );
 
     }
 
 
-    // ======================================================
-    // CONVERTER CURSOS PARA O FORMATO DO FRONTEND
-    // ======================================================
-
     courses =
       (data || []).map(
-        course => {
-
-          return mapApiCourse(
-            course
-          );
-
-        }
+        course =>
+          mapApiCourse(course)
       );
 
 
-    // ======================================================
-    // ATUALIZAR A INTERFACE
-    // ======================================================
-
     renderCourses();
 
-
     renderDashboardCourses();
-
 
     updateDashboardCounters();
 
@@ -1402,19 +2405,15 @@ async function loadCoursesFromApi() {
     );
 
 
-    courses = [];
+    courses =
+      [];
 
-
-    // ======================================================
-    // MOSTRAR ERRO
-    // ======================================================
 
     if (container) {
 
       container.innerHTML = `
 
         <div class="empty-state">
-
 
           <i
             class="
@@ -1423,18 +2422,12 @@ async function loadCoursesFromApi() {
             "
           ></i>
 
-
           <strong>
-
             Não foi possível carregar os treinamentos
-
           </strong>
 
-
           <span>
-
             ${escapeHTML(error.message)}
-
           </span>
 
         </div>
@@ -1444,8 +2437,6 @@ async function loadCoursesFromApi() {
     }
 
 
-    // Mesmo com erro nos cursos,
-    // atualizamos os contadores.
     updateDashboardCounters();
 
   }
@@ -1460,14 +2451,9 @@ async function loadCoursesFromApi() {
 
 function openCourseModal() {
 
-  // Limpamos atividades criadas anteriormente.
   temporaryActivities =
     [];
 
-
-  // ========================================================
-  // LIMPAR FORMULÁRIO
-  // ========================================================
 
   const form =
     document.getElementById(
@@ -1482,19 +2468,13 @@ function openCourseModal() {
   }
 
 
-  // ========================================================
-  // ESCONDER CAMPO DE LINK EXTERNO
-  // ========================================================
-
   const externalArea =
     document.getElementById(
       "externalLinkArea"
     );
 
 
-  if (
-    externalArea
-  ) {
+  if (externalArea) {
 
     externalArea.classList.remove(
       "show"
@@ -1503,16 +2483,8 @@ function openCourseModal() {
   }
 
 
-  // ========================================================
-  // LIMPAR CONSTRUTOR DAS ATIVIDADES
-  // ========================================================
-
   renderActivityBuilder();
 
-
-  // ========================================================
-  // ABRIR MODAL
-  // ========================================================
 
   openModal(
     "courseModal"
@@ -1524,12 +2496,6 @@ function openCourseModal() {
 
 // ==========================================================
 // CURSO EXTERNO
-// ==========================================================
-//
-// Controla a exibição do campo:
-//
-// Link do curso externo
-//
 // ==========================================================
 
 function toggleExternalCourse() {
@@ -1556,9 +2522,7 @@ function toggleExternalCourse() {
   }
 
 
-  if (
-    checkbox.checked
-  ) {
+  if (checkbox.checked) {
 
     area.classList.add(
       "show"
@@ -1574,16 +2538,16 @@ function toggleExternalCourse() {
 
 }
 
+
+
 // ==========================================================
-// ADICIONAR ATIVIDADE TEMPORÁRIA
+// ADICIONAR ATIVIDADE
 // ==========================================================
 
 function addActivity() {
 
   const activity = {
 
-    // ID temporário usado somente enquanto
-    // o curso ainda não foi salvo.
     temporaryId:
       Date.now() + Math.random(),
 
@@ -1614,7 +2578,7 @@ function addActivity() {
 
 
 // ==========================================================
-// REMOVER ATIVIDADE TEMPORÁRIA
+// REMOVER ATIVIDADE
 // ==========================================================
 
 function removeActivity(
@@ -1624,7 +2588,8 @@ function removeActivity(
   temporaryActivities =
     temporaryActivities.filter(
       activity =>
-        activity.temporaryId !== activityId
+        activity.temporaryId !==
+        activityId
     );
 
 
@@ -1635,7 +2600,7 @@ function removeActivity(
 
 
 // ==========================================================
-// ATUALIZAR ATIVIDADE TEMPORÁRIA
+// ATUALIZAR ATIVIDADE
 // ==========================================================
 
 function updateActivity(
@@ -1647,7 +2612,8 @@ function updateActivity(
   const activity =
     temporaryActivities.find(
       item =>
-        item.temporaryId === activityId
+        item.temporaryId ===
+        activityId
     );
 
 
@@ -1662,10 +2628,9 @@ function updateActivity(
     value;
 
 
-  // Se o tipo da atividade mudar,
-  // limpamos o recurso anterior.
   if (
-    field === "type"
+    field ===
+    "type"
   ) {
 
     activity.resource =
@@ -1698,10 +2663,6 @@ function renderActivityBuilder() {
 
   }
 
-
-  // ========================================================
-  // SEM ATIVIDADES
-  // ========================================================
 
   if (
     temporaryActivities.length === 0
@@ -1736,10 +2697,6 @@ function renderActivityBuilder() {
     "";
 
 
-  // ========================================================
-  // CRIAR CADA BLOCO DE ATIVIDADE
-  // ========================================================
-
   temporaryActivities.forEach(
     (activity, index) => {
 
@@ -1758,11 +2715,12 @@ function renderActivityBuilder() {
 
 
       // ======================================================
-      // TIPO LINK
+      // LINK
       // ======================================================
 
       if (
-        activity.type === "Link"
+        activity.type ===
+        "Link"
       ) {
 
         resourceField = `
@@ -1780,11 +2738,8 @@ function renderActivityBuilder() {
 
             <input
               type="url"
-
               placeholder="https://..."
-
               value="${escapeHTML(activity.resource)}"
-
               oninput="
                 updateActivity(
                   ${activity.temporaryId},
@@ -1792,7 +2747,7 @@ function renderActivityBuilder() {
                   this.value
                 )
               "
-            />
+            >
 
           </div>
 
@@ -1802,11 +2757,12 @@ function renderActivityBuilder() {
 
 
       // ======================================================
-      // TIPO ARQUIVO
+      // ARQUIVO
       // ======================================================
 
       if (
-        activity.type === "Arquivo"
+        activity.type ===
+        "Arquivo"
       ) {
 
         resourceField = `
@@ -1824,14 +2780,13 @@ function renderActivityBuilder() {
 
             <input
               type="file"
-
               onchange="
                 saveActivityFile(
                   ${activity.temporaryId},
                   this
                 )
               "
-            />
+            >
 
             ${
               activity.resource
@@ -1870,17 +2825,13 @@ function renderActivityBuilder() {
         <div class="activity-builder-header">
 
           <strong>
-
             Atividade ${index + 1}
-
           </strong>
 
 
           <button
             type="button"
-
             class="remove-activity"
-
             onclick="
               removeActivity(
                 ${activity.temporaryId}
@@ -1909,15 +2860,11 @@ function renderActivityBuilder() {
               Título da atividade
             </label>
 
+
             <input
               type="text"
-
-              placeholder="
-                Ex.: Crie uma planilha financeira
-              "
-
+              placeholder="Ex.: Crie uma planilha financeira"
               value="${escapeHTML(activity.title)}"
-
               oninput="
                 updateActivity(
                   ${activity.temporaryId},
@@ -1925,9 +2872,10 @@ function renderActivityBuilder() {
                   this.value
                 )
               "
-            />
+            >
 
           </div>
+
 
 
           <div
@@ -1941,13 +2889,10 @@ function renderActivityBuilder() {
               Instruções
             </label>
 
+
             <textarea
               rows="3"
-
-              placeholder="
-                Explique o que o colaborador deverá realizar...
-              "
-
+              placeholder="Explique o que o colaborador deverá realizar..."
               oninput="
                 updateActivity(
                   ${activity.temporaryId},
@@ -1960,6 +2905,7 @@ function renderActivityBuilder() {
           </div>
 
 
+
           <div class="form-group">
 
             <label>
@@ -1968,7 +2914,6 @@ function renderActivityBuilder() {
 
 
             <select
-
               onchange="
                 updateActivity(
                   ${activity.temporaryId},
@@ -1980,10 +2925,12 @@ function renderActivityBuilder() {
 
               <option
                 value="Texto"
-
                 ${
-                  activity.type === "Texto"
+                  activity.type ===
+                  "Texto"
+
                     ? "selected"
+
                     : ""
                 }
               >
@@ -1993,10 +2940,12 @@ function renderActivityBuilder() {
 
               <option
                 value="Arquivo"
-
                 ${
-                  activity.type === "Arquivo"
+                  activity.type ===
+                  "Arquivo"
+
                     ? "selected"
+
                     : ""
                 }
               >
@@ -2006,10 +2955,12 @@ function renderActivityBuilder() {
 
               <option
                 value="Link"
-
                 ${
-                  activity.type === "Link"
+                  activity.type ===
+                  "Link"
+
                     ? "selected"
+
                     : ""
                 }
               >
@@ -2040,15 +2991,13 @@ function renderActivityBuilder() {
 
 
 // ==========================================================
-// SALVAR NOME DO ARQUIVO DA ATIVIDADE
+// SALVAR ARQUIVO DA ATIVIDADE
 // ==========================================================
 //
-// IMPORTANTE:
+// Ainda estamos guardando somente
+// o nome do arquivo.
 //
-// Nesta etapa ainda NÃO fazemos upload real.
-//
-// Guardamos apenas o nome do arquivo.
-// O Supabase Storage será implementado depois.
+// Upload real ficará para o Supabase Storage.
 //
 // ==========================================================
 
@@ -2070,7 +3019,8 @@ function saveActivityFile(
   const activity =
     temporaryActivities.find(
       item =>
-        item.temporaryId === activityId
+        item.temporaryId ===
+        activityId
     );
 
 
@@ -2081,7 +3031,6 @@ function saveActivityFile(
   }
 
 
-  // Pegamos apenas o nome.
   activity.resource =
     input.files[0].name;
 
@@ -2093,21 +3042,7 @@ function saveActivityFile(
 
 
 // ==========================================================
-// CRIAR CURSO VIA API
-// ==========================================================
-//
-// FLUXO:
-//
-// formulário
-//     ↓
-// app.js
-//     ↓
-// POST /api/cursos
-//     ↓
-// backend
-//     ↓
-// Supabase
-//
+// CRIAR CURSO
 // ==========================================================
 
 async function createCourse(
@@ -2118,11 +3053,12 @@ async function createCourse(
 
 
   // ========================================================
-  // VERIFICAR SE EXISTEM ATIVIDADES
+  // VERIFICAR ATIVIDADES
   // ========================================================
 
   if (
-    temporaryActivities.length === 0
+    temporaryActivities.length ===
+    0
   ) {
 
     const continueWithoutActivity =
@@ -2143,7 +3079,7 @@ async function createCourse(
 
 
   // ========================================================
-  // VALIDAR TÍTULO DAS ATIVIDADES
+  // VALIDAR ATIVIDADES
   // ========================================================
 
   const invalidActivity =
@@ -2166,10 +3102,6 @@ async function createCourse(
   }
 
 
-  // ========================================================
-  // PEGAR FORMULÁRIO
-  // ========================================================
-
   const form =
     document.getElementById(
       "courseForm"
@@ -2183,10 +3115,6 @@ async function createCourse(
   }
 
 
-  // ========================================================
-  // PEGAR BOTÃO DE SUBMIT
-  // ========================================================
-
   const submitButton =
     form.querySelector(
       'button[type="submit"]'
@@ -2199,9 +3127,7 @@ async function createCourse(
       : "";
 
 
-  if (
-    submitButton
-  ) {
+  if (submitButton) {
 
     submitButton.disabled =
       true;
@@ -2209,7 +3135,13 @@ async function createCourse(
 
     submitButton.innerHTML = `
 
-      <i class="fa-solid fa-spinner fa-spin"></i>
+      <i
+        class="
+          fa-solid
+          fa-spinner
+          fa-spin
+        "
+      ></i>
 
       Salvando...
 
@@ -2221,7 +3153,7 @@ async function createCourse(
   try {
 
     // ======================================================
-    // DADOS DO CURSO
+    // MONTAR CURSO
     // ======================================================
 
     const courseData = {
@@ -2312,10 +3244,6 @@ async function createCourse(
           || null,
 
 
-      // ====================================================
-      // ATIVIDADES
-      // ====================================================
-
       atividades:
         temporaryActivities.map(
           activity => {
@@ -2323,11 +3251,13 @@ async function createCourse(
             return {
 
               titulo:
-                activity.title.trim(),
+                activity.title
+                  .trim(),
 
 
               descricao:
-                activity.description.trim()
+                activity.description
+                  .trim()
                 || null,
 
 
@@ -2348,7 +3278,7 @@ async function createCourse(
 
 
     // ======================================================
-    // POST PARA NOSSO BACKEND
+    // ENVIAR PARA API
     // ======================================================
 
     const response =
@@ -2375,69 +3305,48 @@ async function createCourse(
       );
 
 
-    // ======================================================
-    // PEGAR RETORNO
-    // ======================================================
-
     const result =
       await response.json();
 
 
-    // ======================================================
-    // ERRO HTTP
-    // ======================================================
-
-    if (
-      !response.ok
-    ) {
+    if (!response.ok) {
 
       throw new Error(
-        result.erro
-        ||
+        result.erro ||
         "Não foi possível criar o treinamento."
       );
 
     }
 
 
-    console.log(
-      "Curso criado:",
-      result
-    );
-
-
     // ======================================================
     // SUCESSO
     // ======================================================
 
-    alert(
-      "Treinamento publicado com sucesso!"
-    );
-
-
-    // Limpamos atividades temporárias.
     temporaryActivities =
       [];
 
 
-    // Limpamos formulário.
     form.reset();
 
 
-    // Fechamos modal.
     closeModal(
       "courseModal"
     );
 
 
-    // Recarregamos os cursos.
     await loadCoursesFromApi();
 
 
-    // Levamos o usuário para a área de treinamentos.
     changePage(
       "trainings"
     );
+
+
+    alert(
+      "Treinamento publicado com sucesso!"
+    );
+
 
   } catch (error) {
 
@@ -2448,23 +3357,15 @@ async function createCourse(
 
 
     alert(
-      "Não foi possível criar o treinamento.\n\n" +
-      (
-        error.message
-        ||
-        "Erro desconhecido."
-      )
+      "Não foi possível criar o treinamento.\n\n"
+      +
+      error.message
     );
+
 
   } finally {
 
-    // ======================================================
-    // RESTAURAR BOTÃO
-    // ======================================================
-
-    if (
-      submitButton
-    ) {
+    if (submitButton) {
 
       submitButton.disabled =
         false;
@@ -2500,10 +3401,6 @@ function renderCourses() {
   }
 
 
-  // ========================================================
-  // PESQUISA
-  // ========================================================
-
   const searchInput =
     document.getElementById(
       "trainingSearch"
@@ -2512,15 +3409,14 @@ function renderCourses() {
 
   const search =
     searchInput
-      ? searchInput.value
-        .trim()
-        .toLowerCase()
+
+      ? searchInput
+          .value
+          .trim()
+          .toLowerCase()
+
       : "";
 
-
-  // ========================================================
-  // FILTRO DE ÁREA
-  // ========================================================
 
   const areaFilter =
     document.getElementById(
@@ -2534,15 +3430,10 @@ function renderCourses() {
       : "";
 
 
-  // ========================================================
-  // FILTRAGEM
-  // ========================================================
-
   const filtered =
     courses.filter(
       course => {
 
-        // Cursos inativos não aparecem.
         if (
           !course.active
         ) {
@@ -2553,14 +3444,14 @@ function renderCourses() {
 
 
         const title =
-          (
+          String(
             course.title || ""
           )
             .toLowerCase();
 
 
         const description =
-          (
+          String(
             course.description || ""
           )
             .toLowerCase();
@@ -2585,7 +3476,8 @@ function renderCourses() {
 
           ||
 
-          course.area === area;
+          course.area ===
+            area;
 
 
         return (
@@ -2598,16 +3490,12 @@ function renderCourses() {
     );
 
 
-  // ========================================================
-  // LIMPAR ÁREA
-  // ========================================================
-
   container.innerHTML =
     "";
 
 
   // ========================================================
-  // SEM RESULTADOS
+  // NENHUM CURSO
   // ========================================================
 
   if (
@@ -2639,10 +3527,6 @@ function renderCourses() {
   }
 
 
-  // ========================================================
-  // CRIAR CARDS
-  // ========================================================
-
   filtered.forEach(
     course => {
 
@@ -2670,7 +3554,6 @@ function renderCourses() {
 
         <div class="admin-course-banner">
 
-
           <span
             class="
               status-badge
@@ -2678,7 +3561,9 @@ function renderCourses() {
             "
           >
 
-            ${escapeHTML(course.requirement)}
+            ${escapeHTML(
+              course.requirement
+            )}
 
           </span>
 
@@ -2704,9 +3589,7 @@ function renderCourses() {
                     info
                   "
                 >
-
                   Externo
-
                 </span>
 
               `
@@ -2721,9 +3604,7 @@ function renderCourses() {
                     success
                   "
                 >
-
                   Interno
-
                 </span>
 
               `
@@ -2734,12 +3615,13 @@ function renderCourses() {
 
         <div class="course-card-content">
 
-
           <div class="course-card-top">
 
             <span class="course-card-area">
 
-              ${escapeHTML(course.area)}
+              ${escapeHTML(
+                course.area
+              )}
 
             </span>
 
@@ -2750,9 +3632,7 @@ function renderCourses() {
                 success
               "
             >
-
               Ativo
-
             </span>
 
           </div>
@@ -2760,14 +3640,18 @@ function renderCourses() {
 
           <h3>
 
-            ${escapeHTML(course.title)}
+            ${escapeHTML(
+              course.title
+            )}
 
           </h3>
 
 
           <p>
 
-            ${escapeHTML(course.description)}
+            ${escapeHTML(
+              course.description
+            )}
 
           </p>
 
@@ -2782,9 +3666,7 @@ function renderCourses() {
               </span>
 
               <strong>
-
                 ${course.hours}h
-
               </strong>
 
             </div>
@@ -2798,7 +3680,9 @@ function renderCourses() {
 
               <strong>
 
-                ${escapeHTML(course.level)}
+                ${escapeHTML(
+                  course.level
+                )}
 
               </strong>
 
@@ -2813,7 +3697,9 @@ function renderCourses() {
 
               <strong>
 
-                ${escapeHTML(course.targetSector)}
+                ${escapeHTML(
+                  course.targetSector
+                )}
 
               </strong>
 
@@ -2827,9 +3713,7 @@ function renderCourses() {
               </span>
 
               <strong>
-
                 ${course.activities.length}
-
               </strong>
 
             </div>
@@ -2842,10 +3726,9 @@ function renderCourses() {
 
             <button
               class="view-course-button"
-
               onclick="
                 showCourseDetails(
-                  ${course.id}
+                  '${course.id}'
                 )
               "
             >
@@ -2859,16 +3742,12 @@ function renderCourses() {
 
             <button
               class="delete-course-button"
-
               onclick="
                 askDeleteCourse(
-                  ${course.id}
+                  '${course.id}'
                 )
               "
-
-              title="
-                Remover curso
-              "
+              title="Remover curso"
             >
 
               <i class="fa-solid fa-trash"></i>
@@ -2894,7 +3773,7 @@ function renderCourses() {
 
 
 // ==========================================================
-// FILTRO POR TEXTO
+// PESQUISA DE CURSO
 // ==========================================================
 
 const trainingSearchInput =
@@ -2918,7 +3797,7 @@ if (
 
 
 // ==========================================================
-// FILTRO POR ÁREA
+// FILTRO DE ÁREA
 // ==========================================================
 
 const trainingAreaFilter =
@@ -2942,7 +3821,7 @@ if (
 
 
 // ==========================================================
-// RENDERIZAR CURSOS NO DASHBOARD
+// CURSOS NO DASHBOARD
 // ==========================================================
 
 function renderDashboardCourses() {
@@ -2962,10 +3841,12 @@ function renderDashboardCourses() {
 
   const activeCourses =
     courses
+
       .filter(
         course =>
           course.active
       )
+
       .slice(
         0,
         3
@@ -2976,12 +3857,9 @@ function renderDashboardCourses() {
     "";
 
 
-  // ========================================================
-  // SEM CURSOS
-  // ========================================================
-
   if (
-    activeCourses.length === 0
+    activeCourses.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -3006,10 +3884,6 @@ function renderDashboardCourses() {
   }
 
 
-  // ========================================================
-  // CRIAR MINI CARDS
-  // ========================================================
-
   activeCourses.forEach(
     course => {
 
@@ -3027,14 +3901,11 @@ function renderDashboardCourses() {
 
         <div class="training-mini-top">
 
+          <span class="training-mini-category">
 
-          <span
-            class="
-              training-mini-category
-            "
-          >
-
-            ${escapeHTML(course.area)}
+            ${escapeHTML(
+              course.area
+            )}
 
           </span>
 
@@ -3045,9 +3916,7 @@ function renderDashboardCourses() {
               success
             "
           >
-
             Ativo
-
           </span>
 
         </div>
@@ -3055,7 +3924,9 @@ function renderDashboardCourses() {
 
         <h3>
 
-          ${escapeHTML(course.title)}
+          ${escapeHTML(
+            course.title
+          )}
 
         </h3>
 
@@ -3064,7 +3935,9 @@ function renderDashboardCourses() {
 
           ${course.hours}h •
 
-          ${escapeHTML(course.level)} •
+          ${escapeHTML(
+            course.level
+          )} •
 
           ${course.activities.length}
           atividade(s)
@@ -3086,7 +3959,7 @@ function renderDashboardCourses() {
 
 
 // ==========================================================
-// VISUALIZAR DETALHES DO CURSO
+// DETALHES DO CURSO
 // ==========================================================
 
 function showCourseDetails(
@@ -3096,8 +3969,8 @@ function showCourseDetails(
   const course =
     courses.find(
       item =>
-        Number(item.id) ===
-        Number(courseId)
+        String(item.id) ===
+        String(courseId)
     );
 
 
@@ -3113,10 +3986,6 @@ function showCourseDetails(
   }
 
 
-  // ========================================================
-  // MONTAR ATIVIDADES
-  // ========================================================
-
   const activitiesHTML =
 
     course.activities.length > 0
@@ -3124,11 +3993,9 @@ function showCourseDetails(
       ?
 
       course.activities
+
         .map(
-          (
-            activity,
-            index
-          ) => {
+          (activity, index) => {
 
             return `
 
@@ -3138,27 +4005,28 @@ function showCourseDetails(
 
                   ${index + 1}.
 
-                  ${
-                    escapeHTML(
-                      activity.title
-                      ||
-                      "Atividade sem título"
-                    )
-                  }
+                  ${escapeHTML(
+                    activity.title ||
+                    "Atividade sem título"
+                  )}
 
                 </strong>
 
 
                 <span>
 
-                  ${escapeHTML(activity.type)}
+                  ${escapeHTML(
+                    activity.type
+                  )}
 
                   ${
                     activity.resource
 
                       ?
 
-                      ` • ${escapeHTML(activity.resource)}`
+                      ` • ${escapeHTML(
+                        activity.resource
+                      )}`
 
                       :
 
@@ -3184,7 +4052,9 @@ function showCourseDetails(
                         "
                       >
 
-                        ${escapeHTML(activity.description)}
+                        ${escapeHTML(
+                          activity.description
+                        )}
 
                       </p>
 
@@ -3201,6 +4071,7 @@ function showCourseDetails(
 
           }
         )
+
         .join("")
 
       :
@@ -3218,17 +4089,15 @@ function showCourseDetails(
       `;
 
 
-  // ========================================================
-  // EXIBIR DETALHES
-  // ========================================================
-
   const detailsContainer =
     document.getElementById(
       "courseDetailsContent"
     );
 
 
-  if (!detailsContainer) {
+  if (
+    !detailsContainer
+  ) {
 
     return;
 
@@ -3238,7 +4107,6 @@ function showCourseDetails(
   detailsContainer.innerHTML = `
 
     <div class="details-course-header">
-
 
       <div class="course-icon-large">
 
@@ -3254,21 +4122,27 @@ function showCourseDetails(
         "
       >
 
-        ${escapeHTML(course.area)}
+        ${escapeHTML(
+          course.area
+        )}
 
       </span>
 
 
       <h2>
 
-        ${escapeHTML(course.title)}
+        ${escapeHTML(
+          course.title
+        )}
 
       </h2>
 
 
       <p>
 
-        ${escapeHTML(course.description)}
+        ${escapeHTML(
+          course.description
+        )}
 
       </p>
 
@@ -3285,9 +4159,7 @@ function showCourseDetails(
         </span>
 
         <strong>
-
           ${course.hours} horas
-
         </strong>
 
       </div>
@@ -3301,7 +4173,9 @@ function showCourseDetails(
 
         <strong>
 
-          ${escapeHTML(course.level)}
+          ${escapeHTML(
+            course.level
+          )}
 
         </strong>
 
@@ -3316,11 +4190,9 @@ function showCourseDetails(
 
         <strong>
 
-          ${
-            escapeHTML(
-              course.responsibleSector
-            )
-          }
+          ${escapeHTML(
+            course.responsibleSector
+          )}
 
         </strong>
 
@@ -3335,19 +4207,15 @@ function showCourseDetails(
 
         <strong>
 
-          ${
-            escapeHTML(
-              course.targetSector
-            )
-          }
+          ${escapeHTML(
+            course.targetSector
+          )}
 
           •
 
-          ${
-            escapeHTML(
-              course.requirement
-            )
-          }
+          ${escapeHTML(
+            course.requirement
+          )}
 
         </strong>
 
@@ -3373,11 +4241,9 @@ function showCourseDetails(
 
               <br><br>
 
-              ${
-                escapeHTML(
-                  course.externalLink
-                )
-              }
+              ${escapeHTML(
+                course.externalLink
+              )}
 
             </p>
 
@@ -3413,7 +4279,7 @@ function showCourseDetails(
 
 
 // ==========================================================
-// SOLICITAR REMOÇÃO DO CURSO
+// SOLICITAR EXCLUSÃO
 // ==========================================================
 
 function askDeleteCourse(
@@ -3433,18 +4299,7 @@ function askDeleteCourse(
 
 
 // ==========================================================
-// CONFIRMAR REMOÇÃO / DESATIVAÇÃO
-// ==========================================================
-//
-// Chamaremos:
-//
-// PATCH /api/cursos/:id/desativar
-//
-// O banco NÃO apaga o curso.
-// Apenas muda:
-//
-// ativo = false
-//
+// CONFIRMAR EXCLUSÃO / DESATIVAÇÃO
 // ==========================================================
 
 const confirmDeleteButton =
@@ -3463,7 +4318,8 @@ if (
       async () => {
 
         if (
-          courseToDelete === null
+          courseToDelete ===
+          null
         ) {
 
           return;
@@ -3472,7 +4328,8 @@ if (
 
 
         const originalButtonHTML =
-          confirmDeleteButton.innerHTML;
+          confirmDeleteButton
+            .innerHTML;
 
 
         confirmDeleteButton.disabled =
@@ -3496,10 +4353,6 @@ if (
 
         try {
 
-          // ==================================================
-          // PATCH PARA O BACKEND
-          // ==================================================
-
           const response =
             await fetch(
               `/api/cursos/${courseToDelete}/desativar`,
@@ -3516,22 +4369,15 @@ if (
             await response.json();
 
 
-          if (
-            !response.ok
-          ) {
+          if (!response.ok) {
 
             throw new Error(
-              result.erro
-              ||
+              result.erro ||
               "Não foi possível remover o treinamento."
             );
 
           }
 
-
-          // ==================================================
-          // FECHAR MODAL
-          // ==================================================
 
           closeModal(
             "confirmationModal"
@@ -3542,16 +4388,13 @@ if (
             null;
 
 
-          // ==================================================
-          // RECARREGAR CURSOS
-          // ==================================================
-
           await loadCoursesFromApi();
 
 
           alert(
             "Treinamento removido da plataforma."
           );
+
 
         } catch (error) {
 
@@ -3562,9 +4405,11 @@ if (
 
 
           alert(
-            "Não foi possível remover o treinamento.\n\n" +
+            "Não foi possível remover o treinamento.\n\n"
+            +
             error.message
           );
+
 
         } finally {
 
@@ -3586,7 +4431,9 @@ if (
 // RENDERIZAR AVALIAÇÕES
 // ==========================================================
 //
-// As avaliações ainda são mockadas nesta etapa.
+// Por enquanto esta parte ainda utiliza dados simulados.
+//
+// Depois vamos conectá-la ao Supabase.
 //
 // ==========================================================
 
@@ -3605,7 +4452,6 @@ function renderEvaluations() {
   }
 
 
-  // Filtramos de acordo com a aba selecionada.
   const filtered =
     evaluations.filter(
       evaluation =>
@@ -3619,23 +4465,19 @@ function renderEvaluations() {
 
 
   // ========================================================
-  // NENHUMA AVALIAÇÃO
+  // SEM AVALIAÇÕES
   // ========================================================
 
   if (
-    filtered.length === 0
+    filtered.length ===
+    0
   ) {
 
     container.innerHTML = `
 
       <div class="empty-state">
 
-        <i
-          class="
-            fa-solid
-            fa-clipboard-check
-          "
-        ></i>
+        <i class="fa-solid fa-clipboard-check"></i>
 
         <strong>
           Nenhuma avaliação encontrada
@@ -3676,10 +4518,6 @@ function renderEvaluations() {
         "";
 
 
-      // ====================================================
-      // STATUS APROVADO
-      // ====================================================
-
       if (
         evaluation.status ===
         "approved"
@@ -3693,19 +4531,13 @@ function renderEvaluations() {
               success
             "
           >
-
             Aprovado
-
           </span>
 
         `;
 
       }
 
-
-      // ====================================================
-      // STATUS REPROVADO
-      // ====================================================
 
       if (
         evaluation.status ===
@@ -3720,9 +4552,7 @@ function renderEvaluations() {
               danger
             "
           >
-
             Reprovado
-
           </span>
 
         `;
@@ -3730,19 +4560,13 @@ function renderEvaluations() {
       }
 
 
-      // ====================================================
-      // CONTEÚDO DO CARD
-      // ====================================================
-
       card.innerHTML = `
 
-        <div
-          class="
-            evaluation-user-avatar
-          "
-        >
+        <div class="evaluation-user-avatar">
 
-          ${evaluation.initials}
+          ${escapeHTML(
+            evaluation.initials
+          )}
 
         </div>
 
@@ -3751,46 +4575,39 @@ function renderEvaluations() {
 
           <h3>
 
-            ${escapeHTML(evaluation.employee)}
+            ${escapeHTML(
+              evaluation.employee
+            )}
 
           </h3>
 
 
-          <span
-            class="
-              evaluation-course-name
-            "
-          >
+          <span class="evaluation-course-name">
 
-            ${escapeHTML(evaluation.course)}
+            ${escapeHTML(
+              evaluation.course
+            )}
 
           </span>
 
 
           <div class="evaluation-meta">
 
+
             <span>
 
-              <i
-                class="
-                  fa-solid
-                  fa-building
-                "
-              ></i>
+              <i class="fa-solid fa-building"></i>
 
-              ${escapeHTML(evaluation.sector)}
+              ${escapeHTML(
+                evaluation.sector
+              )}
 
             </span>
 
 
             <span>
 
-              <i
-                class="
-                  fa-regular
-                  fa-clock
-                "
-              ></i>
+              <i class="fa-regular fa-clock"></i>
 
               ${evaluation.hours}h
 
@@ -3799,16 +4616,13 @@ function renderEvaluations() {
 
             <span>
 
-              <i
-                class="
-                  fa-regular
-                  fa-calendar
-                "
-              ></i>
+              <i class="fa-regular fa-calendar"></i>
 
               Enviado em
 
-              ${evaluation.submittedAt}
+              ${escapeHTML(
+                evaluation.submittedAt
+              )}
 
             </span>
 
@@ -3827,16 +4641,13 @@ function renderEvaluations() {
 
               <button
                 class="evaluate-button"
-
                 onclick="
                   openEvaluation(
                     ${evaluation.id}
                   )
                 "
               >
-
                 Avaliar
-
               </button>
 
             `
@@ -3861,57 +4672,57 @@ function renderEvaluations() {
 
 
 // ==========================================================
-// ABAS DE AVALIAÇÃO
+// ABAS DAS AVALIAÇÕES
 // ==========================================================
 
 document
   .querySelectorAll(
     ".evaluation-tab"
   )
-  .forEach(tab => {
+  .forEach(
+    tab => {
 
-    tab.addEventListener(
-      "click",
-      () => {
+      tab.addEventListener(
+        "click",
+        () => {
 
-        // Remove seleção de todas as abas.
-        document
-          .querySelectorAll(
-            ".evaluation-tab"
-          )
-          .forEach(item => {
+          document
+            .querySelectorAll(
+              ".evaluation-tab"
+            )
+            .forEach(
+              item => {
 
-            item.classList.remove(
-              "active"
+                item.classList.remove(
+                  "active"
+                );
+
+              }
             );
 
-          });
+
+          tab.classList.add(
+            "active"
+          );
 
 
-        // Marca a aba atual.
-        tab.classList.add(
-          "active"
-        );
+          currentEvaluationStatus =
+            tab.dataset
+              .evaluationStatus;
 
 
-        // Atualiza o status atual.
-        currentEvaluationStatus =
-          tab.dataset
-            .evaluationStatus;
+          renderEvaluations();
 
+        }
+      );
 
-        // Renderiza novamente.
-        renderEvaluations();
-
-      }
-    );
-
-  });
+    }
+  );
 
 
 
 // ==========================================================
-// ABRIR MODAL DE AVALIAÇÃO
+// ABRIR AVALIAÇÃO
 // ==========================================================
 
 function openEvaluation(
@@ -3938,12 +4749,9 @@ function openEvaluation(
   }
 
 
-  // ========================================================
-  // MONTAR LISTA DE ATIVIDADES
-  // ========================================================
-
   const activitiesHTML =
     evaluation.activities
+
       .map(
         (
           activity,
@@ -3954,16 +4762,11 @@ function openEvaluation(
 
             <div class="submission-item">
 
-              <div
-                class="
-                  submission-item-header
-                "
-              >
+
+              <div class="submission-item-header">
 
                 <strong>
-
                   Atividade ${index + 1}
-
                 </strong>
 
 
@@ -3973,9 +4776,7 @@ function openEvaluation(
                     success
                   "
                 >
-
                   Entregue
-
                 </span>
 
               </div>
@@ -3989,24 +4790,23 @@ function openEvaluation(
                 "
               >
 
-                ${escapeHTML(activity.title)}
+                ${escapeHTML(
+                  activity.title
+                )}
 
               </p>
 
 
               <div class="submission-file">
 
-                <i
-                  class="
-                    fa-solid
-                    fa-file
-                  "
-                ></i>
+                <i class="fa-solid fa-file"></i>
 
 
                 <span>
 
-                  ${escapeHTML(activity.file)}
+                  ${escapeHTML(
+                    activity.file
+                  )}
 
                 </span>
 
@@ -4015,13 +4815,11 @@ function openEvaluation(
                   type="button"
                   onclick="
                     alert(
-                      'Visualização do arquivo será implementada depois.'
+                      'A visualização real do arquivo será conectada posteriormente.'
                     )
                   "
                 >
-
                   Visualizar
-
                 </button>
 
               </div>
@@ -4032,12 +4830,9 @@ function openEvaluation(
 
         }
       )
+
       .join("");
 
-
-  // ========================================================
-  // PEGAR CONTAINER DO MODAL
-  // ========================================================
 
   const modalContent =
     document.getElementById(
@@ -4052,22 +4847,14 @@ function openEvaluation(
   }
 
 
-  // ========================================================
-  // MONTAR MODAL
-  // ========================================================
-
   modalContent.innerHTML = `
 
     <div class="modal-header">
 
+
       <div class="modal-title-icon">
 
-        <i
-          class="
-            fa-solid
-            fa-clipboard-check
-          "
-        ></i>
+        <i class="fa-solid fa-clipboard-check"></i>
 
       </div>
 
@@ -4079,8 +4866,7 @@ function openEvaluation(
         </h2>
 
         <p>
-          Analise todas as atividades
-          antes de tomar uma decisão.
+          Analise todas as atividades antes de tomar uma decisão.
         </p>
 
       </div>
@@ -4090,28 +4876,31 @@ function openEvaluation(
 
     <div class="evaluation-profile">
 
+
       <div class="list-avatar">
 
-        ${evaluation.initials}
+        ${escapeHTML(
+          evaluation.initials
+        )}
 
       </div>
 
 
-      <div
-        class="
-          evaluation-profile-info
-        "
-      >
+      <div class="evaluation-profile-info">
 
         <strong>
 
-          ${escapeHTML(evaluation.employee)}
+          ${escapeHTML(
+            evaluation.employee
+          )}
 
         </strong>
 
         <span>
 
-          ${escapeHTML(evaluation.course)}
+          ${escapeHTML(
+            evaluation.course
+          )}
 
           •
 
@@ -4130,9 +4919,7 @@ function openEvaluation(
         margin-bottom: 5px;
       "
     >
-
       Atividades enviadas
-
     </h3>
 
 
@@ -4142,10 +4929,7 @@ function openEvaluation(
         font-size: 9px;
       "
     >
-
-      Confira os arquivos enviados
-      pelo colaborador.
-
+      Confira os arquivos enviados pelo colaborador.
     </p>
 
 
@@ -4185,16 +4969,15 @@ function openEvaluation(
             </label>
 
             <p>
-              Em caso de aprovação,
-              você poderá anexar o certificado
-              emitido pela empresa.
+              Em caso de aprovação, você poderá anexar
+              o certificado emitido pela empresa.
             </p>
 
             <input
               type="file"
               id="certificateFile"
               accept=".pdf,.png,.jpg,.jpeg"
-            />
+            >
 
           </div>
 
@@ -4206,20 +4989,13 @@ function openEvaluation(
 
           <div class="form-information">
 
-            <i
-              class="
-                fa-solid
-                fa-circle-info
-              "
-            ></i>
+            <i class="fa-solid fa-circle-info"></i>
 
             <p>
-              Este treinamento foi realizado
-              externamente.
+              Este treinamento foi realizado externamente.
 
-              O certificado enviado pelo
-              colaborador já funciona como
-              comprovante.
+              O certificado enviado pelo colaborador
+              já funciona como comprovante.
             </p>
 
           </div>
@@ -4228,15 +5004,11 @@ function openEvaluation(
     }
 
 
-    <div
-      class="
-        evaluation-decision-actions
-      "
-    >
+    <div class="evaluation-decision-actions">
+
 
       <button
         class="danger-button"
-
         onclick="
           rejectEvaluation(
             ${evaluation.id}
@@ -4244,12 +5016,7 @@ function openEvaluation(
         "
       >
 
-        <i
-          class="
-            fa-solid
-            fa-xmark
-          "
-        ></i>
+        <i class="fa-solid fa-xmark"></i>
 
         Reprovar
 
@@ -4258,7 +5025,6 @@ function openEvaluation(
 
       <button
         class="primary-button"
-
         onclick="
           approveEvaluation(
             ${evaluation.id}
@@ -4266,12 +5032,7 @@ function openEvaluation(
         "
       >
 
-        <i
-          class="
-            fa-solid
-            fa-check
-          "
-        ></i>
+        <i class="fa-solid fa-check"></i>
 
         Aprovar
 
@@ -4294,7 +5055,7 @@ function openEvaluation(
 // APROVAR AVALIAÇÃO
 // ==========================================================
 //
-// CONTINUA MOCKADO.
+// Ainda temporário.
 //
 // ==========================================================
 
@@ -4317,7 +5078,6 @@ function approveEvaluation(
   }
 
 
-  // Alteramos o status apenas no frontend.
   evaluation.status =
     "approved";
 
@@ -4334,7 +5094,7 @@ function approveEvaluation(
 
 
   alert(
-    "Treinamento aprovado no frontend."
+    "Treinamento aprovado."
   );
 
 }
@@ -4344,18 +5104,10 @@ function approveEvaluation(
 // ==========================================================
 // REPROVAR AVALIAÇÃO
 // ==========================================================
-//
-// CONTINUA MOCKADO.
-//
-// ==========================================================
 
 function rejectEvaluation(
   evaluationId
 ) {
-
-  // ========================================================
-  // PEGAR OBSERVAÇÃO
-  // ========================================================
 
   const observationInput =
     document.getElementById(
@@ -4368,10 +5120,6 @@ function rejectEvaluation(
       ? observationInput.value.trim()
       : "";
 
-
-  // ========================================================
-  // EXIGIR MOTIVO
-  // ========================================================
 
   if (!observation) {
 
@@ -4399,10 +5147,6 @@ function rejectEvaluation(
   }
 
 
-  // ========================================================
-  // ALTERAR STATUS
-  // ========================================================
-
   evaluation.status =
     "rejected";
 
@@ -4423,7 +5167,7 @@ function rejectEvaluation(
 
 
   alert(
-    "Treinamento reprovado no frontend."
+    "Treinamento reprovado."
   );
 
 }
@@ -4431,10 +5175,26 @@ function rejectEvaluation(
 
 
 // ==========================================================
-// ATUALIZAR CONTADORES DO DASHBOARD
+// CONTADORES DO DASHBOARD
 // ==========================================================
 
 function updateDashboardCounters() {
+
+  // ========================================================
+  // COLABORADORES
+  // ========================================================
+  //
+  // Não contamos os administradores como funcionários
+  // no card do dashboard.
+  //
+
+  const collaborators =
+    employees.filter(
+      employee =>
+        employee.profile ===
+        "colaborador"
+    );
+
 
   // ========================================================
   // CURSOS ATIVOS
@@ -4457,12 +5217,10 @@ function updateDashboardCounters() {
     );
 
 
-  if (
-    employeesCounter
-  ) {
+  if (employeesCounter) {
 
     employeesCounter.textContent =
-      employees.length;
+      collaborators.length;
 
   }
 
@@ -4477,9 +5235,7 @@ function updateDashboardCounters() {
     );
 
 
-  if (
-    trainingsCounter
-  ) {
+  if (trainingsCounter) {
 
     trainingsCounter.textContent =
       activeCourses.length;
@@ -4488,8 +5244,30 @@ function updateDashboardCounters() {
 
 
   // ========================================================
-  // AVALIAÇÕES
+  // APROVADOS
   // ========================================================
+
+  const approvedCounter =
+    document.getElementById(
+      "dashboardApproved"
+    );
+
+
+  if (approvedCounter) {
+
+    const approved =
+      evaluations.filter(
+        evaluation =>
+          evaluation.status ===
+          "approved"
+      );
+
+
+    approvedCounter.textContent =
+      approved.length;
+
+  }
+
 
   updateEvaluationCounters();
 
@@ -4498,7 +5276,7 @@ function updateDashboardCounters() {
 
 
 // ==========================================================
-// ATUALIZAR CONTADOR DAS AVALIAÇÕES
+// CONTADORES DAS AVALIAÇÕES
 // ==========================================================
 
 function updateEvaluationCounters() {
@@ -4511,19 +5289,13 @@ function updateEvaluationCounters() {
     );
 
 
-  // ========================================================
-  // CARD DO DASHBOARD
-  // ========================================================
-
   const dashboardCounter =
     document.getElementById(
       "dashboardEvaluations"
     );
 
 
-  if (
-    dashboardCounter
-  ) {
+  if (dashboardCounter) {
 
     dashboardCounter.textContent =
       pending.length;
@@ -4531,29 +5303,19 @@ function updateEvaluationCounters() {
   }
 
 
-  // ========================================================
-  // CONTADOR DO MENU
-  // ========================================================
-
   const menuCounter =
     document.getElementById(
       "evaluationMenuCounter"
     );
 
 
-  if (
-    menuCounter
-  ) {
+  if (menuCounter) {
 
     menuCounter.textContent =
       pending.length;
 
   }
 
-
-  // ========================================================
-  // LISTA RESUMIDA
-  // ========================================================
 
   renderDashboardEvaluations();
 
@@ -4562,7 +5324,7 @@ function updateEvaluationCounters() {
 
 
 // ==========================================================
-// RENDERIZAR AVALIAÇÕES NO DASHBOARD
+// AVALIAÇÕES NO DASHBOARD
 // ==========================================================
 
 function renderDashboardEvaluations() {
@@ -4582,11 +5344,13 @@ function renderDashboardEvaluations() {
 
   const pending =
     evaluations
+
       .filter(
         evaluation =>
           evaluation.status ===
           "pending"
       )
+
       .slice(
         0,
         3
@@ -4598,23 +5362,19 @@ function renderDashboardEvaluations() {
 
 
   // ========================================================
-  // NENHUMA PENDÊNCIA
+  // SEM PENDÊNCIAS
   // ========================================================
 
   if (
-    pending.length === 0
+    pending.length ===
+    0
   ) {
 
     container.innerHTML = `
 
       <div class="empty-state">
 
-        <i
-          class="
-            fa-solid
-            fa-circle-check
-          "
-        ></i>
+        <i class="fa-solid fa-circle-check"></i>
 
         <strong>
           Tudo em dia!
@@ -4634,10 +5394,6 @@ function renderDashboardEvaluations() {
   }
 
 
-  // ========================================================
-  // CRIAR ITENS
-  // ========================================================
-
   pending.forEach(
     evaluation => {
 
@@ -4655,7 +5411,9 @@ function renderDashboardEvaluations() {
 
         <div class="list-avatar">
 
-          ${evaluation.initials}
+          ${escapeHTML(
+            evaluation.initials
+          )}
 
         </div>
 
@@ -4664,13 +5422,18 @@ function renderDashboardEvaluations() {
 
           <strong>
 
-            ${escapeHTML(evaluation.employee)}
+            ${escapeHTML(
+              evaluation.employee
+            )}
 
           </strong>
 
+
           <span>
 
-            ${escapeHTML(evaluation.course)}
+            ${escapeHTML(
+              evaluation.course
+            )}
 
           </span>
 
@@ -4683,9 +5446,7 @@ function renderDashboardEvaluations() {
             warning
           "
         >
-
           Aguardando
-
         </span>
 
       `;
@@ -4717,10 +5478,9 @@ document
         "click",
         event => {
 
-          // Só fechamos se o clique
-          // ocorrer exatamente no fundo.
           if (
-            event.target === overlay
+            event.target ===
+            overlay
           ) {
 
             closeModal(
@@ -4746,7 +5506,8 @@ document.addEventListener(
   event => {
 
     if (
-      event.key !== "Escape"
+      event.key !==
+      "Escape"
     ) {
 
       return;
@@ -4774,39 +5535,124 @@ document.addEventListener(
 
 
 // ==========================================================
-// INICIALIZAÇÃO DO SISTEMA
+// LOGOUT
 // ==========================================================
 //
-// ESTA É UMA DAS PARTES MAIS IMPORTANTES.
+// Agora o logout deixa de ser apenas visual.
 //
-// Antes:
+// Removemos:
 //
-// renderCourses();
+// access_token
+// usuario_logado
 //
-// utilizava cursos mockados.
+// e voltamos ao login.
 //
-// Agora:
+// ==========================================================
+
+const logoutButton =
+  document.querySelector(
+    ".logout-button"
+  );
+
+
+if (logoutButton) {
+
+  logoutButton.addEventListener(
+    "click",
+    () => {
+
+      const confirmLogout =
+        confirm(
+          "Deseja sair da área administrativa?"
+        );
+
+
+      if (!confirmLogout) {
+
+        return;
+
+      }
+
+
+      // Limpamos a sessão local.
+      clearSession();
+
+
+      // Voltamos ao login.
+      window.location.href =
+        "/login/";
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// INICIALIZAÇÃO
+// ==========================================================
 //
-// await loadCoursesFromApi();
+// NOVO FLUXO:
 //
-// busca os cursos reais através de:
+// /admin/
+//    ↓
+// existe token?
+//    ↓
+// existe usuario_logado?
+//    ↓
+// perfil é admin?
+//    ↓
+// SIM
+//    ↓
+// carrega tela
 //
-// GET /api/cursos
+// Caso contrário:
+//
+// /login/
 //
 // ==========================================================
 
 async function initializeApp() {
 
   console.log(
-    "Iniciando Portal de Carreiras..."
+    "Iniciando Evolua+ Admin..."
   );
 
 
   // ========================================================
-  // FUNCIONÁRIOS
+  // VALIDAR LOGIN
   // ========================================================
 
-  renderEmployees();
+  const validSession =
+    validateAdminSession();
+
+
+  if (!validSession) {
+
+    return;
+
+  }
+
+
+  console.log(
+    "Administrador autenticado:",
+    currentAdmin.nome
+  );
+
+
+  // ========================================================
+  // ADMIN LOGADO
+  // ========================================================
+
+  renderCurrentAdmin();
+
+
+  // ========================================================
+  // SELECTS
+  // ========================================================
+
+  populateSectorSelect();
 
 
   // ========================================================
@@ -4820,14 +5666,43 @@ async function initializeApp() {
 
 
   // ========================================================
-  // CURSOS REAIS
+  // USUÁRIOS
+  // ========================================================
+
+  await loadUsersFromApi();
+
+
+  // A função acima pode ter detectado token expirado
+  // e redirecionado para o login.
+  //
+  // Portanto verificamos novamente.
+  if (
+    !localStorage.getItem(
+      "access_token"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // CURSOS
   // ========================================================
 
   await loadCoursesFromApi();
 
 
+  // ========================================================
+  // DASHBOARD
+  // ========================================================
+
+  updateDashboardCounters();
+
+
   console.log(
-    "Portal de Carreiras iniciado."
+    "Evolua+ Admin iniciado com sucesso."
   );
 
 }
@@ -4835,7 +5710,7 @@ async function initializeApp() {
 
 
 // ==========================================================
-// INICIAR QUANDO O HTML ESTIVER CARREGADO
+// INICIAR QUANDO O HTML ESTIVER PRONTO
 // ==========================================================
 
 document.addEventListener(
