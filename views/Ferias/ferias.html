@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evolua+ | Férias</title>
+    <link rel="stylesheet" href="ferias.css" />
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">E</div>
+                <div>
+                    <span class="brand-name">Evolua<span>+</span></span>
+                    <small>Portal de recursos</small>
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="ghost-btn" type="button">Baixar relatório</button>
+                <button class="primary-btn" type="button" id="abrirModal">Solicitar férias</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <section class="summary-grid" aria-label="Resumo de férias">
+                <article class="summary-card accent-blue">
+                    <span class="label">Saldo anual</span>
+                    <strong>20 dias</strong>
+                    <small>Disponíveis em 2026</small>
+                </article>
+
+                <article class="summary-card accent-green">
+                    <span class="label">Usados</span>
+                    <strong>10 dias</strong>
+                    <small>Em 2 períodos aprovados</small>
+                </article>
+
+                <article class="summary-card accent-orange">
+                    <span class="label">Próximo vencimento</span>
+                    <strong>01/12/2026</strong>
+                    <small>Período aquisitivo 2025/2026</small>
+                </article>
+
+                <article class="summary-card accent-purple">
+                    <span class="label">Status</span>
+                    <strong>Regular</strong>
+                    <small>Sem pendências de férias</small>
+                </article>
+            </section>
+
+            <section class="panel-grid">
+                <article class="panel panel-large">
+                    <div class="section-header">
+                        <div>
+                            <p class="eyebrow">Período atual</p>
+                            <h2>Minhas férias</h2>
+                        </div>
+                        <span class="status-pill success">Disponível</span>
+                    </div>
+
+                    <div class="period-overview">
+                        <div>
+                            <span>Período aquisitivo</span>
+                            <strong>01/01/2025 - 31/12/2025</strong>
+                        </div>
+                        <div>
+                            <span>Direito adquirido</span>
+                            <strong>20 dias</strong>
+                        </div>
+                        <div>
+                            <span>Férias já utilizadas</span>
+                            <strong>10 dias</strong>
+                        </div>
+                    </div>
+
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <span class="dot blue"></span>
+                            <div>
+                                <strong>Início do direito</strong>
+                                <small>01/01/2025</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <span class="dot green"></span>
+                            <div>
+                                <strong>Usados</strong>
+                                <small>10 dias em 2 solicitações</small>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <span class="dot orange"></span>
+                            <div>
+                                <strong>Vencimento</strong>
+                                <small>31/12/2026</small>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <aside class="panel panel-side">
+                    <div class="section-header compact">
+                        <div>
+                            <p class="eyebrow">Acompanhamento</p>
+                            <h3>Próximos vencimentos</h3>
+                        </div>
+                    </div>
+
+                    <ul class="vencimentos-list">
+                        <li>
+                            <span>Período 2024/2025</span>
+                            <strong>12 dias</strong>
+                        </li>
+                        <li>
+                            <span>Período 2025/2026</span>
+                            <strong>20 dias</strong>
+                        </li>
+                        <li>
+                            <span>Próxima análise</span>
+                            <strong>18/08/2026</strong>
+                        </li>
+                    </ul>
+                </aside>
+            </section>
+
+            <section class="panel">
+                <div class="section-header">
+                    <div>
+                        <p class="eyebrow">Solicitações</p>
+                        <h2>Em análise</h2>
+                    </div>
+                    <button class="small-btn" type="button" id="btnNovaSolicitacao">Nova solicitação</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Tipo</th>
+                                <th>Dias</th>
+                                <th>Status</th>
+                                <th>Data da solicitação</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaSolicitacoes"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="section-header">
+                    <div>
+                        <p class="eyebrow">Histórico</p>
+                        <h2>Férias aprovadas</h2>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Quantidade</th>
+                                <th>Gestor</th>
+                                <th>Status</th>
+                                <th>Observação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalSolicitacao" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+            <div class="modal-header">
+                <div>
+                    <p class="eyebrow">Nova solicitação</p>
+                    <h3 id="modalTitulo">Solicitar férias</h3>
+                </div>
+                <button type="button" class="icon-btn" id="fecharModal" aria-label="Fechar modal">×</button>
+            </div>
+
+            <form id="formSolicitacao">
+                <div class="tipo-toggle" aria-label="Tipo de solicitação">
+                    <button type="button" class="toggle-option active" data-type="periodo">Por período</button>
+                    <button type="button" class="toggle-option" data-type="fixos">Dias fixos</button>
+                </div>
+
+                <div class="form-grid">
+                    <label>
+                        <span>Data de início</span>
+                        <input type="date" id="dataInicio" />
+                    </label>
+
+                    <label>
+                        <span>Data de término</span>
+                        <input type="date" id="dataFim" />
+                    </label>
+
+                    <label class="full-width" id="campoQuantidade">
+                        <span>Quantidade de dias</span>
+                        <input type="number" min="1" max="30" id="quantidadeDias" placeholder="Ex.: 10" />
+                    </label>
+
+                    <label class="full-width">
+                        <span>Observações</span>
+                        <textarea id="observacoes" rows="4" placeholder="Descreva o período desejado ou qualquer observação relevante."></textarea>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="secondary-btn" id="cancelarModal">Cancelar</button>
+                    <button type="submit" class="primary-btn">Salvar solicitação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="ferias.js"></script>
+</body>
+</html>
