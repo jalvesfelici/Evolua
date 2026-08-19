@@ -2,29 +2,6 @@
 // EVOLUA+
 // ROTAS DE USUÁRIOS
 // ==========================================================
-//
-// Este arquivo é responsável por:
-//
-// GET /api/usuarios
-//
-// - validar o usuário logado;
-// - listar usuários;
-// - limitar o admin de setor ao próprio setor.
-//
-// POST /api/usuarios
-//
-// - validar o usuário logado;
-// - verificar permissões;
-// - criar usuário no Supabase Auth;
-// - salvar dados profissionais na tabela usuario.
-//
-// ==========================================================
-
-
-
-// ==========================================================
-// IMPORTAÇÕES
-// ==========================================================
 
 const express =
   require(
@@ -36,30 +13,11 @@ const router =
   express.Router();
 
 
-
-// ==========================================================
-// SUPABASE NORMAL
-// ==========================================================
-
 const supabase =
   require(
     "../config/supabase"
   );
 
-
-
-// ==========================================================
-// SUPABASE ADMIN
-// ==========================================================
-//
-// Este cliente utiliza a chave secreta.
-//
-// Serve para:
-//
-// auth.admin.createUser()
-// auth.admin.deleteUser()
-//
-// ==========================================================
 
 const supabaseAdmin =
   require(
@@ -67,9 +25,8 @@ const supabaseAdmin =
   );
 
 
-
 // ==========================================================
-// SETORES PERMITIDOS
+// SETORES
 // ==========================================================
 
 const allowedSectors = [
@@ -91,15 +48,8 @@ const allowedSectors = [
 ];
 
 
-
 // ==========================================================
 // PERFIS QUE PODEM SER CRIADOS
-// ==========================================================
-//
-// Não colocamos admin_principal aqui.
-//
-// O Admin Principal inicial foi criado manualmente.
-//
 // ==========================================================
 
 const allowedCreationProfiles = [
@@ -111,17 +61,8 @@ const allowedCreationProfiles = [
 ];
 
 
-
 // ==========================================================
-// PEGAR TOKEN DO HEADER
-// ==========================================================
-//
-// O navegador envia:
-//
-// Authorization: Bearer TOKEN
-//
-// Esta função extrai somente o TOKEN.
-//
+// PEGAR BEARER TOKEN
 // ==========================================================
 
 function getBearerToken(
@@ -132,9 +73,7 @@ function getBearerToken(
     req.headers.authorization;
 
 
-  if (
-    !authorization
-  ) {
+  if (!authorization) {
 
     return null;
 
@@ -171,34 +110,13 @@ function getBearerToken(
 }
 
 
-
 // ==========================================================
 // IDENTIFICAR USUÁRIO LOGADO
-// ==========================================================
-//
-// Esta é uma das funções mais importantes.
-//
-// Fluxo:
-//
-// token
-//   ↓
-// Supabase Auth
-//   ↓
-// UUID do usuário
-//   ↓
-// tabela usuario
-//   ↓
-// perfil, setor, ativo etc.
-//
 // ==========================================================
 
 async function getLoggedUser(
   req
 ) {
-
-  // ========================================================
-  // PEGAR TOKEN
-  // ========================================================
 
   const token =
     getBearerToken(
@@ -221,13 +139,18 @@ async function getLoggedUser(
   }
 
 
-
   // ========================================================
-  // VALIDAR TOKEN NO SUPABASE
+  // VALIDAR TOKEN
+  // ========================================================
+  //
+  // Aqui usamos o cliente normal.
+  //
+  // O token enviado é o access_token que veio
+  // do login.
+  //
   // ========================================================
 
   const {
-
     data:
       authData,
 
@@ -235,7 +158,7 @@ async function getLoggedUser(
       authError
 
   } =
-    await supabaseAdmin
+    await supabase
       .auth
       .getUser(
         token
@@ -266,24 +189,15 @@ async function getLoggedUser(
   }
 
 
-
-  // ========================================================
-  // UUID DO USUÁRIO
-  // ========================================================
-
   const userId =
-    authData
-      .user
-      .id;
-
+    authData.user.id;
 
 
   // ========================================================
-  // BUSCAR PERFIL NA TABELA usuario
+  // BUSCAR DADOS PROFISSIONAIS
   // ========================================================
 
   const {
-
     data:
       profile,
 
@@ -314,13 +228,12 @@ async function getLoggedUser(
       .maybeSingle();
 
 
-
   if (
     profileError
   ) {
 
     console.error(
-      "Erro ao buscar perfil do usuário:",
+      "Erro ao buscar perfil:",
       profileError
     );
 
@@ -338,10 +251,7 @@ async function getLoggedUser(
   }
 
 
-
-  if (
-    !profile
-  ) {
+  if (!profile) {
 
     return {
 
@@ -355,11 +265,6 @@ async function getLoggedUser(
 
   }
 
-
-
-  // ========================================================
-  // USUÁRIO INATIVO
-  // ========================================================
 
   if (
     profile.ativo ===
@@ -379,11 +284,6 @@ async function getLoggedUser(
   }
 
 
-
-  // ========================================================
-  // SUCESSO
-  // ========================================================
-
   return {
 
     user:
@@ -397,9 +297,8 @@ async function getLoggedUser(
 }
 
 
-
 // ==========================================================
-// VERIFICAR SE É ADMIN
+// VERIFICAR ADMIN
 // ==========================================================
 
 function isAdmin(
@@ -421,33 +320,15 @@ function isAdmin(
 }
 
 
-
 // ==========================================================
 // GET /api/usuarios
-// ==========================================================
-//
-// ADMIN PRINCIPAL:
-//
-// vê todos os usuários.
-//
-// ADMIN DE SETOR:
-//
-// vê somente usuários do próprio setor.
-//
 // ==========================================================
 
 router.get(
   "/",
-  async (
-    req,
-    res
-  ) => {
+  async (req, res) => {
 
     try {
-
-      // ====================================================
-      // IDENTIFICAR USUÁRIO LOGADO
-      // ====================================================
 
       const authResult =
         await getLoggedUser(
@@ -477,9 +358,8 @@ router.get(
         authResult.user;
 
 
-
       // ====================================================
-      // SOMENTE ADMINISTRADORES
+      // SOMENTE ADMIN
       // ====================================================
 
       if (
@@ -498,7 +378,6 @@ router.get(
           });
 
       }
-
 
 
       // ====================================================
@@ -527,27 +406,14 @@ router.get(
           .order(
             "nome",
             {
-
               ascending:
                 true
-
             }
           );
 
 
-
       // ====================================================
       // ADMIN DE SETOR
-      // ========================================================
-      //
-      // Não usamos mais:
-      //
-      // ?setor=Tecnologia
-      //
-      // para decidir a permissão.
-      //
-      // O setor vem do próprio usuário logado.
-      //
       // ====================================================
 
       if (
@@ -564,28 +430,17 @@ router.get(
       }
 
 
-
-      // ====================================================
-      // EXECUTAR
-      // ====================================================
-
       const {
-
         data,
-
         error
-
       } =
         await query;
 
 
-
-      if (
-        error
-      ) {
+      if (error) {
 
         console.error(
-          "Erro Supabase ao buscar usuários:",
+          "Erro ao buscar usuários:",
           error
         );
 
@@ -604,11 +459,6 @@ router.get(
 
       }
 
-
-
-      // ====================================================
-      // RETORNAR
-      // ====================================================
 
       return res.json(
         data || []
@@ -638,40 +488,18 @@ router.get(
 );
 
 
-
 // ==========================================================
 // POST /api/usuarios
-// ==========================================================
-//
-// Recebe:
-//
-// {
-//   nome,
-//   matricula,
-//   email,
-//   senha,
-//   cargo,
-//   setor,
-//   perfil
-// }
-//
-// Não recebe mais:
-//
-// admin_id
-//
 // ==========================================================
 
 router.post(
   "/",
-  async (
-    req,
-    res
-  ) => {
+  async (req, res) => {
 
     try {
 
       // ====================================================
-      // IDENTIFICAR ADMINISTRADOR LOGADO
+      // IDENTIFICAR QUEM ESTÁ CRIANDO
       // ====================================================
 
       const authResult =
@@ -702,9 +530,8 @@ router.post(
         authResult.user;
 
 
-
       // ====================================================
-      // SOMENTE ADMINS PODEM CRIAR USUÁRIOS
+      // SOMENTE ADMIN
       // ====================================================
 
       if (
@@ -725,9 +552,8 @@ router.post(
       }
 
 
-
       // ====================================================
-      // DADOS RECEBIDOS
+      // DADOS
       // ====================================================
 
       const {
@@ -748,7 +574,6 @@ router.post(
 
       } =
         req.body;
-
 
 
       // ====================================================
@@ -777,9 +602,8 @@ router.post(
       }
 
 
-
       // ====================================================
-      // NORMALIZAR DADOS
+      // NORMALIZAÇÃO
       // ====================================================
 
       const normalizedEmail =
@@ -803,38 +627,12 @@ router.post(
           .trim();
 
 
-
       // ====================================================
-      // VALIDAR DADOS APÓS TRIM
-      // ====================================================
-
-      if (
-        !normalizedName ||
-        !normalizedRegistration ||
-        !normalizedEmail ||
-        !normalizedRole
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Existem campos obrigatórios vazios."
-
-          });
-
-      }
-
-
-
-      // ====================================================
-      // VALIDAR SENHA
+      // SENHA
       // ====================================================
 
       if (
-        String(senha)
-          .length < 6
+        String(senha).length < 6
       ) {
 
         return res
@@ -849,9 +647,8 @@ router.post(
       }
 
 
-
       // ====================================================
-      // VALIDAR SETOR
+      // SETOR
       // ====================================================
 
       if (
@@ -872,9 +669,8 @@ router.post(
       }
 
 
-
       // ====================================================
-      // VALIDAR PERFIL
+      // PERFIL
       // ====================================================
 
       if (
@@ -893,7 +689,6 @@ router.post(
           });
 
       }
-
 
 
       // ====================================================
@@ -920,7 +715,6 @@ router.post(
       }
 
 
-
       // ====================================================
       // ADMIN DE SETOR SÓ CRIA NO PRÓPRIO SETOR
       // ====================================================
@@ -945,13 +739,11 @@ router.post(
       }
 
 
-
       // ====================================================
-      // VERIFICAR E-MAIL DUPLICADO
+      // E-MAIL DUPLICADO
       // ====================================================
 
       const {
-
         data:
           existingEmail,
 
@@ -973,16 +765,9 @@ router.post(
           .maybeSingle();
 
 
-
       if (
         emailCheckError
       ) {
-
-        console.error(
-          "Erro ao verificar e-mail:",
-          emailCheckError
-        );
-
 
         return res
           .status(500)
@@ -999,7 +784,6 @@ router.post(
       }
 
 
-
       if (
         existingEmail
       ) {
@@ -1009,20 +793,18 @@ router.post(
           .json({
 
             error:
-              "Já existe um usuário cadastrado com este e-mail."
+              "Já existe um usuário com este e-mail."
 
           });
 
       }
 
 
-
       // ====================================================
-      // VERIFICAR MATRÍCULA DUPLICADA
+      // MATRÍCULA DUPLICADA
       // ====================================================
 
       const {
-
         data:
           existingRegistration,
 
@@ -1044,16 +826,9 @@ router.post(
           .maybeSingle();
 
 
-
       if (
         registrationCheckError
       ) {
-
-        console.error(
-          "Erro ao verificar matrícula:",
-          registrationCheckError
-        );
-
 
         return res
           .status(500)
@@ -1070,7 +845,6 @@ router.post(
       }
 
 
-
       if (
         existingRegistration
       ) {
@@ -1080,20 +854,18 @@ router.post(
           .json({
 
             error:
-              "Já existe um usuário cadastrado com esta matrícula."
+              "Já existe um usuário com esta matrícula."
 
           });
 
       }
 
 
-
       // ====================================================
-      // CRIAR NO SUPABASE AUTH
+      // CRIAR USUÁRIO NO AUTH
       // ====================================================
 
       const {
-
         data:
           authData,
 
@@ -1137,17 +909,12 @@ router.post(
           });
 
 
-
-      // ====================================================
-      // ERRO NO AUTH
-      // ====================================================
-
       if (
         authError
       ) {
 
         console.error(
-          "Erro ao criar usuário no Supabase Auth:",
+          "Erro no Auth:",
           authError
         );
 
@@ -1167,21 +934,13 @@ router.post(
       }
 
 
-
-      // ====================================================
-      // UUID GERADO
-      // ====================================================
-
       const userId =
         authData
           ?.user
           ?.id;
 
 
-
-      if (
-        !userId
-      ) {
+      if (!userId) {
 
         return res
           .status(500)
@@ -1195,13 +954,11 @@ router.post(
       }
 
 
-
       // ====================================================
-      // CRIAR PERFIL NA TABELA usuario
+      // SALVAR NA TABELA usuario
       // ====================================================
 
       const {
-
         data:
           profileData,
 
@@ -1247,16 +1004,8 @@ router.post(
           .single();
 
 
-
       // ====================================================
-      // ERRO AO CRIAR PERFIL
-      // ====================================================
-      //
-      // Se isso acontecer, removemos também
-      // o usuário que já foi criado no Auth.
-      //
-      // Assim não deixamos registros incompletos.
-      //
+      // ROLLBACK
       // ====================================================
 
       if (
@@ -1269,32 +1018,12 @@ router.post(
         );
 
 
-        const {
-
-          error:
-            rollbackError
-
-        } =
-          await supabaseAdmin
-            .auth
-            .admin
-            .deleteUser(
-              userId
-            );
-
-
-
-        if (
-          rollbackError
-        ) {
-
-          console.error(
-            "Erro ao desfazer criação do Auth:",
-            rollbackError
+        await supabaseAdmin
+          .auth
+          .admin
+          .deleteUser(
+            userId
           );
-
-        }
-
 
 
         return res
@@ -1302,7 +1031,7 @@ router.post(
           .json({
 
             error:
-              "Não foi possível salvar os dados profissionais do usuário.",
+              "Não foi possível salvar os dados profissionais.",
 
             details:
               profileError.message
@@ -1310,7 +1039,6 @@ router.post(
           });
 
       }
-
 
 
       // ====================================================
@@ -1322,14 +1050,12 @@ router.post(
         .json({
 
           message:
-
             perfil ===
-            "admin_setor"
+              "admin_setor"
 
               ? "Administrador criado com sucesso."
 
               : "Funcionário criado com sucesso.",
-
 
           usuario:
             profileData
@@ -1360,9 +1086,8 @@ router.post(
 );
 
 
-
 // ==========================================================
-// EXPORTAR ROUTER
+// EXPORTAR
 // ==========================================================
 
 module.exports =

@@ -1,26 +1,68 @@
 // ==========================================================
-// CONEXÃO COM O SUPABASE
+// EVOLUA+
+// CONEXÃO PADRÃO COM O SUPABASE
 // ==========================================================
 
-// Carrega as variáveis que estão no arquivo .env.
+// Carrega o arquivo .env.
 require("dotenv").config();
 
-// Importa a função responsável por criar a conexão.
-const { createClient } = require("@supabase/supabase-js");
 
-
-// Pegamos as informações armazenadas no .env.
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-
-
-// Criamos a conexão com o Supabase.
-const supabase = createClient(
-  supabaseUrl,
-  supabaseKey
+// Importa o cliente do Supabase.
+const {
+  createClient
+} = require(
+  "@supabase/supabase-js"
 );
 
 
-// Exportamos para poder utilizar em outros arquivos,
-// como routes/cursos.js.
-module.exports = supabase;
+// ==========================================================
+// VARIÁVEIS
+// ==========================================================
+
+const supabaseUrl =
+  process.env.SUPABASE_URL;
+
+
+const supabaseKey =
+  process.env.SUPABASE_KEY;
+
+
+// ==========================================================
+// VALIDAÇÕES
+// ==========================================================
+
+if (!supabaseUrl) {
+
+  throw new Error(
+    "SUPABASE_URL não foi encontrada no arquivo .env."
+  );
+
+}
+
+
+if (!supabaseKey) {
+
+  throw new Error(
+    "SUPABASE_KEY não foi encontrada no arquivo .env."
+  );
+
+}
+
+
+// ==========================================================
+// CLIENTE
+// ==========================================================
+
+const supabase =
+  createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+
+// ==========================================================
+// EXPORTAR
+// ==========================================================
+
+module.exports =
+  supabase;

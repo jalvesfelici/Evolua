@@ -3,35 +3,20 @@
 // CONEXÃO ADMINISTRATIVA COM O SUPABASE
 // ==========================================================
 //
-// Este arquivo cria uma conexão especial com o Supabase.
+// Esta conexão possui privilégios administrativos.
 //
-// Diferente do config/supabase.js,
-// esta conexão utiliza uma CHAVE SECRETA.
-//
-// Ela será usada somente pelo backend para operações como:
+// Utilizaremos somente no backend para:
 //
 // - criar usuários;
-// - excluir usuários do Auth;
-// - operações administrativas futuras.
+// - excluir usuários;
+// - futuras funções administrativas.
 //
-// IMPORTANTE:
+// NUNCA colocar essa chave no frontend.
 //
-// NUNCA utilize SUPABASE_ADMIN_KEY no frontend.
-//
-// ==========================================================
-
-
-// ==========================================================
-// CARREGAR VARIÁVEIS DO .ENV
 // ==========================================================
 
 require("dotenv").config();
 
-
-
-// ==========================================================
-// IMPORTAR SUPABASE
-// ==========================================================
 
 const {
   createClient
@@ -40,9 +25,8 @@ const {
 );
 
 
-
 // ==========================================================
-// PEGAR CONFIGURAÇÕES DO .ENV
+// VARIÁVEIS
 // ==========================================================
 
 const supabaseUrl =
@@ -53,14 +37,8 @@ const supabaseAdminKey =
   process.env.SUPABASE_ADMIN_KEY;
 
 
-
 // ==========================================================
-// VALIDAR VARIÁVEIS
-// ==========================================================
-//
-// Isso ajuda a identificar rapidamente
-// caso o .env esteja configurado incorretamente.
-//
+// VALIDAÇÕES
 // ==========================================================
 
 if (!supabaseUrl) {
@@ -81,20 +59,8 @@ if (!supabaseAdminKey) {
 }
 
 
-
 // ==========================================================
-// CRIAR CLIENTE ADMINISTRATIVO
-// ==========================================================
-//
-// autoRefreshToken:
-//
-// não precisamos renovar sessão,
-// porque este cliente não representa um usuário logado.
-//
-// persistSession:
-//
-// não precisamos guardar sessão no servidor.
-//
+// CLIENTE ADMIN
 // ==========================================================
 
 const supabaseAdmin =
@@ -115,7 +81,6 @@ const supabaseAdmin =
 
     }
   );
-
 
 
 // ==========================================================
