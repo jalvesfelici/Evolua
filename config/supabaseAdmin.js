@@ -50,7 +50,8 @@ const supabaseUrl =
 
 
 const supabaseAdminKey =
-  process.env.SUPABASE_ADMIN_KEY;
+  process.env.SUPABASE_ADMIN_KEY ||
+  process.env.SUPABASE_KEY;
 
 
 
@@ -72,12 +73,16 @@ if (!supabaseUrl) {
 }
 
 
-if (!supabaseAdminKey) {
+if (!process.env.SUPABASE_ADMIN_KEY) {
 
-  throw new Error(
-    "SUPABASE_ADMIN_KEY não foi encontrada no arquivo .env."
+  console.warn(
+    "SUPABASE_ADMIN_KEY não foi encontrada. Operações administrativas exigem a service_role key."
   );
 
+}
+
+if (!supabaseAdminKey) {
+  throw new Error("SUPABASE_KEY não foi encontrada no arquivo .env.");
 }
 
 

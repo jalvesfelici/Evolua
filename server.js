@@ -127,6 +127,20 @@ app.use(
   )
 );
 
+app.get(
+  ["/ferias", "/ferias/"],
+  (req, res) => {
+    res.sendFile(
+      path.join(
+        __dirname,
+        "views",
+        "Ferias",
+        "ferias.html"
+      )
+    );
+  }
+);
+
 
 
 // ==========================================================

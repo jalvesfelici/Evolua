@@ -54,6 +54,59 @@ input {
   z-index: 10;
 }
 
+.sidebar,
+.main-content {
+  transition: width 0.25s ease, margin-left 0.25s ease;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 18px;
+  right: -14px;
+  z-index: 2;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #fff;
+  background: #6557e8;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 5px 12px rgba(31, 41, 55, 0.16);
+}
+
+.sidebar-toggle:hover {
+  background: #5145c9;
+}
+
+.sidebar-collapsed {
+  width: 82px;
+}
+
+.sidebar-collapsed .logo,
+.sidebar-collapsed .sidebar-user {
+  justify-content: center;
+}
+
+.sidebar-collapsed .logo div:last-child,
+.sidebar-collapsed .menu-item span,
+.sidebar-collapsed .user-info,
+.sidebar-collapsed .logout-button span {
+  display: none;
+}
+
+.sidebar-collapsed .menu-item {
+  justify-content: center;
+}
+
+.sidebar-collapsed .logout-button {
+  padding: 10px 0;
+}
+
+.sidebar-collapsed + .main-content {
+  margin-left: 82px;
+}
 
 /* ==========================================================
    LOGO
@@ -166,6 +219,29 @@ input {
   gap: 10px;
 }
 
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 12px;
+  color: #b24352;
+  background: #fff2f3;
+  border: 1px solid #f4cdd2;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: 0.2s ease;
+}
+
+.logout-button:hover {
+  color: #fff;
+  background: #c95261;
+  border-color: #c95261;
+}
 
 .avatar {
   min-width: 40px;
@@ -2106,7 +2182,8 @@ div:nth-child(2) {
 
   .logo div:last-child,
   .menu-item span,
-  .user-info {
+  .user-info,
+  .logout-button span {
     display: none;
   }
 
@@ -2119,6 +2196,10 @@ div:nth-child(2) {
 
   .menu-item {
     justify-content: center;
+  }
+
+  .logout-button {
+    padding: 10px 0;
   }
 
 

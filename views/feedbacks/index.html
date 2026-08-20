@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evolua+ | Feedbacks</title>
+  <link rel="stylesheet" href="../inicio/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+  <aside class="sidebar">
+    <button class="sidebar-toggle" type="button" aria-label="Recolher menu" aria-expanded="true"><i class="fa-solid fa-bars"></i></button>
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div><h2>Portal</h2><span>de Carreiras</span></div>
+    </div>
+
+    <nav class="menu" aria-label="Navegação principal">
+      <a href="/inicio/" class="menu-item"><i class="fa-solid fa-house"></i><span>Início</span></a>
+      <a href="/ferias" class="menu-item"><i class="fa-solid fa-calendar-days"></i><span>Férias</span></a>
+      <a href="#" class="menu-item"><i class="fa-solid fa-clock"></i><span>Ponto</span></a>
+      <a href="/treinamentos/" class="menu-item"><i class="fa-solid fa-graduation-cap"></i><span>Treinamentos</span></a>
+      <a href="/carreira/" class="menu-item"><i class="fa-solid fa-briefcase"></i><span>Carreira</span></a>
+      <a href="/feedbacks/" class="menu-item active"><i class="fa-solid fa-comments"></i><span>Feedbacks</span></a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="avatar">MS</div>
+      <div class="user-info"><strong>Maycon Santos</strong><span>Desenvolvedor Júnior</span></div>
+    </div>
+    <button class="logout-button" type="button"><i class="fa-solid fa-right-from-bracket"></i><span>Sair do sistema</span></button>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Conexão e desenvolvimento</p>
+        <h1>Feedbacks</h1>
+        <p>Consulte seus retornos e acompanhe conversas importantes sobre seu desenvolvimento.</p>
+      </div>
+      <div class="welcome-mark" aria-hidden="true"><i class="fa-solid fa-comments"></i></div>
+    </header>
+
+    <section class="welcome-panel">
+      <div>
+        <span class="panel-kicker">Ciclo de desenvolvimento</span>
+        <h2>Feedbacks que ajudam a evoluir.</h2>
+        <p>Seus registros de feedback aparecerão aqui quando forem disponibilizados.</p>
+      </div>
+      <i class="fa-solid fa-message" aria-hidden="true"></i>
+    </section>
+
+    <section class="summary-grid" aria-label="Resumo de feedbacks">
+      <article class="summary-card"><div class="summary-icon blue"><i class="fa-solid fa-inbox"></i></div><div><span>Recebidos</span><strong>0</strong><small>Feedbacks registrados</small></div></article>
+      <article class="summary-card"><div class="summary-icon purple"><i class="fa-solid fa-paper-plane"></i></div><div><span>Enviados</span><strong>0</strong><small>Contribuições realizadas</small></div></article>
+      <article class="summary-card"><div class="summary-icon orange"><i class="fa-solid fa-hourglass-half"></i></div><div><span>Em aberto</span><strong>0</strong><small>Aguardando resposta</small></div></article>
+      <article class="summary-card"><div class="summary-icon green"><i class="fa-solid fa-calendar-check"></i></div><div><span>Próximo ciclo</span><strong>--</strong><small>Data não informada</small></div></article>
+    </section>
+
+    <section class="content-grid">
+      <article class="section-panel">
+        <div class="section-header"><div><p class="eyebrow">Histórico</p><h2>Seus feedbacks</h2></div></div>
+        <div class="empty-state"><i class="fa-regular fa-comments"></i><strong>Nenhum feedback disponível</strong><span>Quando houver registros, eles serão exibidos nesta lista.</span></div>
+      </article>
+      <aside class="section-panel pending-panel">
+        <div class="section-header"><div><p class="eyebrow">Participação</p><h2>Solicitar feedback</h2></div><i class="fa-solid fa-handshake section-icon" aria-hidden="true"></i></div>
+        <div class="empty-state"><i class="fa-solid fa-comment-medical"></i><strong>Recurso aguardando backend</strong><span>O envio de solicitações será habilitado nesta área.</span></div>
+      </aside>
+    </section>
+  </main>
+  <script src="../inicio/sidebar.js"></script>
+</body>
+
+</html>

@@ -15,28 +15,7 @@ const modalTitulo = document.getElementById('modalTitulo');
 let tipoSelecionado = 'periodo';
 let solicitacaoEditandoId = null;
 
-const solicitacoes = [
-    {
-        id: 1,
-        tipo: 'periodo',
-        periodo: '12/08/2026 - 25/08/2026',
-        inicio: '2026-08-12',
-        fim: '2026-08-25',
-        quantidade: 14,
-        statusLabel: 'Pendente',
-        dataSolicitacao: '01/08/2026'
-    },
-    {
-        id: 2,
-        tipo: 'periodo',
-        periodo: '05/09/2026 - 10/09/2026',
-        inicio: '2026-09-05',
-        fim: '2026-09-10',
-        quantidade: 6,
-        statusLabel: 'Em revisão',
-        dataSolicitacao: '18/07/2026'
-    }
-];
+const solicitacoes = [];
 
 function abrirModal() {
     modal.classList.add('open');

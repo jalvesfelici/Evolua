@@ -137,6 +137,19 @@ button {
     font-weight: 600;
 }
 
+.home-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    border-color: var(--primary);
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(28, 110, 232, 0.22);
+}
+
+.home-btn:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #0d398b);
+    color: #fff;
+}
+
 .primary-btn:hover,
 .ghost-btn:hover,
 .secondary-btn:hover,

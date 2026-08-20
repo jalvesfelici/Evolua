@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evolua+ | Carreira</title>
+  <link rel="stylesheet" href="../inicio/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+  <aside class="sidebar">
+    <button class="sidebar-toggle" type="button" aria-label="Recolher menu" aria-expanded="true"><i class="fa-solid fa-bars"></i></button>
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div><h2>Portal</h2><span>de Carreiras</span></div>
+    </div>
+
+    <nav class="menu" aria-label="Navegação principal">
+      <a href="/inicio/" class="menu-item"><i class="fa-solid fa-house"></i><span>Início</span></a>
+      <a href="/ferias" class="menu-item"><i class="fa-solid fa-calendar-days"></i><span>Férias</span></a>
+      <a href="#" class="menu-item"><i class="fa-solid fa-clock"></i><span>Ponto</span></a>
+      <a href="/treinamentos/" class="menu-item"><i class="fa-solid fa-graduation-cap"></i><span>Treinamentos</span></a>
+      <a href="/carreira/" class="menu-item active"><i class="fa-solid fa-briefcase"></i><span>Carreira</span></a>
+      <a href="/feedbacks/" class="menu-item"><i class="fa-solid fa-comments"></i><span>Feedbacks</span></a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="avatar">MS</div>
+      <div class="user-info"><strong>Maycon Santos</strong><span>Desenvolvedor Júnior</span></div>
+    </div>
+    <button class="logout-button" type="button"><i class="fa-solid fa-right-from-bracket"></i><span>Sair do sistema</span></button>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Desenvolvimento profissional</p>
+        <h1>Carreira</h1>
+        <p>Acompanhe seus objetivos, competências e próximos passos profissionais.</p>
+      </div>
+      <div class="welcome-mark" aria-hidden="true"><i class="fa-solid fa-briefcase"></i></div>
+    </header>
+
+    <section class="welcome-panel">
+      <div>
+        <span class="panel-kicker">Meu desenvolvimento</span>
+        <h2>Seu próximo passo começa aqui.</h2>
+        <p>Os dados do seu plano de carreira aparecerão assim que forem cadastrados.</p>
+      </div>
+      <i class="fa-solid fa-route" aria-hidden="true"></i>
+    </section>
+
+    <section class="summary-grid" aria-label="Resumo da carreira">
+      <article class="summary-card"><div class="summary-icon purple"><i class="fa-solid fa-bullseye"></i></div><div><span>Objetivos ativos</span><strong>0</strong><small>Aguardando atualização</small></div></article>
+      <article class="summary-card"><div class="summary-icon blue"><i class="fa-solid fa-star"></i></div><div><span>Competências</span><strong>0</strong><small>Registradas no perfil</small></div></article>
+      <article class="summary-card"><div class="summary-icon orange"><i class="fa-solid fa-chart-line"></i></div><div><span>Progresso</span><strong>--</strong><small>Sem avaliação disponível</small></div></article>
+      <article class="summary-card"><div class="summary-icon green"><i class="fa-solid fa-arrow-up-right-dots"></i></div><div><span>Próxima revisão</span><strong>--</strong><small>Data não informada</small></div></article>
+    </section>
+
+    <section class="content-grid">
+      <article class="section-panel">
+        <div class="section-header"><div><p class="eyebrow">Plano de carreira</p><h2>Objetivos e desenvolvimento</h2></div></div>
+        <div class="empty-state"><i class="fa-solid fa-map-location-dot"></i><strong>Nenhum plano cadastrado</strong><span>Quando seu plano for criado, seus objetivos e etapas aparecerão nesta área.</span></div>
+      </article>
+      <aside class="section-panel pending-panel">
+        <div class="section-header"><div><p class="eyebrow">Perfil profissional</p><h2>Competências</h2></div><i class="fa-solid fa-user-check section-icon" aria-hidden="true"></i></div>
+        <div class="empty-state"><i class="fa-regular fa-address-card"></i><strong>Perfil em preparação</strong><span>As competências serão carregadas pelo backend.</span></div>
+      </aside>
+    </section>
+  </main>
+  <script src="../inicio/sidebar.js"></script>
+</body>
+
+</html>

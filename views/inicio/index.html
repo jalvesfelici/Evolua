@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evolua+ | Início</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+  <aside class="sidebar">
+    <button class="sidebar-toggle" type="button" aria-label="Recolher menu" aria-expanded="true">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div>
+        <h2>Portal</h2>
+        <span>de Carreiras</span>
+      </div>
+    </div>
+
+    <nav class="menu" aria-label="Navegação principal">
+      <a href="/inicio/" class="menu-item active">
+        <i class="fa-solid fa-house"></i>
+        <span>Início</span>
+      </a>
+      <a href="/ferias" class="menu-item">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span>Férias</span>
+      </a>
+      <a href="#" class="menu-item">
+        <i class="fa-solid fa-clock"></i>
+        <span>Ponto</span>
+      </a>
+      <a href="/treinamentos/" class="menu-item">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Treinamentos</span>
+      </a>
+      <a href="/carreira/" class="menu-item">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Carreira</span>
+      </a>
+      <a href="/feedbacks/" class="menu-item">
+        <i class="fa-solid fa-comments"></i>
+        <span>Feedbacks</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="avatar" id="userAvatar">MS</div>
+      <div class="user-info">
+        <strong id="userName">Maycon Santos</strong>
+        <span id="userRole">Desenvolvedor Júnior</span>
+      </div>
+    </div>
+    <button class="logout-button" type="button">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Sair do sistema</span>
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Portal do colaborador</p>
+        <h1>Início</h1>
+        <p>Tenha uma visão rápida das suas atividades e acesse os recursos do portal.</p>
+      </div>
+      <div class="welcome-mark" aria-hidden="true">
+        <i class="fa-solid fa-sparkles"></i>
+      </div>
+    </header>
+
+    <section class="welcome-panel">
+      <div>
+        <span class="panel-kicker">Resumo pessoal</span>
+        <h2>Olá, <span id="welcomeUser">Maycon</span>.</h2>
+        <p>Os seus dados aparecerão aqui assim que estiverem disponíveis.</p>
+      </div>
+      <i class="fa-solid fa-compass" aria-hidden="true"></i>
+    </section>
+
+    <section class="summary-grid" aria-label="Resumo do colaborador">
+      <article class="summary-card">
+        <div class="summary-icon blue"><i class="fa-solid fa-calendar-days"></i></div>
+        <div>
+          <span>Saldo de férias</span>
+          <strong id="vacationBalance">0 dias</strong>
+          <small>Disponível no período atual</small>
+        </div>
+      </article>
+      <article class="summary-card">
+        <div class="summary-icon purple"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div>
+          <span>Treinamentos</span>
+          <strong id="trainingCount">0</strong>
+          <small>Em andamento</small>
+        </div>
+      </article>
+      <article class="summary-card">
+        <div class="summary-icon orange"><i class="fa-solid fa-clock"></i></div>
+        <div>
+          <span>Ponto de hoje</span>
+          <strong id="attendanceStatus">--</strong>
+          <small>Nenhum registro disponível</small>
+        </div>
+      </article>
+      <article class="summary-card">
+        <div class="summary-icon green"><i class="fa-solid fa-circle-check"></i></div>
+        <div>
+          <span>Pendências</span>
+          <strong id="pendingCount">0</strong>
+          <small>Aguardando atualização</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="section-panel">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Acesso rápido</p>
+            <h2>O que você precisa hoje?</h2>
+          </div>
+        </div>
+        <div class="quick-links">
+          <a class="quick-link blue-link" href="/ferias">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span><strong>Consultar férias</strong><small>Veja seu saldo e solicitações</small></span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <a class="quick-link purple-link" href="/treinamentos/">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span><strong>Acessar treinamentos</strong><small>Continue seu desenvolvimento</small></span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <a class="quick-link orange-link" href="#">
+            <i class="fa-solid fa-clock"></i>
+            <span><strong>Registrar ponto</strong><small>Controle sua jornada de hoje</small></span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <aside class="section-panel pending-panel">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Acompanhamento</p>
+            <h2>Próximas ações</h2>
+          </div>
+          <i class="fa-solid fa-list-check section-icon" aria-hidden="true"></i>
+        </div>
+        <div class="empty-state">
+          <i class="fa-regular fa-folder-open"></i>
+          <strong>Nenhuma ação pendente</strong>
+          <span>As atualizações do seu perfil aparecerão aqui.</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+  <script src="sidebar.js"></script>
+</body>
+
+</html>
