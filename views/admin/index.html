@@ -2080,7 +2080,307 @@
 
   </div>
 
+<!-- =====================================================
+     MODAL - CONFIGURAR FÉRIAS DO COLABORADOR
+====================================================== -->
 
+<div
+  class="modal-overlay"
+  id="vacationPeriodModal"
+>
+
+  <div class="modal standard-modal">
+
+
+    <!-- =================================================
+         FECHAR
+    ================================================== -->
+
+    <button
+      type="button"
+      class="close-modal"
+      onclick="closeModal('vacationPeriodModal')"
+    >
+
+      <i class="fa-solid fa-xmark"></i>
+
+    </button>
+
+
+
+    <!-- =================================================
+         CABEÇALHO
+    ================================================== -->
+
+    <div class="modal-header">
+
+
+      <div class="modal-title-icon">
+
+        <i class="fa-solid fa-umbrella-beach"></i>
+
+      </div>
+
+
+      <div>
+
+        <h2>
+          Configurar férias
+        </h2>
+
+        <p>
+          Informe o período inicial de férias do colaborador.
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         COLABORADOR
+    ================================================== -->
+
+    <div class="vacation-employee-preview">
+
+
+      <div
+        class="table-avatar"
+        id="vacationEmployeeAvatar"
+      >
+        --
+      </div>
+
+
+      <div>
+
+        <strong id="vacationEmployeeName">
+          Colaborador
+        </strong>
+
+        <span id="vacationEmployeeDetails">
+          Cargo • Setor
+        </span>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         FORMULÁRIO
+    ================================================== -->
+
+    <form
+      id="vacationPeriodForm"
+      onsubmit="saveVacationPeriod(event)"
+    >
+
+
+      <!-- ID DO USUÁRIO -->
+
+      <input
+        type="hidden"
+        id="vacationEmployeeId"
+      >
+
+
+
+      <div class="form-grid">
+
+
+        <!-- =================================================
+             INÍCIO
+        ================================================== -->
+
+        <div class="form-group">
+
+          <label for="vacationPeriodStart">
+            Início do período aquisitivo
+          </label>
+
+          <input
+            type="date"
+            id="vacationPeriodStart"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- =================================================
+             FIM
+        ================================================== -->
+
+        <div class="form-group">
+
+          <label for="vacationPeriodEnd">
+            Fim do período aquisitivo
+          </label>
+
+          <input
+            type="date"
+            id="vacationPeriodEnd"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- =================================================
+             DIAS DE DIREITO
+        ================================================== -->
+
+        <div class="form-group">
+
+          <label for="vacationEntitledDays">
+            Dias de direito
+          </label>
+
+          <input
+            type="number"
+            id="vacationEntitledDays"
+            min="1"
+            max="60"
+            value="30"
+            required
+          >
+
+          <small class="field-helper">
+            Quantidade total de dias disponíveis no período.
+          </small>
+
+        </div>
+
+
+
+        <!-- =================================================
+             DIAS JÁ UTILIZADOS
+        ================================================== -->
+
+        <div class="form-group">
+
+          <label for="vacationUsedDays">
+            Dias já utilizados
+          </label>
+
+          <input
+            type="number"
+            id="vacationUsedDays"
+            min="0"
+            value="0"
+            required
+          >
+
+          <small class="field-helper">
+            Informe os dias utilizados antes da entrada no sistema.
+          </small>
+
+        </div>
+
+
+
+        <!-- =================================================
+             VENCIMENTO
+        ================================================== -->
+
+        <div class="form-group full">
+
+          <label for="vacationExpirationDate">
+            Data de vencimento
+          </label>
+
+          <input
+            type="date"
+            id="vacationExpirationDate"
+            required
+          >
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           SALDO CALCULADO
+      ================================================== -->
+
+      <div class="vacation-balance-preview">
+
+        <div>
+
+          <span>
+            Saldo que ficará disponível
+          </span>
+
+          <strong id="vacationBalancePreview">
+            30 dias
+          </strong>
+
+        </div>
+
+        <i class="fa-solid fa-calculator"></i>
+
+      </div>
+
+
+
+      <!-- =================================================
+           MENSAGEM
+      ================================================== -->
+
+      <div
+        class="form-message"
+        id="vacationFormMessage"
+      >
+      </div>
+
+
+
+      <!-- =================================================
+           AÇÕES
+      ================================================== -->
+
+      <div class="modal-actions">
+
+
+        <button
+          type="button"
+          class="secondary-button"
+          onclick="closeModal('vacationPeriodModal')"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          type="submit"
+          class="primary-button"
+          id="vacationSaveButton"
+        >
+
+          <i class="fa-solid fa-floppy-disk"></i>
+
+          <span id="vacationSaveText">
+            Salvar período
+          </span>
+
+        </button>
+
+      </div>
+
+
+    </form>
+
+  </div>
+
+</div>
 
   <!-- =====================================================
        JAVASCRIPT

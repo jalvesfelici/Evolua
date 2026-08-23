@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Evolua+ | Férias
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="ferias.css"
+  >
+
+</head>
+
+
+<body>
+
+  <div class="app-shell">
+
+
+    <!-- =====================================================
+         TOPO
+    ====================================================== -->
+
+    <header class="topbar">
+
+
+      <!-- MARCA -->
+
+      <div class="brand">
+
+        <div class="brand-mark">
+          E
+        </div>
+
+
+        <div>
+
+          <span class="brand-name">
+
+            Evolua<span>+</span>
+
+          </span>
+
+          <small>
+            Portal de Gestão de Carreira
+          </small>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- USUÁRIO + AÇÕES -->
+
+      <div class="topbar-actions">
+
+
+        <div
+          class="logged-user"
+          id="loggedUserArea"
+        >
+
+          <span id="loggedUserName">
+            Colaborador
+          </span>
+
+          <small id="loggedUserSector">
+            Setor
+          </small>
+
+        </div>
+
+
+        <button
+          class="ghost-btn"
+          type="button"
+          id="voltarTreinamentos"
+        >
+          Treinamentos
+        </button>
+
+
+        <button
+          class="primary-btn"
+          type="button"
+          id="abrirModal"
+        >
+          Solicitar férias
+        </button>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         CONTEÚDO
+    ====================================================== -->
+
+    <main class="content">
+
+
+      <!-- =================================================
+           CARDS
+      ================================================== -->
+
+      <section
+        class="summary-grid"
+        aria-label="Resumo de férias"
+      >
+
+
+        <!-- SALDO -->
+
+        <article class="summary-card accent-blue">
+
+          <span class="label">
+            Saldo disponível
+          </span>
+
+          <strong id="saldoDisponivel">
+            0 dias
+          </strong>
+
+          <small>
+            Disponíveis para solicitação
+          </small>
+
+        </article>
+
+
+
+        <!-- USADOS -->
+
+        <article class="summary-card accent-green">
+
+          <span class="label">
+            Dias utilizados
+          </span>
+
+          <strong id="diasUsados">
+            0 dias
+          </strong>
+
+          <small>
+            Férias já aprovadas
+          </small>
+
+        </article>
+
+
+
+        <!-- VENCIMENTO -->
+
+        <article class="summary-card accent-orange">
+
+          <span class="label">
+            Próximo vencimento
+          </span>
+
+          <strong id="proximoVencimento">
+            -
+          </strong>
+
+          <small>
+            Data limite do período atual
+          </small>
+
+        </article>
+
+
+
+        <!-- STATUS -->
+
+        <article class="summary-card accent-purple">
+
+          <span class="label">
+            Status
+          </span>
+
+          <strong id="statusFerias">
+            -
+          </strong>
+
+          <small id="statusFeriasDescricao">
+            Carregando informações...
+          </small>
+
+        </article>
+
+      </section>
+
+
+
+      <!-- =================================================
+           PERÍODO ATUAL
+      ================================================== -->
+
+      <section class="panel-grid">
+
+
+        <article class="panel panel-large">
+
+
+          <div class="section-header">
+
+            <div>
+
+              <p class="eyebrow">
+                Período atual
+              </p>
+
+              <h2>
+                Minhas férias
+              </h2>
+
+            </div>
+
+
+            <span
+              class="status-pill success"
+              id="periodoStatus"
+            >
+              -
+            </span>
+
+          </div>
+
+
+
+          <!-- =================================================
+               RESUMO DO PERÍODO
+          ================================================== -->
+
+          <div class="period-overview">
+
+
+            <div>
+
+              <span>
+                Período aquisitivo
+              </span>
+
+              <strong id="periodoAquisitivo">
+                -
+              </strong>
+
+            </div>
+
+
+
+            <div>
+
+              <span>
+                Direito adquirido
+              </span>
+
+              <strong id="diasDireito">
+                0 dias
+              </strong>
+
+            </div>
+
+
+
+            <div>
+
+              <span>
+                Férias já utilizadas
+              </span>
+
+              <strong id="periodoDiasUsados">
+                0 dias
+              </strong>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               LINHA DO TEMPO
+          ================================================== -->
+
+          <div class="timeline">
+
+
+            <div class="timeline-item">
+
+              <span class="dot blue"></span>
+
+              <div>
+
+                <strong>
+                  Início do período
+                </strong>
+
+                <small id="periodoInicio">
+                  -
+                </small>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="timeline-item">
+
+              <span class="dot green"></span>
+
+              <div>
+
+                <strong>
+                  Saldo atual
+                </strong>
+
+                <small id="timelineSaldo">
+                  0 dias disponíveis
+                </small>
+
+              </div>
+
+            </div>
+
+
+
+            <div class="timeline-item">
+
+              <span class="dot orange"></span>
+
+              <div>
+
+                <strong>
+                  Vencimento
+                </strong>
+
+                <small id="periodoVencimento">
+                  -
+                </small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+
+
+
+        <!-- =================================================
+             INFORMAÇÕES
+        ================================================== -->
+
+        <aside class="panel panel-side">
+
+
+          <div class="section-header compact">
+
+            <div>
+
+              <p class="eyebrow">
+                Informações
+              </p>
+
+              <h3>
+                Resumo do período
+              </h3>
+
+            </div>
+
+          </div>
+
+
+          <ul class="vencimentos-list">
+
+
+            <li>
+
+              <span>
+                Dias de direito
+              </span>
+
+              <strong id="resumoDireito">
+                0 dias
+              </strong>
+
+            </li>
+
+
+
+            <li>
+
+              <span>
+                Dias utilizados
+              </span>
+
+              <strong id="resumoUsados">
+                0 dias
+              </strong>
+
+            </li>
+
+
+
+            <li>
+
+              <span>
+                Dias disponíveis
+              </span>
+
+              <strong id="resumoDisponiveis">
+                0 dias
+              </strong>
+
+            </li>
+
+
+          </ul>
+
+        </aside>
+
+      </section>
+
+
+
+      <!-- =================================================
+           SOLICITAÇÕES PENDENTES
+      ================================================== -->
+
+      <section class="panel">
+
+
+        <div class="section-header">
+
+          <div>
+
+            <p class="eyebrow">
+              Solicitações
+            </p>
+
+            <h2>
+              Em análise
+            </h2>
+
+          </div>
+
+
+          <button
+            class="small-btn"
+            type="button"
+            id="btnNovaSolicitacao"
+          >
+            Nova solicitação
+          </button>
+
+        </div>
+
+
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Período
+                </th>
+
+                <th>
+                  Dias
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Data da solicitação
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="tabelaSolicitacoes">
+
+              <!-- JavaScript -->
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =================================================
+           HISTÓRICO
+      ================================================== -->
+
+      <section class="panel">
+
+
+        <div class="section-header">
+
+          <div>
+
+            <p class="eyebrow">
+              Histórico
+            </p>
+
+            <h2>
+              Solicitações analisadas
+            </h2>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Período
+                </th>
+
+                <th>
+                  Quantidade
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Observação
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="tabelaHistorico">
+
+              <!-- JavaScript -->
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       MODAL DE SOLICITAÇÃO
+  ====================================================== -->
+
+  <div
+    class="modal-backdrop"
+    id="modalSolicitacao"
+    aria-hidden="true"
+  >
+
+
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitulo"
+    >
+
+
+      <!-- CABEÇALHO -->
+
+      <div class="modal-header">
+
+
+        <div>
+
+          <p class="eyebrow">
+            Nova solicitação
+          </p>
+
+          <h3 id="modalTitulo">
+            Solicitar férias
+          </h3>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="icon-btn"
+          id="fecharModal"
+          aria-label="Fechar modal"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+
+      <!-- =================================================
+           FORMULÁRIO
+      ================================================== -->
+
+      <form id="formSolicitacao">
+
+
+        <div class="form-grid">
+
+
+          <!-- DATA DE INÍCIO -->
+
+          <label>
+
+            <span>
+              Data de início
+            </span>
+
+            <input
+              type="date"
+              id="dataInicio"
+              required
+            >
+
+          </label>
+
+
+
+          <!-- DATA FINAL -->
+
+          <label>
+
+            <span>
+              Data de término
+            </span>
+
+            <input
+              type="date"
+              id="dataFim"
+              required
+            >
+
+          </label>
+
+
+
+          <!-- QUANTIDADE CALCULADA -->
+
+          <label class="full-width">
+
+            <span>
+              Quantidade de dias
+            </span>
+
+            <input
+              type="text"
+              id="quantidadeDias"
+              value="0 dias"
+              readonly
+            >
+
+          </label>
+
+
+
+          <!-- OBSERVAÇÕES -->
+
+          <label class="full-width">
+
+            <span>
+              Observações
+            </span>
+
+            <textarea
+              id="observacoes"
+              rows="4"
+              placeholder="Informe alguma observação caso necessário."
+            ></textarea>
+
+          </label>
+
+        </div>
+
+
+
+        <!-- =================================================
+             AVISO DE SALDO
+        ================================================== -->
+
+        <div
+          id="saldoModalInfo"
+          class="modal-balance-info"
+        >
+          Saldo disponível: 0 dias
+        </div>
+
+
+
+        <!-- =================================================
+             MENSAGEM
+        ================================================== -->
+
+        <div
+          id="formMessage"
+          class="form-message"
+        >
+        </div>
+
+
+
+        <!-- =================================================
+             BOTÕES
+        ================================================== -->
+
+        <div class="modal-actions">
+
+
+          <button
+            type="button"
+            class="secondary-btn"
+            id="cancelarModal"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-btn"
+            id="salvarSolicitacao"
+          >
+            Enviar solicitação
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
+  <script src="ferias.js"></script>
+
+</body>
+
+</html>

@@ -2,6 +2,23 @@
 // EVOLUA+
 // SERVIDOR PRINCIPAL
 // ==========================================================
+//
+// Este arquivo é responsável por:
+//
+// - iniciar o servidor Node.js;
+// - configurar o Express;
+// - receber JSON do frontend;
+// - disponibilizar as telas da pasta views;
+// - registrar as rotas da API;
+// - iniciar o servidor na porta 3000.
+//
+// ==========================================================
+
+
+
+// ==========================================================
+// IMPORTAÇÕES
+// ==========================================================
 
 const express =
   require(
@@ -15,16 +32,41 @@ const path =
   );
 
 
+
+// ==========================================================
+// CRIAR APLICAÇÃO
+// ==========================================================
+
 const app =
   express();
 
+
+
+// ==========================================================
+// PORTA
+// ==========================================================
 
 const PORT =
   process.env.PORT || 3000;
 
 
+
 // ==========================================================
-// JSON
+// PERMITIR JSON
+// ==========================================================
+//
+// Necessário para receber dados enviados pelo frontend.
+//
+// Exemplo:
+//
+// fetch("/api/usuarios", {
+//   method: "POST",
+//   headers: {
+//     "Content-Type": "application/json"
+//   },
+//   body: JSON.stringify(...)
+// });
+//
 // ==========================================================
 
 app.use(
@@ -32,8 +74,34 @@ app.use(
 );
 
 
+
 // ==========================================================
-// ARQUIVOS DAS TELAS
+// DISPONIBILIZAR AS TELAS
+// ==========================================================
+//
+// Estrutura esperada:
+//
+// views/
+// ├── login/
+// │   ├── index.html
+// │   ├── style.css
+// │   └── app.js
+// │
+// ├── admin/
+// │   ├── index.html
+// │   ├── style.css
+// │   └── app.js
+// │
+// ├── treinamentos/
+// │   ├── index.html
+// │   ├── style.css
+// │   └── app.js
+// │
+// └── ferias/
+//     ├── index.html
+//     ├── ferias.css
+//     └── ferias.js
+//
 // ==========================================================
 
 app.use(
@@ -46,8 +114,19 @@ app.use(
 );
 
 
+
 // ==========================================================
-// AUTENTICAÇÃO
+// ROTAS DE AUTENTICAÇÃO
+// ==========================================================
+//
+// Arquivo:
+//
+// routes/auth.js
+//
+// Rotas finais:
+//
+// POST /api/auth/login
+//
 // ==========================================================
 
 const authRoutes =
@@ -62,8 +141,20 @@ app.use(
 );
 
 
+
 // ==========================================================
-// CURSOS
+// ROTAS DOS CURSOS
+// ==========================================================
+//
+// Arquivo:
+//
+// routes/cursos.js
+//
+// Exemplos:
+//
+// GET  /api/cursos
+// POST /api/cursos
+//
 // ==========================================================
 
 const cursosRoutes =
@@ -78,8 +169,20 @@ app.use(
 );
 
 
+
 // ==========================================================
-// USUÁRIOS
+// ROTAS DOS USUÁRIOS
+// ==========================================================
+//
+// Arquivo:
+//
+// routes/usuarios.js
+//
+// Exemplos:
+//
+// GET  /api/usuarios
+// POST /api/usuarios
+//
 // ==========================================================
 
 const usuariosRoutes =
@@ -94,8 +197,54 @@ app.use(
 );
 
 
+
+// ==========================================================
+// ROTAS DE FÉRIAS
+// ==========================================================
+//
+// Arquivo:
+//
+// routes/ferias.js
+//
+// Exemplos:
+//
+// GET  /api/ferias/minhas
+//
+// GET  /api/ferias/solicitacoes
+//
+// POST /api/ferias/solicitacoes
+//
+// GET  /api/ferias/admin/solicitacoes
+//
+// PATCH /api/ferias/admin/solicitacoes/:id
+//
+// ==========================================================
+
+const feriasRoutes =
+  require(
+    "./routes/ferias"
+  );
+
+
+app.use(
+  "/api/ferias",
+  feriasRoutes
+);
+
+
+
 // ==========================================================
 // ROTA INICIAL
+// ==========================================================
+//
+// Ao acessar:
+//
+// http://localhost:3000
+//
+// o sistema redireciona para:
+//
+// http://localhost:3000/login/
+//
 // ==========================================================
 
 app.get(
@@ -110,8 +259,18 @@ app.get(
 );
 
 
+
 // ==========================================================
-// STATUS
+// ROTA DE STATUS
+// ==========================================================
+//
+// Utilizada apenas para testar se o servidor
+// está funcionando.
+//
+// Acesse:
+//
+// http://localhost:3000/api/status
+//
 // ==========================================================
 
 app.get(
@@ -132,8 +291,19 @@ app.get(
 );
 
 
+
 // ==========================================================
-// API NÃO ENCONTRADA
+// TRATAMENTO DE API NÃO ENCONTRADA
+// ==========================================================
+//
+// IMPORTANTE:
+//
+// Este bloco deve ficar DEPOIS de todas
+// as rotas reais.
+//
+// Caso contrário, ele poderia interceptar
+// as requisições antes das rotas corretas.
+//
 // ==========================================================
 
 app.use(
@@ -153,8 +323,9 @@ app.use(
 );
 
 
+
 // ==========================================================
-// INICIAR
+// INICIAR SERVIDOR
 // ==========================================================
 
 app.listen(
@@ -166,44 +337,63 @@ app.listen(
     );
 
     console.log(
-      "EVOLUA+"
+      "EVOLUA+ - Portal de Gestão de Carreira"
     );
 
     console.log(
       "=============================================="
     );
 
+
     console.log(
       `Servidor: http://localhost:${PORT}`
     );
+
 
     console.log(
       `Login: http://localhost:${PORT}/login/`
     );
 
+
     console.log(
       `Admin: http://localhost:${PORT}/admin/`
     );
+
 
     console.log(
       `Treinamentos: http://localhost:${PORT}/treinamentos/`
     );
 
+
+    console.log(
+      `Férias: http://localhost:${PORT}/ferias/`
+    );
+
+
     console.log(
       `API Login: http://localhost:${PORT}/api/auth/login`
     );
+
 
     console.log(
       `API Usuários: http://localhost:${PORT}/api/usuarios`
     );
 
+
     console.log(
       `API Cursos: http://localhost:${PORT}/api/cursos`
     );
 
+
+    console.log(
+      `API Férias: http://localhost:${PORT}/api/ferias`
+    );
+
+
     console.log(
       `Status: http://localhost:${PORT}/api/status`
     );
+
 
     console.log(
       "=============================================="

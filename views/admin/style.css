@@ -3164,3 +3164,241 @@ select:disabled {
   }
 
 }
+
+/* ==========================================================
+   EVOLUA+
+   FÉRIAS DO COLABORADOR
+========================================================== */
+
+
+/* ==========================================================
+   FUNCIONÁRIO NO MODAL DE FÉRIAS
+========================================================== */
+
+.vacation-employee-preview {
+
+  width: 100%;
+
+  margin-bottom: 22px;
+
+  padding: 14px;
+
+  border:
+    1px solid var(--border);
+
+  border-radius: 12px;
+
+  background:
+    var(--surface-secondary);
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+
+/* Informações ao lado do avatar */
+
+.vacation-employee-preview > div:last-child {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+}
+
+
+/* Nome */
+
+.vacation-employee-preview strong {
+
+  color:
+    var(--text-primary);
+
+  font-size: 11px;
+
+}
+
+
+/* Cargo e setor */
+
+.vacation-employee-preview span {
+
+  color:
+    var(--text-secondary);
+
+  font-size: 9px;
+
+}
+
+
+
+/* ==========================================================
+   PREVISÃO DO SALDO
+========================================================== */
+
+.vacation-balance-preview {
+
+  width: 100%;
+
+  margin-top: 18px;
+
+  padding: 15px;
+
+  border:
+    1px solid #d4cffd;
+
+  border-radius: 12px;
+
+  background:
+    var(--primary-light);
+
+  display: flex;
+
+  justify-content:
+    space-between;
+
+  align-items: center;
+
+  gap: 15px;
+
+}
+
+
+/* Texto da previsão */
+
+.vacation-balance-preview > div {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+
+}
+
+
+/* Legenda */
+
+.vacation-balance-preview span {
+
+  color:
+    var(--text-secondary);
+
+  font-size: 9px;
+
+}
+
+
+/* Número de dias */
+
+.vacation-balance-preview strong {
+
+  color:
+    var(--primary);
+
+  font-size: 18px;
+
+}
+
+
+/* Ícone da calculadora */
+
+.vacation-balance-preview > i {
+
+  color:
+    var(--primary);
+
+  font-size: 20px;
+
+}
+
+
+
+/* ==========================================================
+   AÇÕES DA TABELA DE FUNCIONÁRIOS
+========================================================== */
+
+.employee-actions {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+}
+
+
+/* ==========================================================
+   BOTÃO DE FÉRIAS
+========================================================== */
+
+.vacation-action {
+
+  color:
+    var(--primary);
+
+}
+
+
+/* Hover específico do botão */
+
+.vacation-action:hover {
+
+  background:
+    var(--primary-light);
+
+  color:
+    var(--primary);
+
+  border-color:
+    #cbc6fa;
+
+}
+
+
+
+/* ==========================================================
+   BOTÃO DE SALVAR
+========================================================== */
+
+#vacationSaveButton:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+}
+
+
+
+/* ==========================================================
+   RESPONSIVIDADE DO MODAL DE FÉRIAS
+========================================================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .vacation-employee-preview {
+
+    align-items:
+      flex-start;
+
+  }
+
+
+  .vacation-balance-preview {
+
+    align-items:
+      flex-start;
+
+  }
+
+}

@@ -550,3 +550,113 @@ textarea {
         width: 100%;
     }
 }
+
+/* ==========================================================
+   USUÁRIO LOGADO
+========================================================== */
+
+.logged-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 8px;
+}
+
+.logged-user span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.logged-user small {
+  margin-top: 3px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+
+/* ==========================================================
+   SALDO NO MODAL
+========================================================== */
+
+.modal-balance-info {
+  margin-top: 18px;
+  padding: 12px 14px;
+
+  border-radius: 12px;
+
+  background: var(--blue-soft);
+
+  border: 1px solid var(--line);
+
+  color: var(--primary);
+
+  font-size: 0.82rem;
+
+  font-weight: 700;
+}
+
+
+/* ==========================================================
+   MENSAGENS
+========================================================== */
+
+.form-message {
+  display: none;
+
+  margin-top: 14px;
+
+  padding: 10px 12px;
+
+  border-radius: 10px;
+
+  font-size: 0.8rem;
+}
+
+
+.form-message.error {
+  display: block;
+
+  color: var(--danger);
+
+  background: var(--danger-soft);
+
+  border: 1px solid
+    rgba(216, 75, 90, 0.2);
+}
+
+
+.form-message.success {
+  display: block;
+
+  color: var(--success);
+
+  background: var(--success-soft);
+
+  border: 1px solid
+    rgba(33, 161, 100, 0.2);
+}
+
+
+/* ==========================================================
+   BOTÃO DESATIVADO
+========================================================== */
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 640px) {
+
+  .logged-user {
+    align-items: flex-start;
+  }
+
+}

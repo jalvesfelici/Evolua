@@ -1808,8 +1808,6 @@ async function createEmployee(
 
 }
 
-
-
 // ==========================================================
 // RENDERIZAR FUNCIONÁRIOS
 // ==========================================================
@@ -2008,6 +2006,56 @@ function renderEmployees() {
 
 
 
+      // ====================================================
+      // BOTÃO DE FÉRIAS
+      // ====================================================
+      //
+      // Apenas colaboradores possuem período de férias.
+      //
+      // Administradores não recebem este botão.
+      //
+      // ====================================================
+
+      const vacationButton =
+
+        employee.profile ===
+        "colaborador"
+
+          ? `
+
+            <button
+              type="button"
+              class="
+                table-action
+                vacation-action
+              "
+              title="Configurar férias"
+              onclick="
+                openVacationPeriodModal(
+                  '${employee.id}'
+                )
+              "
+            >
+
+              <i
+                class="
+                  fa-solid
+                  fa-umbrella-beach
+                "
+              ></i>
+
+            </button>
+
+          `
+
+          : "";
+
+
+
+      // ====================================================
+      // CONSTRUIR LINHA
+      // ====================================================
+
       row.innerHTML = `
 
         <td>
@@ -2095,6 +2143,7 @@ function renderEmployees() {
           <span
             class="
               status-badge
+
               ${
                 employee.status ===
                 "Ativo"
@@ -2117,19 +2166,33 @@ function renderEmployees() {
 
         <td>
 
-          <button
-            class="table-action"
-            title="Visualizar"
-          >
+          <div class="employee-actions">
 
-            <i
-              class="
-                fa-regular
-                fa-eye
-              "
-            ></i>
 
-          </button>
+            <!-- BOTÃO VISUALIZAR -->
+
+            <button
+              type="button"
+              class="table-action"
+              title="Visualizar"
+            >
+
+              <i
+                class="
+                  fa-regular
+                  fa-eye
+                "
+              ></i>
+
+            </button>
+
+
+            <!-- BOTÃO FÉRIAS -->
+
+            ${vacationButton}
+
+
+          </div>
 
         </td>
 
@@ -2169,6 +2232,1063 @@ if (
 
 }
 
+
+
+// ==========================================================
+// ==========================================================
+// FÉRIAS
+// CONFIGURAÇÃO INICIAL DO COLABORADOR
+// ==========================================================
+// ==========================================================
+//
+// FLUXO:
+//
+// Admin
+//   ↓
+// Funcionários
+//   ↓
+// botão Férias
+//   ↓
+// GET /api/ferias/admin/periodos/:usuarioId
+//   ↓
+// carrega período existente
+//
+// Se ainda não houver:
+//
+// Admin preenche os dados
+//   ↓
+// PUT /api/ferias/admin/periodos/:usuarioId
+//   ↓
+// Supabase
+//   ↓
+// periodos_ferias
+//
+// ==========================================================
+
+
+
+// ==========================================================
+// ABRIR MODAL DE FÉRIAS
+// ==========================================================
+
+async function openVacationPeriodModal(
+  employeeId
+) {
+
+  // ========================================================
+  // LOCALIZAR COLABORADOR
+  // ========================================================
+
+  const employee =
+    employees.find(
+
+      item =>
+        String(item.id) ===
+        String(employeeId)
+
+    );
+
+
+  if (!employee) {
+
+    alert(
+      "Funcionário não encontrado."
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // SOMENTE COLABORADOR
+  // ========================================================
+
+  if (
+    employee.profile !==
+    "colaborador"
+  ) {
+
+    alert(
+      "Férias só podem ser configuradas para colaboradores."
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // ELEMENTOS
+  // ========================================================
+
+  const form =
+    document.getElementById(
+      "vacationPeriodForm"
+    );
+
+
+  const employeeIdInput =
+    document.getElementById(
+      "vacationEmployeeId"
+    );
+
+
+  const avatar =
+    document.getElementById(
+      "vacationEmployeeAvatar"
+    );
+
+
+  const name =
+    document.getElementById(
+      "vacationEmployeeName"
+    );
+
+
+  const details =
+    document.getElementById(
+      "vacationEmployeeDetails"
+    );
+
+
+  const saveText =
+    document.getElementById(
+      "vacationSaveText"
+    );
+
+
+
+  // ========================================================
+  // LIMPAR FORMULÁRIO
+  // ========================================================
+
+  if (form) {
+
+    form.reset();
+
+  }
+
+
+  clearVacationMessage();
+
+
+
+  // ========================================================
+  // IDENTIFICAÇÃO DO FUNCIONÁRIO
+  // ========================================================
+
+  if (employeeIdInput) {
+
+    employeeIdInput.value =
+      employee.id;
+
+  }
+
+
+  if (avatar) {
+
+    avatar.textContent =
+      getInitials(
+        employee.name
+      );
+
+  }
+
+
+  if (name) {
+
+    name.textContent =
+      employee.name;
+
+  }
+
+
+  if (details) {
+
+    details.textContent =
+      `${employee.role} • ${employee.sector}`;
+
+  }
+
+
+
+  // ========================================================
+  // VALORES PADRÃO
+  // ========================================================
+
+  const entitledDaysInput =
+    document.getElementById(
+      "vacationEntitledDays"
+    );
+
+
+  const usedDaysInput =
+    document.getElementById(
+      "vacationUsedDays"
+    );
+
+
+  if (entitledDaysInput) {
+
+    entitledDaysInput.value =
+      30;
+
+  }
+
+
+  if (usedDaysInput) {
+
+    usedDaysInput.value =
+      0;
+
+  }
+
+
+  if (saveText) {
+
+    saveText.textContent =
+      "Cadastrar período";
+
+  }
+
+
+  updateVacationBalancePreview();
+
+
+
+  // ========================================================
+  // ABRIR MODAL
+  // ========================================================
+
+  openModal(
+    "vacationPeriodModal"
+  );
+
+
+
+  // ========================================================
+  // BUSCAR PERÍODO EXISTENTE
+  // ========================================================
+
+  try {
+
+    const response =
+      await fetch(
+
+        `/api/ferias/admin/periodos/${employee.id}`,
+
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+
+      );
+
+
+
+    // ======================================================
+    // SESSÃO EXPIRADA
+    // ======================================================
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+
+    const result =
+      await response.json();
+
+
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.error ||
+        "Não foi possível carregar as férias."
+
+      );
+
+    }
+
+
+
+    // ======================================================
+    // NÃO EXISTE PERÍODO
+    // ======================================================
+
+    if (!result.periodo) {
+
+      if (saveText) {
+
+        saveText.textContent =
+          "Cadastrar período";
+
+      }
+
+
+      updateVacationBalancePreview();
+
+
+      return;
+
+    }
+
+
+
+    // ======================================================
+    // PERÍODO EXISTENTE
+    // ======================================================
+
+    const periodo =
+      result.periodo;
+
+
+
+    const periodStart =
+      document.getElementById(
+        "vacationPeriodStart"
+      );
+
+
+    const periodEnd =
+      document.getElementById(
+        "vacationPeriodEnd"
+      );
+
+
+    const expirationDate =
+      document.getElementById(
+        "vacationExpirationDate"
+      );
+
+
+
+    if (periodStart) {
+
+      periodStart.value =
+        periodo.periodo_inicio
+          ? String(
+              periodo.periodo_inicio
+            ).substring(
+              0,
+              10
+            )
+          : "";
+
+    }
+
+
+    if (periodEnd) {
+
+      periodEnd.value =
+        periodo.periodo_fim
+          ? String(
+              periodo.periodo_fim
+            ).substring(
+              0,
+              10
+            )
+          : "";
+
+    }
+
+
+    if (entitledDaysInput) {
+
+      entitledDaysInput.value =
+        periodo.dias_direito ?? 30;
+
+    }
+
+
+    if (usedDaysInput) {
+
+      usedDaysInput.value =
+        periodo.dias_usados ?? 0;
+
+    }
+
+
+    if (expirationDate) {
+
+      expirationDate.value =
+        periodo.data_vencimento
+          ? String(
+              periodo.data_vencimento
+            ).substring(
+              0,
+              10
+            )
+          : "";
+
+    }
+
+
+    if (saveText) {
+
+      saveText.textContent =
+        "Atualizar período";
+
+    }
+
+
+    updateVacationBalancePreview();
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao carregar período de férias:",
+      error
+    );
+
+
+    showVacationMessage(
+      error.message,
+      "error"
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// CALCULAR SALDO DE FÉRIAS
+// ==========================================================
+//
+// O saldo não fica armazenado.
+//
+// Exemplo:
+//
+// direito = 30
+// usados = 10
+//
+// saldo = 30 - 10
+//
+// resultado = 20
+//
+// ==========================================================
+
+function updateVacationBalancePreview() {
+
+  const entitledInput =
+    document.getElementById(
+      "vacationEntitledDays"
+    );
+
+
+  const usedInput =
+    document.getElementById(
+      "vacationUsedDays"
+    );
+
+
+  const preview =
+    document.getElementById(
+      "vacationBalancePreview"
+    );
+
+
+  if (
+    !entitledInput ||
+    !usedInput ||
+    !preview
+  ) {
+
+    return;
+
+  }
+
+
+  const entitled =
+    Number(
+      entitledInput.value || 0
+    );
+
+
+  const used =
+    Number(
+      usedInput.value || 0
+    );
+
+
+  const balance =
+    Math.max(
+      entitled - used,
+      0
+    );
+
+
+  preview.textContent =
+    `${balance} ${
+      balance === 1
+        ? "dia"
+        : "dias"
+    }`;
+
+}
+
+
+
+// ==========================================================
+// SALVAR PERÍODO DE FÉRIAS
+// ==========================================================
+
+async function saveVacationPeriod(
+  event
+) {
+
+  event.preventDefault();
+
+
+
+  // ========================================================
+  // ELEMENTOS
+  // ========================================================
+
+  const employeeIdInput =
+    document.getElementById(
+      "vacationEmployeeId"
+    );
+
+
+  const periodStartInput =
+    document.getElementById(
+      "vacationPeriodStart"
+    );
+
+
+  const periodEndInput =
+    document.getElementById(
+      "vacationPeriodEnd"
+    );
+
+
+  const entitledDaysInput =
+    document.getElementById(
+      "vacationEntitledDays"
+    );
+
+
+  const usedDaysInput =
+    document.getElementById(
+      "vacationUsedDays"
+    );
+
+
+  const expirationDateInput =
+    document.getElementById(
+      "vacationExpirationDate"
+    );
+
+
+
+  // ========================================================
+  // VALORES
+  // ========================================================
+
+  const employeeId =
+    employeeIdInput
+      ? employeeIdInput.value
+      : "";
+
+
+  const periodStart =
+    periodStartInput
+      ? periodStartInput.value
+      : "";
+
+
+  const periodEnd =
+    periodEndInput
+      ? periodEndInput.value
+      : "";
+
+
+  const entitledDays =
+    Number(
+
+      entitledDaysInput
+        ? entitledDaysInput.value
+        : 0
+
+    );
+
+
+  const usedDays =
+    Number(
+
+      usedDaysInput
+        ? usedDaysInput.value
+        : 0
+
+    );
+
+
+  const expirationDate =
+    expirationDateInput
+      ? expirationDateInput.value
+      : "";
+
+
+
+  // ========================================================
+  // VALIDAÇÃO DOS CAMPOS
+  // ========================================================
+
+  if (
+    !employeeId ||
+    !periodStart ||
+    !periodEnd ||
+    !expirationDate
+  ) {
+
+    showVacationMessage(
+      "Preencha todos os campos obrigatórios.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // DIAS DE DIREITO
+  // ========================================================
+
+  if (
+    !Number.isInteger(
+      entitledDays
+    )
+    ||
+    entitledDays <= 0
+  ) {
+
+    showVacationMessage(
+      "Os dias de direito precisam ser maiores que zero.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // DIAS UTILIZADOS
+  // ========================================================
+
+  if (
+    !Number.isInteger(
+      usedDays
+    )
+    ||
+    usedDays < 0
+  ) {
+
+    showVacationMessage(
+      "Os dias utilizados não podem ser negativos.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // USADOS NÃO PODEM SER MAIORES QUE O DIREITO
+  // ========================================================
+
+  if (
+    usedDays >
+    entitledDays
+  ) {
+
+    showVacationMessage(
+      "Os dias utilizados não podem ser maiores que os dias de direito.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // PERÍODO
+  // ========================================================
+
+  if (
+    periodEnd <
+    periodStart
+  ) {
+
+    showVacationMessage(
+      "O fim do período não pode ser anterior ao início.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // DATA DE VENCIMENTO
+  // ========================================================
+
+  if (
+    expirationDate <
+    periodEnd
+  ) {
+
+    showVacationMessage(
+      "A data de vencimento não pode ser anterior ao fim do período aquisitivo.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // BOTÃO
+  // ========================================================
+
+  const saveButton =
+    document.getElementById(
+      "vacationSaveButton"
+    );
+
+
+  const saveText =
+    document.getElementById(
+      "vacationSaveText"
+    );
+
+
+  const originalText =
+    saveText
+      ? saveText.textContent
+      : "Salvar período";
+
+
+
+  try {
+
+    if (saveButton) {
+
+      saveButton.disabled =
+        true;
+
+    }
+
+
+    if (saveText) {
+
+      saveText.textContent =
+        "Salvando...";
+
+    }
+
+
+
+    // ======================================================
+    // ENVIAR PARA O BACKEND
+    // ======================================================
+
+    const response =
+      await fetch(
+
+        `/api/ferias/admin/periodos/${employeeId}`,
+
+        {
+
+          method:
+            "PUT",
+
+          headers:
+            getAuthHeaders(
+              true
+            ),
+
+          body:
+            JSON.stringify({
+
+              periodo_inicio:
+                periodStart,
+
+              periodo_fim:
+                periodEnd,
+
+              dias_direito:
+                entitledDays,
+
+              dias_usados:
+                usedDays,
+
+              data_vencimento:
+                expirationDate
+
+            })
+
+        }
+
+      );
+
+
+
+    // ======================================================
+    // SESSÃO EXPIRADA
+    // ======================================================
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+
+    const result =
+      await response.json();
+
+
+
+    // ======================================================
+    // ERRO
+    // ======================================================
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.error ||
+        result.details ||
+        "Não foi possível salvar o período de férias."
+
+      );
+
+    }
+
+
+
+    // ======================================================
+    // SUCESSO
+    // ======================================================
+
+    updateVacationBalancePreview();
+
+
+    showVacationMessage(
+
+      result.message ||
+      "Período de férias salvo com sucesso.",
+
+      "success"
+
+    );
+
+
+    // Mantemos a mensagem visível por alguns instantes.
+    setTimeout(
+      () => {
+
+        closeModal(
+          "vacationPeriodModal"
+        );
+
+      },
+      900
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao salvar férias:",
+      error
+    );
+
+
+    showVacationMessage(
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    if (saveButton) {
+
+      saveButton.disabled =
+        false;
+
+    }
+
+
+    if (saveText) {
+
+      saveText.textContent =
+        originalText;
+
+    }
+
+  }
+
+}
+
+
+
+// ==========================================================
+// MOSTRAR MENSAGEM DO FORMULÁRIO DE FÉRIAS
+// ==========================================================
+
+function showVacationMessage(
+  message,
+  type
+) {
+
+  const container =
+    document.getElementById(
+      "vacationFormMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    message;
+
+
+  container.className =
+    `form-message ${type}`;
+
+}
+
+
+
+// ==========================================================
+// LIMPAR MENSAGEM DE FÉRIAS
+// ==========================================================
+
+function clearVacationMessage() {
+
+  const container =
+    document.getElementById(
+      "vacationFormMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    "";
+
+
+  container.className =
+    "form-message";
+
+}
+
+
+
+// ==========================================================
+// EVENTOS DOS CAMPOS DE FÉRIAS
+// ==========================================================
+//
+// Quando o Admin alterar:
+//
+// - dias de direito;
+// - dias utilizados;
+//
+// atualizamos automaticamente:
+//
+// saldo disponível.
+//
+// ==========================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const entitledInput =
+      document.getElementById(
+        "vacationEntitledDays"
+      );
+
+
+    const usedInput =
+      document.getElementById(
+        "vacationUsedDays"
+      );
+
+
+    if (entitledInput) {
+
+      entitledInput.addEventListener(
+        "input",
+        updateVacationBalancePreview
+      );
+
+    }
+
+
+    if (usedInput) {
+
+      usedInput.addEventListener(
+        "input",
+        updateVacationBalancePreview
+      );
+
+    }
+
+  }
+);
+
+
+
 // ==========================================================
 // CONVERTER CURSO DA API PARA O FORMATO DO FRONTEND
 // ==========================================================
@@ -2191,7 +3311,9 @@ if (
 //
 // ==========================================================
 
-function mapApiCourse(apiCourse) {
+function mapApiCourse(
+  apiCourse
+) {
 
   const apiActivities =
     apiCourse.atividades_curso || [];
@@ -2397,6 +3519,7 @@ async function loadCoursesFromApi() {
       courses
     );
 
+
   } catch (error) {
 
     console.error(
@@ -2427,7 +3550,9 @@ async function loadCoursesFromApi() {
           </strong>
 
           <span>
-            ${escapeHTML(error.message)}
+            ${escapeHTML(
+              error.message
+            )}
           </span>
 
         </div>
@@ -2522,7 +3647,9 @@ function toggleExternalCourse() {
   }
 
 
-  if (checkbox.checked) {
+  if (
+    checkbox.checked
+  ) {
 
     area.classList.add(
       "show"
@@ -2665,7 +3792,8 @@ function renderActivityBuilder() {
 
 
   if (
-    temporaryActivities.length === 0
+    temporaryActivities.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -2714,6 +3842,7 @@ function renderActivityBuilder() {
         "";
 
 
+
       // ======================================================
       // LINK
       // ======================================================
@@ -2739,7 +3868,9 @@ function renderActivityBuilder() {
             <input
               type="url"
               placeholder="https://..."
-              value="${escapeHTML(activity.resource)}"
+              value="${escapeHTML(
+                activity.resource
+              )}"
               oninput="
                 updateActivity(
                   ${activity.temporaryId},
@@ -2754,6 +3885,7 @@ function renderActivityBuilder() {
         `;
 
       }
+
 
 
       // ======================================================
@@ -2802,7 +3934,9 @@ function renderActivityBuilder() {
                     "
                   >
 
-                    ${escapeHTML(activity.resource)}
+                    ${escapeHTML(
+                      activity.resource
+                    )}
 
                   </span>
 
@@ -2819,6 +3953,11 @@ function renderActivityBuilder() {
 
       }
 
+
+
+      // ======================================================
+      // CONTEÚDO DA ATIVIDADE
+      // ======================================================
 
       element.innerHTML = `
 
@@ -2846,6 +3985,7 @@ function renderActivityBuilder() {
         </div>
 
 
+
         <div class="form-grid">
 
 
@@ -2864,7 +4004,9 @@ function renderActivityBuilder() {
             <input
               type="text"
               placeholder="Ex.: Crie uma planilha financeira"
-              value="${escapeHTML(activity.title)}"
+              value="${escapeHTML(
+                activity.title
+              )}"
               oninput="
                 updateActivity(
                   ${activity.temporaryId},
@@ -2900,7 +4042,9 @@ function renderActivityBuilder() {
                   this.value
                 )
               "
-            >${escapeHTML(activity.description)}</textarea>
+            >${escapeHTML(
+              activity.description
+            )}</textarea>
 
           </div>
 
@@ -3008,7 +4152,8 @@ function saveActivityFile(
 
   if (
     !input.files ||
-    input.files.length === 0
+    input.files.length ===
+    0
   ) {
 
     return;
@@ -3052,6 +4197,7 @@ async function createCourse(
   event.preventDefault();
 
 
+
   // ========================================================
   // VERIFICAR ATIVIDADES
   // ========================================================
@@ -3078,6 +4224,7 @@ async function createCourse(
   }
 
 
+
   // ========================================================
   // VALIDAR ATIVIDADES
   // ========================================================
@@ -3102,6 +4249,7 @@ async function createCourse(
   }
 
 
+
   const form =
     document.getElementById(
       "courseForm"
@@ -3113,6 +4261,7 @@ async function createCourse(
     return;
 
   }
+
 
 
   const submitButton =
@@ -3148,6 +4297,7 @@ async function createCourse(
     `;
 
   }
+
 
 
   try {
@@ -3277,6 +4427,7 @@ async function createCourse(
     };
 
 
+
     // ======================================================
     // ENVIAR PARA API
     // ======================================================
@@ -3317,6 +4468,7 @@ async function createCourse(
       );
 
     }
+
 
 
     // ======================================================
@@ -3494,6 +4646,7 @@ function renderCourses() {
     "";
 
 
+
   // ========================================================
   // NENHUM CURSO
   // ========================================================
@@ -3525,6 +4678,7 @@ function renderCourses() {
     return;
 
   }
+
 
 
   filtered.forEach(
@@ -3613,6 +4767,7 @@ function renderCourses() {
         </div>
 
 
+
         <div class="course-card-content">
 
           <div class="course-card-top">
@@ -3654,6 +4809,7 @@ function renderCourses() {
             )}
 
           </p>
+
 
 
           <div class="course-meta-grid">
@@ -3719,6 +4875,7 @@ function renderCourses() {
             </div>
 
           </div>
+
 
 
           <div class="course-actions">
@@ -3993,7 +5150,6 @@ function showCourseDetails(
       ?
 
       course.activities
-
         .map(
           (activity, index) => {
 
@@ -4071,7 +5227,6 @@ function showCourseDetails(
 
           }
         )
-
         .join("")
 
       :
@@ -4087,6 +5242,7 @@ function showCourseDetails(
         </div>
 
       `;
+
 
 
   const detailsContainer =
@@ -4147,6 +5303,7 @@ function showCourseDetails(
       </p>
 
     </div>
+
 
 
     <div class="details-grid">
@@ -4224,6 +5381,7 @@ function showCourseDetails(
     </div>
 
 
+
     ${
       course.external
 
@@ -4257,6 +5415,7 @@ function showCourseDetails(
     }
 
 
+
     <div class="details-activities">
 
       <h3>
@@ -4279,7 +5438,7 @@ function showCourseDetails(
 
 
 // ==========================================================
-// SOLICITAR EXCLUSÃO
+// SOLICITAR EXCLUSÃO DO CURSO
 // ==========================================================
 
 function askDeleteCourse(
@@ -4299,7 +5458,7 @@ function askDeleteCourse(
 
 
 // ==========================================================
-// CONFIRMAR EXCLUSÃO / DESATIVAÇÃO
+// CONFIRMAR EXCLUSÃO / DESATIVAÇÃO DO CURSO
 // ==========================================================
 
 const confirmDeleteButton =
@@ -4355,13 +5514,16 @@ if (
 
           const response =
             await fetch(
+
               `/api/cursos/${courseToDelete}/desativar`,
+
               {
 
                 method:
                   "PATCH"
 
               }
+
             );
 
 
@@ -4372,8 +5534,10 @@ if (
           if (!response.ok) {
 
             throw new Error(
+
               result.erro ||
               "Não foi possível remover o treinamento."
+
             );
 
           }
@@ -5593,7 +6757,7 @@ if (logoutButton) {
 // INICIALIZAÇÃO
 // ==========================================================
 //
-// NOVO FLUXO:
+// FLUXO:
 //
 // /admin/
 //    ↓
@@ -5676,6 +6840,7 @@ async function initializeApp() {
   // e redirecionado para o login.
   //
   // Portanto verificamos novamente.
+
   if (
     !localStorage.getItem(
       "access_token"

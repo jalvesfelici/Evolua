@@ -1,252 +1,1629 @@
-const modal = document.getElementById('modalSolicitacao');
-const abrirModalBtn = document.getElementById('abrirModal');
-const btnNovaSolicitacao = document.getElementById('btnNovaSolicitacao');
-const fecharModalBtn = document.getElementById('fecharModal');
-const cancelarModalBtn = document.getElementById('cancelarModal');
-const formSolicitacao = document.getElementById('formSolicitacao');
-const tipoButtons = document.querySelectorAll('.toggle-option');
-const campoQuantidade = document.getElementById('campoQuantidade');
-const dataInicio = document.getElementById('dataInicio');
-const dataFim = document.getElementById('dataFim');
-const quantidadeDias = document.getElementById('quantidadeDias');
-const tabelaSolicitacoes = document.getElementById('tabelaSolicitacoes');
-const modalTitulo = document.getElementById('modalTitulo');
+// ==========================================================
+// EVOLUA+
+// FÉRIAS - FRONTEND
+// ==========================================================
+//
+// Este arquivo:
+//
+// - identifica o colaborador logado;
+// - busca férias no backend;
+// - busca solicitações;
+// - calcula visualmente os dias;
+// - envia novas solicitações;
+// - atualiza as tabelas.
+//
+// ==========================================================
 
-let tipoSelecionado = 'periodo';
-let solicitacaoEditandoId = null;
 
-const solicitacoes = [
-    {
-        id: 1,
-        tipo: 'periodo',
-        periodo: '12/08/2026 - 25/08/2026',
-        inicio: '2026-08-12',
-        fim: '2026-08-25',
-        quantidade: 14,
-        statusLabel: 'Pendente',
-        dataSolicitacao: '01/08/2026'
-    },
-    {
-        id: 2,
-        tipo: 'periodo',
-        periodo: '05/09/2026 - 10/09/2026',
-        inicio: '2026-09-05',
-        fim: '2026-09-10',
-        quantidade: 6,
-        statusLabel: 'Em revisão',
-        dataSolicitacao: '18/07/2026'
-    }
-];
 
-function abrirModal() {
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
+// ==========================================================
+// SESSÃO
+// ==========================================================
+
+const accessToken =
+  localStorage.getItem(
+    "access_token"
+  );
+
+
+let loggedUser =
+  null;
+
+
+try {
+
+  const storedUser =
+    localStorage.getItem(
+      "usuario_logado"
+    );
+
+
+  if (storedUser) {
+
+    loggedUser =
+      JSON.parse(
+        storedUser
+      );
+
+  }
+
+} catch (error) {
+
+  console.error(
+    "Erro ao carregar usuário:",
+    error
+  );
+
 }
 
-function fecharModal() {
-    modal.classList.remove('open');
-    modal.setAttribute('aria-hidden', 'true');
-    formSolicitacao.reset();
-    tipoSelecionado = 'periodo';
-    solicitacaoEditandoId = null;
-    modalTitulo.textContent = 'Solicitar férias';
-    atualizarTipoSolicitacao();
+
+
+// ==========================================================
+// DADOS DA PÁGINA
+// ==========================================================
+
+let periodoAtual =
+  null;
+
+
+let solicitacoes =
+  [];
+
+
+
+// ==========================================================
+// ELEMENTOS DO MODAL
+// ==========================================================
+
+const modal =
+  document.getElementById(
+    "modalSolicitacao"
+  );
+
+
+const abrirModalBtn =
+  document.getElementById(
+    "abrirModal"
+  );
+
+
+const btnNovaSolicitacao =
+  document.getElementById(
+    "btnNovaSolicitacao"
+  );
+
+
+const fecharModalBtn =
+  document.getElementById(
+    "fecharModal"
+  );
+
+
+const cancelarModalBtn =
+  document.getElementById(
+    "cancelarModal"
+  );
+
+
+const formSolicitacao =
+  document.getElementById(
+    "formSolicitacao"
+  );
+
+
+const dataInicio =
+  document.getElementById(
+    "dataInicio"
+  );
+
+
+const dataFim =
+  document.getElementById(
+    "dataFim"
+  );
+
+
+const quantidadeDias =
+  document.getElementById(
+    "quantidadeDias"
+  );
+
+
+const observacoes =
+  document.getElementById(
+    "observacoes"
+  );
+
+
+const salvarSolicitacao =
+  document.getElementById(
+    "salvarSolicitacao"
+  );
+
+
+
+// ==========================================================
+// VALIDAR ACESSO
+// ==========================================================
+
+function validarSessao() {
+
+  if (
+    !accessToken ||
+    !loggedUser
+  ) {
+
+    window.location.href =
+      "/login/";
+
+    return false;
+
+  }
+
+
+  // Somente colaborador utiliza esta tela.
+
+  if (
+    loggedUser.perfil !==
+    "colaborador"
+  ) {
+
+    window.location.href =
+      "/admin/";
+
+    return false;
+
+  }
+
+
+  if (
+    loggedUser.ativo ===
+    false
+  ) {
+
+    limparSessao();
+
+
+    window.location.href =
+      "/login/";
+
+    return false;
+
+  }
+
+
+  return true;
+
 }
 
-function atualizarTipoSolicitacao() {
-    tipoButtons.forEach((button) => {
-        const isActive = button.dataset.type === tipoSelecionado;
-        button.classList.toggle('active', isActive);
-    });
 
-    const isPeriodo = tipoSelecionado === 'periodo';
-    dataInicio.disabled = false;
-    dataFim.disabled = false;
-    quantidadeDias.disabled = isPeriodo;
-    campoQuantidade.style.opacity = isPeriodo ? '0.55' : '1';
-    campoQuantidade.style.pointerEvents = isPeriodo ? 'none' : 'auto';
+
+// ==========================================================
+// LIMPAR SESSÃO
+// ==========================================================
+
+function limparSessao() {
+
+  localStorage.removeItem(
+    "access_token"
+  );
+
+
+  localStorage.removeItem(
+    "usuario_logado"
+  );
+
 }
 
-function calcularDiasEntreDatas(inicio, fim) {
-    const dataInicial = new Date(inicio);
-    const dataFinal = new Date(fim);
-    const diferenca = dataFinal - dataInicial;
-    return Math.round(diferenca / 86400000) + 1;
+
+
+// ==========================================================
+// HEADERS
+// ==========================================================
+
+function getAuthHeaders(
+  incluirJson = false
+) {
+
+  const headers = {
+
+    Authorization:
+      `Bearer ${accessToken}`
+
+  };
+
+
+  if (incluirJson) {
+
+    headers["Content-Type"] =
+      "application/json";
+
+  }
+
+
+  return headers;
+
 }
 
-function formatarData(data) {
-    const date = new Date(data);
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const ano = date.getFullYear();
-    return `${dia}/${mes}/${ano}`;
+
+
+// ==========================================================
+// TRATAR TOKEN EXPIRADO
+// ==========================================================
+
+function tratarNaoAutorizado(
+  response
+) {
+
+  if (
+    response.status !== 401
+  ) {
+
+    return false;
+
+  }
+
+
+  limparSessao();
+
+
+  alert(
+    "Sua sessão expirou. Faça login novamente."
+  );
+
+
+  window.location.href =
+    "/login/";
+
+
+  return true;
+
 }
 
-function getStatusClass(statusLabel) {
-    if (statusLabel === 'Pendente') return 'warning';
-    if (statusLabel === 'Em revisão') return 'info';
-    return 'success';
+
+
+// ==========================================================
+// EXIBIR USUÁRIO
+// ==========================================================
+
+function renderizarUsuario() {
+
+  const nome =
+    document.getElementById(
+      "loggedUserName"
+    );
+
+
+  const setor =
+    document.getElementById(
+      "loggedUserSector"
+    );
+
+
+  if (nome) {
+
+    nome.textContent =
+      loggedUser.nome;
+
+  }
+
+
+  if (setor) {
+
+    setor.textContent =
+      loggedUser.setor;
+
+  }
+
 }
 
-function renderizarSolicitacoes() {
-    tabelaSolicitacoes.innerHTML = '';
 
-    solicitacoes.forEach((solicitacao) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${solicitacao.periodo}</td>
-            <td>${solicitacao.tipo === 'periodo' ? 'Período' : 'Dias fixos'}</td>
-            <td>${solicitacao.quantidade}</td>
-            <td><span class="status-pill ${getStatusClass(solicitacao.statusLabel)}">${solicitacao.statusLabel}</span></td>
-            <td>${solicitacao.dataSolicitacao}</td>
-            <td>
-                <div class="table-actions">
-                    <button type="button" class="link-btn edit-btn" data-action="editar" data-id="${solicitacao.id}">Editar</button>
-                    <button type="button" class="link-btn delete-btn" data-action="excluir" data-id="${solicitacao.id}">Excluir</button>
-                </div>
-            </td>
-        `;
-        tabelaSolicitacoes.appendChild(row);
-    });
+
+// ==========================================================
+// FORMATAR DATA
+// ==========================================================
+//
+// Recebe:
+//
+// 2026-08-21
+//
+// Retorna:
+//
+// 21/08/2026
+//
+// ==========================================================
+
+function formatarData(
+  data
+) {
+
+  if (!data) {
+
+    return "-";
+
+  }
+
+
+  const partes =
+    String(data)
+      .substring(0, 10)
+      .split("-");
+
+
+  if (
+    partes.length !== 3
+  ) {
+
+    return data;
+
+  }
+
+
+  return (
+    `${partes[2]}/${partes[1]}/${partes[0]}`
+  );
+
 }
 
-function preencherFormularioComSolicitacao(solicitacao) {
-    tipoSelecionado = solicitacao.tipo;
-    modalTitulo.textContent = 'Editar solicitação';
 
-    if (solicitacao.tipo === 'periodo') {
-        dataInicio.value = solicitacao.inicio;
-        dataFim.value = solicitacao.fim;
-        quantidadeDias.value = '';
-    } else {
-        dataInicio.value = '';
-        dataFim.value = '';
-        quantidadeDias.value = solicitacao.quantidade;
-    }
 
-    atualizarTipoSolicitacao();
+// ==========================================================
+// CALCULAR DIAS ENTRE DATAS
+// ==========================================================
+
+function calcularDiasEntreDatas(
+  inicio,
+  fim
+) {
+
+  if (
+    !inicio ||
+    !fim
+  ) {
+
+    return 0;
+
+  }
+
+
+  const dataInicial =
+    new Date(
+      `${inicio}T00:00:00Z`
+    );
+
+
+  const dataFinal =
+    new Date(
+      `${fim}T00:00:00Z`
+    );
+
+
+  if (
+    dataFinal <
+    dataInicial
+  ) {
+
+    return 0;
+
+  }
+
+
+  const diferenca =
+    dataFinal.getTime() -
+    dataInicial.getTime();
+
+
+  return (
+    Math.floor(
+      diferenca /
+      86400000
+    ) + 1
+  );
+
 }
 
-function abrirModalEdicao(id) {
-    const solicitacao = solicitacoes.find((item) => item.id === id);
-    if (!solicitacao) return;
 
-    solicitacaoEditandoId = id;
-    preencherFormularioComSolicitacao(solicitacao);
-    abrirModal();
-}
 
-function criarSolicitacaoDoFormulario() {
-    if (tipoSelecionado === 'periodo') {
-        if (!dataInicio.value || !dataFim.value) {
-            alert('Informe a data de início e a data de término.');
-            return null;
+// ==========================================================
+// BUSCAR PERÍODO DE FÉRIAS
+// ==========================================================
+
+async function carregarFerias() {
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/ferias/minhas",
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
         }
+      );
 
-        if (new Date(dataFim.value) < new Date(dataInicio.value)) {
-            alert('A data de término não pode ser anterior à data de início.');
-            return null;
-        }
 
-        const totalDias = calcularDiasEntreDatas(dataInicio.value, dataFim.value);
-        return {
-            tipo: 'periodo',
-            periodo: `${formatarData(dataInicio.value)} - ${formatarData(dataFim.value)}`,
-            inicio: dataInicio.value,
-            fim: dataFim.value,
-            quantidade: totalDias,
-            statusLabel: 'Pendente',
-            dataSolicitacao: formatarData(new Date())
-        };
+    if (
+      tratarNaoAutorizado(
+        response
+      )
+    ) {
+
+      return;
+
     }
 
-    if (!quantidadeDias.value || Number(quantidadeDias.value) <= 0) {
-        alert('Informe a quantidade de dias válidos.');
-        return null;
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        result.error ||
+        "Não foi possível carregar as férias."
+      );
+
     }
 
-    return {
-        tipo: 'fixos',
-        periodo: `Solicitação de ${quantidadeDias.value} dias`,
-        inicio: '',
-        fim: '',
-        quantidade: Number(quantidadeDias.value),
-        statusLabel: 'Pendente',
-        dataSolicitacao: formatarData(new Date())
-    };
+
+    periodoAtual =
+      result.periodo;
+
+
+    renderizarPeriodo();
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao carregar férias:",
+      error
+    );
+
+
+    mostrarPeriodoVazio();
+
+  }
+
 }
 
-abrirModalBtn.addEventListener('click', () => {
-    solicitacaoEditandoId = null;
-    modalTitulo.textContent = 'Solicitar férias';
-    abrirModal();
-});
-btnNovaSolicitacao.addEventListener('click', () => {
-    solicitacaoEditandoId = null;
-    modalTitulo.textContent = 'Solicitar férias';
-    abrirModal();
-});
-fecharModalBtn.addEventListener('click', fecharModal);
-cancelarModalBtn.addEventListener('click', fecharModal);
 
-modal.addEventListener('click', (event) => {
-    if (event.target === modal) {
-        fecharModal();
-    }
-});
 
-tipoButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-        tipoSelecionado = button.dataset.type;
-        atualizarTipoSolicitacao();
-    });
-});
+// ==========================================================
+// RENDERIZAR PERÍODO
+// ==========================================================
 
-tabelaSolicitacoes.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-action]');
-    if (!button) return;
+function renderizarPeriodo() {
 
-    const id = Number(button.dataset.id);
+  // ========================================================
+  // COLABORADOR SEM PERÍODO
+  // ========================================================
 
-    if (button.dataset.action === 'editar') {
-        abrirModalEdicao(id);
-        return;
-    }
+  if (!periodoAtual) {
 
-    if (button.dataset.action === 'excluir') {
-        const indice = solicitacoes.findIndex((item) => item.id === id);
-        if (indice !== -1) {
-            solicitacoes.splice(indice, 1);
-            renderizarSolicitacoes();
+    mostrarPeriodoVazio();
+
+    return;
+
+  }
+
+
+  const direito =
+    Number(
+      periodoAtual.dias_direito || 0
+    );
+
+
+  const usados =
+    Number(
+      periodoAtual.dias_usados || 0
+    );
+
+
+  const disponiveis =
+    Number(
+      periodoAtual.dias_disponiveis || 0
+    );
+
+
+  // ========================================================
+  // CARDS
+  // ========================================================
+
+  document.getElementById(
+    "saldoDisponivel"
+  ).textContent =
+    `${disponiveis} dias`;
+
+
+  document.getElementById(
+    "diasUsados"
+  ).textContent =
+    `${usados} dias`;
+
+
+  document.getElementById(
+    "proximoVencimento"
+  ).textContent =
+    formatarData(
+      periodoAtual.data_vencimento
+    );
+
+
+  document.getElementById(
+    "statusFerias"
+  ).textContent =
+    disponiveis > 0
+      ? "Disponível"
+      : "Sem saldo";
+
+
+  document.getElementById(
+    "statusFeriasDescricao"
+  ).textContent =
+    disponiveis > 0
+      ? "Você possui dias disponíveis."
+      : "Todo o saldo deste período foi utilizado.";
+
+
+
+  // ========================================================
+  // PERÍODO
+  // ========================================================
+
+  document.getElementById(
+    "periodoAquisitivo"
+  ).textContent =
+
+    `${formatarData(
+      periodoAtual.periodo_inicio
+    )} - ${formatarData(
+      periodoAtual.periodo_fim
+    )}`;
+
+
+  document.getElementById(
+    "diasDireito"
+  ).textContent =
+    `${direito} dias`;
+
+
+  document.getElementById(
+    "periodoDiasUsados"
+  ).textContent =
+    `${usados} dias`;
+
+
+  document.getElementById(
+    "periodoInicio"
+  ).textContent =
+    formatarData(
+      periodoAtual.periodo_inicio
+    );
+
+
+  document.getElementById(
+    "timelineSaldo"
+  ).textContent =
+    `${disponiveis} dias disponíveis`;
+
+
+  document.getElementById(
+    "periodoVencimento"
+  ).textContent =
+    formatarData(
+      periodoAtual.data_vencimento
+    );
+
+
+  document.getElementById(
+    "periodoStatus"
+  ).textContent =
+    disponiveis > 0
+      ? "Disponível"
+      : "Utilizado";
+
+
+
+  // ========================================================
+  // RESUMO
+  // ========================================================
+
+  document.getElementById(
+    "resumoDireito"
+  ).textContent =
+    `${direito} dias`;
+
+
+  document.getElementById(
+    "resumoUsados"
+  ).textContent =
+    `${usados} dias`;
+
+
+  document.getElementById(
+    "resumoDisponiveis"
+  ).textContent =
+    `${disponiveis} dias`;
+
+
+  document.getElementById(
+    "saldoModalInfo"
+  ).textContent =
+    `Saldo disponível: ${disponiveis} dias`;
+
+
+
+  // ========================================================
+  // HABILITAR / DESABILITAR SOLICITAÇÃO
+  // ========================================================
+
+  const possuiSaldo =
+    disponiveis > 0;
+
+
+  abrirModalBtn.disabled =
+    !possuiSaldo;
+
+
+  btnNovaSolicitacao.disabled =
+    !possuiSaldo;
+
+}
+
+
+
+// ==========================================================
+// PERÍODO NÃO CADASTRADO
+// ==========================================================
+
+function mostrarPeriodoVazio() {
+
+  periodoAtual =
+    null;
+
+
+  document.getElementById(
+    "saldoDisponivel"
+  ).textContent =
+    "0 dias";
+
+
+  document.getElementById(
+    "diasUsados"
+  ).textContent =
+    "0 dias";
+
+
+  document.getElementById(
+    "proximoVencimento"
+  ).textContent =
+    "-";
+
+
+  document.getElementById(
+    "statusFerias"
+  ).textContent =
+    "Indisponível";
+
+
+  document.getElementById(
+    "statusFeriasDescricao"
+  ).textContent =
+    "Nenhum período de férias cadastrado.";
+
+
+  document.getElementById(
+    "periodoAquisitivo"
+  ).textContent =
+    "-";
+
+
+  document.getElementById(
+    "periodoStatus"
+  ).textContent =
+    "Não cadastrado";
+
+
+  document.getElementById(
+    "saldoModalInfo"
+  ).textContent =
+    "Nenhum período disponível.";
+
+
+  abrirModalBtn.disabled =
+    true;
+
+
+  btnNovaSolicitacao.disabled =
+    true;
+
+}
+
+
+
+// ==========================================================
+// CARREGAR SOLICITAÇÕES
+// ==========================================================
+
+async function carregarSolicitacoes() {
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/ferias/solicitacoes",
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
         }
+      );
+
+
+    if (
+      tratarNaoAutorizado(
+        response
+      )
+    ) {
+
+      return;
+
     }
-});
 
-formSolicitacao.addEventListener('submit', (event) => {
-    event.preventDefault();
 
-    const novaSolicitacao = criarSolicitacaoDoFormulario();
-    if (!novaSolicitacao) return;
+    const result =
+      await response.json();
 
-    if (solicitacaoEditandoId !== null) {
-        const indice = solicitacoes.findIndex((item) => item.id === solicitacaoEditandoId);
-        if (indice !== -1) {
-            solicitacoes[indice] = {
-                ...solicitacoes[indice],
-                ...novaSolicitacao,
-                id: solicitacaoEditandoId
-            };
-        }
-    } else {
-        solicitacoes.unshift({
-            id: Date.now(),
-            ...novaSolicitacao
-        });
+
+    if (!response.ok) {
+
+      throw new Error(
+        result.error ||
+        "Não foi possível carregar as solicitações."
+      );
+
     }
+
+
+    solicitacoes =
+      Array.isArray(result)
+        ? result
+        : [];
+
 
     renderizarSolicitacoes();
-    fecharModal();
-});
 
-renderizarSolicitacoes();
-atualizarTipoSolicitacao();
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao carregar solicitações:",
+      error
+    );
+
+
+    solicitacoes =
+      [];
+
+
+    renderizarSolicitacoes();
+
+  }
+
+}
+
+
+
+// ==========================================================
+// STATUS
+// ==========================================================
+
+function getStatusLabel(
+  status
+) {
+
+  if (
+    status ===
+    "aprovada"
+  ) {
+
+    return "Aprovada";
+
+  }
+
+
+  if (
+    status ===
+    "reprovada"
+  ) {
+
+    return "Reprovada";
+
+  }
+
+
+  return "Pendente";
+
+}
+
+
+
+function getStatusClass(
+  status
+) {
+
+  if (
+    status ===
+    "aprovada"
+  ) {
+
+    return "success";
+
+  }
+
+
+  if (
+    status ===
+    "reprovada"
+  ) {
+
+    return "danger";
+
+  }
+
+
+  return "warning";
+
+}
+
+
+
+// ==========================================================
+// RENDERIZAR SOLICITAÇÕES
+// ==========================================================
+
+function renderizarSolicitacoes() {
+
+  const tabelaPendentes =
+    document.getElementById(
+      "tabelaSolicitacoes"
+    );
+
+
+  const tabelaHistorico =
+    document.getElementById(
+      "tabelaHistorico"
+    );
+
+
+  tabelaPendentes.innerHTML =
+    "";
+
+
+  tabelaHistorico.innerHTML =
+    "";
+
+
+
+  const pendentes =
+    solicitacoes.filter(
+      item =>
+        item.status ===
+        "pendente"
+    );
+
+
+  const historico =
+    solicitacoes.filter(
+      item =>
+        item.status !==
+        "pendente"
+    );
+
+
+
+  // ========================================================
+  // PENDENTES
+  // ========================================================
+
+  if (
+    pendentes.length ===
+    0
+  ) {
+
+    tabelaPendentes.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="4"
+          style="
+            text-align:center;
+            color:#5f6f86;
+            padding:24px;
+          "
+        >
+          Nenhuma solicitação aguardando análise.
+        </td>
+
+      </tr>
+
+    `;
+
+  }
+
+
+  pendentes.forEach(
+    solicitacao => {
+
+      const row =
+        document.createElement(
+          "tr"
+        );
+
+
+      row.innerHTML = `
+
+        <td>
+
+          ${formatarData(
+            solicitacao.data_inicio
+          )}
+
+          -
+
+          ${formatarData(
+            solicitacao.data_fim
+          )}
+
+        </td>
+
+
+        <td>
+
+          ${solicitacao.quantidade_dias}
+
+        </td>
+
+
+        <td>
+
+          <span
+            class="
+              status-pill
+              ${getStatusClass(
+                solicitacao.status
+              )}
+            "
+          >
+
+            ${getStatusLabel(
+              solicitacao.status
+            )}
+
+          </span>
+
+        </td>
+
+
+        <td>
+
+          ${formatarData(
+            solicitacao.created_at
+          )}
+
+        </td>
+
+      `;
+
+
+      tabelaPendentes.appendChild(
+        row
+      );
+
+    }
+  );
+
+
+
+  // ========================================================
+  // HISTÓRICO
+  // ========================================================
+
+  if (
+    historico.length ===
+    0
+  ) {
+
+    tabelaHistorico.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="4"
+          style="
+            text-align:center;
+            color:#5f6f86;
+            padding:24px;
+          "
+        >
+          Nenhuma solicitação analisada.
+        </td>
+
+      </tr>
+
+    `;
+
+  }
+
+
+  historico.forEach(
+    solicitacao => {
+
+      const row =
+        document.createElement(
+          "tr"
+        );
+
+
+      let observacao =
+        solicitacao.observacoes ||
+        "-";
+
+
+      if (
+        solicitacao.status ===
+          "reprovada"
+        &&
+        solicitacao.motivo_reprovacao
+      ) {
+
+        observacao =
+          solicitacao.motivo_reprovacao;
+
+      }
+
+
+      row.innerHTML = `
+
+        <td>
+
+          ${formatarData(
+            solicitacao.data_inicio
+          )}
+
+          -
+
+          ${formatarData(
+            solicitacao.data_fim
+          )}
+
+        </td>
+
+
+        <td>
+
+          ${solicitacao.quantidade_dias}
+          dias
+
+        </td>
+
+
+        <td>
+
+          <span
+            class="
+              status-pill
+              ${getStatusClass(
+                solicitacao.status
+              )}
+            "
+          >
+
+            ${getStatusLabel(
+              solicitacao.status
+            )}
+
+          </span>
+
+        </td>
+
+
+        <td>
+
+          ${observacao}
+
+        </td>
+
+      `;
+
+
+      tabelaHistorico.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// ABRIR MODAL
+// ==========================================================
+
+function abrirModal() {
+
+  if (!periodoAtual) {
+
+    alert(
+      "Você ainda não possui um período de férias disponível."
+    );
+
+    return;
+
+  }
+
+
+  formSolicitacao.reset();
+
+
+  quantidadeDias.value =
+    "0 dias";
+
+
+  modal.classList.add(
+    "open"
+  );
+
+
+  modal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+
+  dataInicio.focus();
+
+}
+
+
+
+// ==========================================================
+// FECHAR MODAL
+// ==========================================================
+
+function fecharModal() {
+
+  modal.classList.remove(
+    "open"
+  );
+
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  formSolicitacao.reset();
+
+
+  quantidadeDias.value =
+    "0 dias";
+
+
+  limparMensagem();
+
+}
+
+
+
+// ==========================================================
+// ATUALIZAR QUANTIDADE DE DIAS
+// ==========================================================
+
+function atualizarQuantidadeDias() {
+
+  const total =
+    calcularDiasEntreDatas(
+      dataInicio.value,
+      dataFim.value
+    );
+
+
+  quantidadeDias.value =
+    `${total} ${
+      total === 1
+        ? "dia"
+        : "dias"
+    }`;
+
+}
+
+
+
+// ==========================================================
+// ENVIAR SOLICITAÇÃO
+// ==========================================================
+
+formSolicitacao.addEventListener(
+  "submit",
+  async event => {
+
+    event.preventDefault();
+
+
+    if (
+      !dataInicio.value ||
+      !dataFim.value
+    ) {
+
+      mostrarMensagem(
+        "Informe as datas de início e término.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    const totalDias =
+      calcularDiasEntreDatas(
+        dataInicio.value,
+        dataFim.value
+      );
+
+
+    if (
+      totalDias <= 0
+    ) {
+
+      mostrarMensagem(
+        "O período informado é inválido.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    if (
+      periodoAtual &&
+      totalDias >
+      periodoAtual.dias_disponiveis
+    ) {
+
+      mostrarMensagem(
+        `Você possui somente ${periodoAtual.dias_disponiveis} dias disponíveis.`,
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      salvarSolicitacao.disabled =
+        true;
+
+
+      salvarSolicitacao.textContent =
+        "Enviando...";
+
+
+      const response =
+        await fetch(
+          "/api/ferias/solicitacoes",
+          {
+
+            method:
+              "POST",
+
+            headers:
+              getAuthHeaders(
+                true
+              ),
+
+            body:
+              JSON.stringify({
+
+                data_inicio:
+                  dataInicio.value,
+
+                data_fim:
+                  dataFim.value,
+
+                observacoes:
+                  observacoes.value
+                    .trim()
+
+              })
+
+          }
+        );
+
+
+      if (
+        tratarNaoAutorizado(
+          response
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      const result =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          result.error ||
+          "Não foi possível enviar a solicitação."
+        );
+
+      }
+
+
+      fecharModal();
+
+
+      await carregarSolicitacoes();
+
+
+      alert(
+        "Solicitação de férias enviada com sucesso!"
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Erro ao solicitar férias:",
+        error
+      );
+
+
+      mostrarMensagem(
+        error.message,
+        "error"
+      );
+
+
+    } finally {
+
+      salvarSolicitacao.disabled =
+        false;
+
+
+      salvarSolicitacao.textContent =
+        "Enviar solicitação";
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// MENSAGENS
+// ==========================================================
+
+function mostrarMensagem(
+  mensagem,
+  tipo
+) {
+
+  const container =
+    document.getElementById(
+      "formMessage"
+    );
+
+
+  container.textContent =
+    mensagem;
+
+
+  container.className =
+    `form-message ${tipo}`;
+
+}
+
+
+
+function limparMensagem() {
+
+  const container =
+    document.getElementById(
+      "formMessage"
+    );
+
+
+  container.textContent =
+    "";
+
+
+  container.className =
+    "form-message";
+
+}
+
+
+
+// ==========================================================
+// EVENTOS DAS DATAS
+// ==========================================================
+
+dataInicio.addEventListener(
+  "change",
+  atualizarQuantidadeDias
+);
+
+
+dataFim.addEventListener(
+  "change",
+  atualizarQuantidadeDias
+);
+
+
+
+// ==========================================================
+// BOTÕES DO MODAL
+// ==========================================================
+
+abrirModalBtn.addEventListener(
+  "click",
+  abrirModal
+);
+
+
+btnNovaSolicitacao.addEventListener(
+  "click",
+  abrirModal
+);
+
+
+fecharModalBtn.addEventListener(
+  "click",
+  fecharModal
+);
+
+
+cancelarModalBtn.addEventListener(
+  "click",
+  fecharModal
+);
+
+
+
+// ==========================================================
+// FECHAR CLICANDO FORA
+// ==========================================================
+
+modal.addEventListener(
+  "click",
+  event => {
+
+    if (
+      event.target ===
+      modal
+    ) {
+
+      fecharModal();
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// VOLTAR PARA TREINAMENTOS
+// ==========================================================
+
+document
+  .getElementById(
+    "voltarTreinamentos"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      window.location.href =
+        "/treinamentos/";
+
+    }
+  );
+
+
+
+// ==========================================================
+// ESC
+// ==========================================================
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Escape"
+      &&
+      modal.classList.contains(
+        "open"
+      )
+    ) {
+
+      fecharModal();
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// INICIALIZAÇÃO
+// ==========================================================
+
+async function initializeFerias() {
+
+  // Verifica se realmente existe
+  // um colaborador autenticado.
+
+  const sessionValid =
+    validarSessao();
+
+
+  if (!sessionValid) {
+
+    return;
+
+  }
+
+
+  renderizarUsuario();
+
+
+  // Primeiro carregamos o período.
+  await carregarFerias();
+
+
+  // Depois as solicitações.
+  await carregarSolicitacoes();
+
+}
+
+
+
+// ==========================================================
+// INICIAR
+// ==========================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initializeFerias
+);
