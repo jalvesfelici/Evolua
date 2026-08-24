@@ -17,6 +17,19 @@ let solicitacaoEditandoId = null;
 
 const solicitacoes = [];
 
+function getAuthHeaders(includeJson = false) {
+    const headers = { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}` };
+    if (includeJson) headers['Content-Type'] = 'application/json';
+    return headers;
+}
+
+async function carregarSolicitacoes() {
+    const response = await fetch('/api/ferias', { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error('Não foi possível carregar suas solicitações.');
+    solicitacoes.push(...await response.json());
+    renderizarSolicitacoes();
+}
+
 function abrirModal() {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
@@ -80,8 +93,7 @@ function renderizarSolicitacoes() {
             <td>${solicitacao.dataSolicitacao}</td>
             <td>
                 <div class="table-actions">
-                    <button type="button" class="link-btn edit-btn" data-action="editar" data-id="${solicitacao.id}">Editar</button>
-                    <button type="button" class="link-btn delete-btn" data-action="excluir" data-id="${solicitacao.id}">Excluir</button>
+                    ${solicitacao.statusLabel === 'Pendente' ? `<button type="button" class="link-btn delete-btn" data-action="excluir" data-id="${solicitacao.id}">Excluir</button>` : '<span>Sem ações</span>'}
                 </div>
             </td>
         `;
@@ -181,7 +193,7 @@ tipoButtons.forEach((button) => {
     });
 });
 
-tabelaSolicitacoes.addEventListener('click', (event) => {
+tabelaSolicitacoes.addEventListener('click', async (event) => {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
 
@@ -193,39 +205,49 @@ tabelaSolicitacoes.addEventListener('click', (event) => {
     }
 
     if (button.dataset.action === 'excluir') {
-        const indice = solicitacoes.findIndex((item) => item.id === id);
-        if (indice !== -1) {
-            solicitacoes.splice(indice, 1);
-            renderizarSolicitacoes();
+        const response = await fetch(`/api/ferias/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) {
+            alert('Não foi possível excluir a solicitação.');
+            return;
         }
+        const indice = solicitacoes.findIndex((item) => item.id === id);
+        if (indice !== -1) solicitacoes.splice(indice, 1);
+        renderizarSolicitacoes();
     }
 });
 
-formSolicitacao.addEventListener('submit', (event) => {
+formSolicitacao.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const novaSolicitacao = criarSolicitacaoDoFormulario();
     if (!novaSolicitacao) return;
 
-    if (solicitacaoEditandoId !== null) {
-        const indice = solicitacoes.findIndex((item) => item.id === solicitacaoEditandoId);
-        if (indice !== -1) {
-            solicitacoes[indice] = {
-                ...solicitacoes[indice],
-                ...novaSolicitacao,
-                id: solicitacaoEditandoId
-            };
-        }
-    } else {
-        solicitacoes.unshift({
-            id: Date.now(),
-            ...novaSolicitacao
-        });
+    const response = await fetch('/api/ferias', {
+        method: 'POST',
+        headers: getAuthHeaders(true),
+        body: JSON.stringify({
+            tipo: novaSolicitacao.tipo,
+            dataInicio: novaSolicitacao.inicio,
+            dataFim: novaSolicitacao.fim,
+            quantidadeDias: novaSolicitacao.quantidade,
+            observacoes: document.getElementById('observacoes').value.trim()
+        })
+    });
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        alert(error.erro || 'Não foi possível registrar a solicitação.');
+        return;
     }
 
+    solicitacoes.unshift(await response.json());
     renderizarSolicitacoes();
     fecharModal();
 });
 
-renderizarSolicitacoes();
 atualizarTipoSolicitacao();
+carregarSolicitacoes().catch((error) => {
+    tabelaSolicitacoes.innerHTML = `<tr><td colspan="6" class="empty-state">${error.message}</td></tr>`;
+});

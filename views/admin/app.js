@@ -744,6 +744,87 @@ document
   );
 
 
+// ==========================================================
+// MENU LATERAL RECOLHÍVEL
+// ==========================================================
+
+const sidebar =
+  document.querySelector(
+    ".sidebar"
+  );
+
+
+const sidebarToggle =
+  document.querySelector(
+    ".sidebar-toggle"
+  );
+
+
+const sidebarStorageKey =
+  "evolua-sidebar-collapsed";
+
+
+function updateSidebar(
+  isCollapsed
+) {
+
+  sidebar.classList.toggle(
+    "sidebar-collapsed",
+    isCollapsed
+  );
+
+
+  sidebarToggle.setAttribute(
+    "aria-expanded",
+    String(!isCollapsed)
+  );
+
+
+  sidebarToggle.setAttribute(
+    "aria-label",
+    isCollapsed
+      ? "Expandir menu"
+      : "Recolher menu"
+  );
+
+}
+
+
+if (sidebar && sidebarToggle) {
+
+  updateSidebar(
+    localStorage.getItem(
+      sidebarStorageKey
+    ) === "true"
+  );
+
+
+  sidebarToggle.addEventListener(
+    "click",
+    () => {
+
+      const isCollapsed =
+        !sidebar.classList.contains(
+          "sidebar-collapsed"
+        );
+
+
+      updateSidebar(
+        isCollapsed
+      );
+
+
+      localStorage.setItem(
+        sidebarStorageKey,
+        String(isCollapsed)
+      );
+
+    }
+  );
+
+}
+
+
 
 // ==========================================================
 // GERAR INICIAIS

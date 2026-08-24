@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evolua+ | Aprovação de férias</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="ferias.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <button class="sidebar-toggle" type="button" aria-label="Recolher menu" aria-expanded="true">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div><h2>Evolua+</h2><span>Portal de Carreiras</span></div>
+    </div>
+
+    <div class="admin-badge">
+      <i class="fa-solid fa-shield-halved"></i>
+      <div><strong>Área Administrativa</strong><span>Gestão de férias</span></div>
+    </div>
+
+    <nav class="menu" aria-label="Navegação administrativa">
+      <a class="menu-item" href="/admin/" title="Visão Geral"><i class="fa-solid fa-house"></i><span>Visão Geral</span></a>
+      <a class="menu-item" href="/admin/#employees" title="Funcionários"><i class="fa-solid fa-users"></i><span>Funcionários</span></a>
+      <a class="menu-item" href="/admin/#trainings" title="Treinamentos"><i class="fa-solid fa-graduation-cap"></i><span>Treinamentos</span></a>
+      <a class="menu-item" href="/admin/#evaluations" title="Avaliações"><i class="fa-solid fa-clipboard-check"></i><span>Avaliações</span></a>
+      <div class="menu-divider">Gestão</div>
+      <a class="menu-item active" href="/admin/ferias.html" title="Férias"><i class="fa-solid fa-umbrella-beach"></i><span>Férias</span></a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="avatar" id="adminAvatar">AP</div>
+      <div class="user-info"><strong id="adminName">Administrador</strong><span>Administrador</span></div>
+    </div>
+    <button class="logout-button" type="button" title="Sair"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+  </aside>
+
+  <main class="main-content vacation-admin-content">
+    <header class="vacation-header">
+      <div>
+        <p class="eyebrow">Gestão de pessoas</p>
+        <h1>Aprovação de férias</h1>
+        <p>Analise as solicitações enviadas pelos colaboradores.</p>
+      </div>
+      <a class="back-link" href="/ferias"><i class="fa-solid fa-arrow-left"></i> Ver página do colaborador</a>
+    </header>
+
+    <section class="vacation-summary" aria-label="Resumo das solicitações">
+      <article class="summary-pending"><div class="summary-icon"><i class="fa-solid fa-hourglass-half"></i></div><div><span>Solicitações pendentes</span><strong id="pendingCount">0</strong><small>Aguardando sua análise</small></div></article>
+      <article class="summary-approved"><div class="summary-icon"><i class="fa-solid fa-circle-check"></i></div><div><span>Aprovadas</span><strong id="approvedCount">0</strong><small>Solicitações autorizadas</small></div></article>
+      <article class="summary-days"><div class="summary-icon"><i class="fa-solid fa-calendar-check"></i></div><div><span>Dias aprovados</span><strong id="approvedDays">0</strong><small>Total de dias liberados</small></div></article>
+      <article class="summary-rejected"><div class="summary-icon"><i class="fa-solid fa-circle-xmark"></i></div><div><span>Recusadas</span><strong id="rejectedCount">0</strong><small>Solicitações recusadas</small></div></article>
+    </section>
+
+    <section class="vacation-panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow"><i class="fa-solid fa-list-check"></i> Fila de análise</p><h2>Solicitações de férias</h2><p class="panel-description">Confira os períodos antes de autorizar o afastamento.</p></div>
+        <label class="filter-control">Status
+          <select id="statusFilter">
+            <option value="todos">Todos</option>
+            <option value="Pendente">Pendentes</option>
+            <option value="Aprovada">Aprovadas</option>
+            <option value="Recusada">Recusadas</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Colaborador</th><th>Período</th><th>Tipo</th><th>Dias</th><th>Solicitado em</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="requestsTable"><tr><td colspan="7" class="empty-state">Nenhuma solicitação encontrada.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="decision-modal" id="decisionModal" aria-hidden="true">
+    <div class="decision-dialog" role="dialog" aria-modal="true" aria-labelledby="decisionTitle">
+      <button class="close-button" id="closeDecision" type="button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      <p class="eyebrow">Registrar decisão</p>
+      <h2 id="decisionTitle">Aprovar solicitação?</h2>
+      <p id="decisionDescription"></p>
+      <label>Observação para o colaborador
+        <textarea id="decisionNote" rows="4" placeholder="Adicione uma observação, se necessário."></textarea>
+      </label>
+      <div class="decision-actions"><button class="secondary-button" id="cancelDecision" type="button">Cancelar</button><button class="primary-button" id="confirmDecision" type="button">Confirmar</button></div>
+    </div>
+  </div>
+
+  <script src="ferias-admin.js"></script>
+</body>
+</html>

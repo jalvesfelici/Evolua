@@ -4,10 +4,64 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Evolua+ | Férias</title>
+    <link rel="stylesheet" href="../inicio/style.css" />
     <link rel="stylesheet" href="ferias.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
-    <div class="app-shell">
+    <aside class="sidebar">
+        <button class="sidebar-toggle" type="button" aria-label="Recolher menu" aria-expanded="true">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div>
+                <h2>Portal</h2>
+                <span>de Carreiras</span>
+            </div>
+        </div>
+
+        <nav class="menu" aria-label="Navegação principal">
+            <a href="/inicio/" class="menu-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Início</span>
+            </a>
+            <a href="/ferias" class="menu-item active">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Férias</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-clock"></i>
+                <span>Ponto</span>
+            </a>
+            <a href="/treinamentos/" class="menu-item">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Treinamentos</span>
+            </a>
+            <a href="/carreira/" class="menu-item">
+                <i class="fa-solid fa-briefcase"></i>
+                <span>Carreira</span>
+            </a>
+            <a href="/feedbacks/" class="menu-item">
+                <i class="fa-solid fa-comments"></i>
+                <span>Feedbacks</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="avatar" id="userAvatar">MS</div>
+            <div class="user-info">
+                <strong id="userName">Maycon Santos</strong>
+                <span id="userRole">Desenvolvedor Júnior</span>
+            </div>
+        </div>
+        <button class="logout-button" type="button">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair do sistema</span>
+        </button>
+    </aside>
+
+    <div class="app-shell main-content">
         <header class="topbar">
             <div class="brand">
                 <div class="brand-mark">E</div>
@@ -18,7 +72,6 @@
             </div>
 
             <div class="topbar-actions">
-                <a class="ghost-btn home-btn" href="/inicio/">Voltar ao início</a>
                 <button class="ghost-btn" type="button">Baixar relatório</button>
                 <button class="primary-btn" type="button" id="abrirModal">Solicitar férias</button>
             </div>
@@ -226,5 +279,6 @@
     </div>
 
     <script src="ferias.js"></script>
+    <script src="../inicio/sidebar.js"></script>
 </body>
 </html>

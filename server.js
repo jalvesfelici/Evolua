@@ -232,9 +232,21 @@ const usuariosRoutes =
   );
 
 
+const feriasRoutes =
+  require(
+    "./routes/ferias"
+  );
+
+
 app.use(
   "/api/usuarios",
   usuariosRoutes
+);
+
+
+app.use(
+  "/api/ferias",
+  feriasRoutes
 );
 
 

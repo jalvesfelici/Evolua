@@ -243,6 +243,8 @@ button {
 
   width: 100%;
 
+  text-decoration: none;
+
   border: none;
 
   background: transparent;
@@ -3161,6 +3163,136 @@ select:disabled {
 
   .toolbar-user-actions button {
     width: 100%;
+  }
+
+}
+
+/* ==========================================================
+   SIDEBAR RECOLHÍVEL
+========================================================== */
+
+.sidebar,
+.main-content {
+
+  transition:
+    width 0.25s ease,
+    margin-left 0.25s ease;
+}
+
+
+.sidebar-toggle {
+
+  position: absolute;
+
+  top: 18px;
+  right: -14px;
+
+  z-index: 2;
+
+  display: grid;
+
+  width: 28px;
+  height: 28px;
+
+  place-items: center;
+
+  color: white;
+
+  background: var(--primary);
+
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+
+  box-shadow:
+    0 5px 12px rgba(31, 41, 55, 0.16);
+}
+
+
+.sidebar-toggle:hover {
+
+  background: var(--primary-hover);
+}
+
+
+.sidebar.sidebar-collapsed {
+
+  width: 82px;
+}
+
+
+.sidebar.sidebar-collapsed .logo,
+.sidebar.sidebar-collapsed .sidebar-user {
+
+  justify-content: center;
+}
+
+
+.sidebar.sidebar-collapsed .logo > div:last-child,
+.sidebar.sidebar-collapsed .admin-badge div,
+.sidebar.sidebar-collapsed .menu-item span,
+.sidebar.sidebar-collapsed .user-info,
+.sidebar.sidebar-collapsed .logout-button {
+
+  display: none;
+}
+
+
+.sidebar.sidebar-collapsed .menu-item {
+
+  justify-content: center;
+}
+
+
+.sidebar.sidebar-collapsed .logout-button {
+
+  padding: 10px 0;
+}
+
+
+.sidebar.sidebar-collapsed + .main-content {
+
+  margin-left: 82px;
+}
+
+
+@media (max-width: 900px) {
+
+  .sidebar:not(.sidebar-collapsed) {
+
+    width: 255px;
+
+    padding: 26px 18px 20px;
+  }
+
+
+  .sidebar:not(.sidebar-collapsed) .logo > div:last-child,
+  .sidebar:not(.sidebar-collapsed) .admin-badge div,
+  .sidebar:not(.sidebar-collapsed) .menu-item > span:not(.menu-counter),
+  .sidebar:not(.sidebar-collapsed) .menu-divider,
+  .sidebar:not(.sidebar-collapsed) .user-info,
+  .sidebar:not(.sidebar-collapsed) .logout-button {
+
+    display: initial;
+  }
+
+
+  .sidebar:not(.sidebar-collapsed) .logo > div:last-child,
+  .sidebar:not(.sidebar-collapsed) .admin-badge div,
+  .sidebar:not(.sidebar-collapsed) .user-info {
+
+    display: flex;
+  }
+
+
+  .sidebar:not(.sidebar-collapsed) .menu-divider {
+
+    display: block;
+  }
+
+
+  .sidebar:not(.sidebar-collapsed) + .main-content {
+
+    margin-left: 255px;
   }
 
 }
