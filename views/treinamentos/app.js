@@ -1,56 +1,37 @@
 // ==========================================================
 // EVOLUA+
-// TELA DE TREINAMENTOS - APP.JS
+// TREINAMENTOS - FRONTEND DO COLABORADOR
 // ==========================================================
 //
 // RESPONSABILIDADES:
 //
-// - validar o colaborador autenticado;
-// - recuperar usuário real do localStorage;
-// - mostrar nome, setor e avatar reais na sidebar;
-// - permitir logout;
-// - carregar cursos da API;
-// - mostrar treinamentos do setor do colaborador;
-// - mostrar catálogo geral;
-// - controlar temporariamente o progresso;
-// - controlar temporariamente arquivos selecionados;
-//
-// IMPORTANTE:
-//
-// Progresso e uploads ainda não são persistidos.
-//
-// Posteriormente:
-//
-// - progresso irá para o Supabase;
-// - arquivos irão para o Supabase Storage;
-// - conclusões irão gerar avaliações para o Admin.
+// - validar sessão;
+// - mostrar usuário logado;
+// - carregar treinamentos reais;
+// - carregar resumo;
+// - listar treinamentos do colaborador;
+// - listar catálogo geral;
+// - filtrar treinamentos;
+// - abrir detalhes;
+// - iniciar curso;
+// - salvar atividades;
+// - enviar arquivos;
+// - enviar curso para avaliação;
+// - trabalhar com cursos externos;
+// - enviar certificado externo;
+// - mostrar correções;
+// - mostrar aprovação;
+// - abrir certificado;
+// - logout.
 //
 // ==========================================================
 
 
 
+// ==========================================================
 // ==========================================================
 // SESSÃO
 // ==========================================================
-//
-// O login salva:
-//
-// access_token
-//
-// usuario_logado
-//
-// Exemplo de usuario_logado:
-//
-// {
-//   id: "...",
-//   nome: "João Silva",
-//   email: "...",
-//   cargo: "Analista",
-//   setor: "Tecnologia",
-//   perfil: "colaborador",
-//   ativo: true
-// }
-//
 // ==========================================================
 
 const accessToken =
@@ -59,26 +40,13 @@ const accessToken =
   );
 
 
-
-// ==========================================================
-// USUÁRIO ATUAL
-// ==========================================================
-//
-// Não existe mais usuário mockado.
-//
-// Este objeto será preenchido usando:
-//
-// localStorage.usuario_logado
-//
-// ==========================================================
-
-let currentUser =
+let loggedUser =
   null;
 
 
 
 // ==========================================================
-// RECUPERAR USUÁRIO LOGADO
+// RECUPERAR USUÁRIO SALVO
 // ==========================================================
 
 try {
@@ -93,80 +61,10 @@ try {
     storedUser
   ) {
 
-    const loggedUser =
+    loggedUser =
       JSON.parse(
         storedUser
       );
-
-
-    // ======================================================
-    // NORMALIZAMOS OS NOMES
-    // ======================================================
-    //
-    // O backend utiliza:
-    //
-    // nome
-    // setor
-    // cargo
-    //
-    // Parte antiga do frontend utiliza:
-    //
-    // name
-    // sector
-    // role
-    //
-    // Para evitar alterar centenas de linhas,
-    // transformamos uma vez aqui.
-    //
-    // ======================================================
-
-    currentUser = {
-
-      id:
-        loggedUser.id,
-
-
-      name:
-        loggedUser.nome ||
-        loggedUser.name ||
-        "",
-
-
-      email:
-        loggedUser.email ||
-        "",
-
-
-      registration:
-        loggedUser.matricula ||
-        loggedUser.registration ||
-        "",
-
-
-      sector:
-        loggedUser.setor ||
-        loggedUser.sector ||
-        "",
-
-
-      role:
-        loggedUser.cargo ||
-        loggedUser.role ||
-        "",
-
-
-      profile:
-        loggedUser.perfil ||
-        loggedUser.profile ||
-        "",
-
-
-      active:
-
-        loggedUser.ativo !==
-        false
-
-    };
 
   }
 
@@ -205,29 +103,17 @@ function clearSession() {
 // ==========================================================
 // VALIDAR SESSÃO
 // ==========================================================
-//
-// REGRAS:
-//
-// sem login
-// → /login/
-//
-// Admin
-// → /admin/
-//
-// colaborador
-// → pode continuar.
-//
-// ==========================================================
 
-function validateUserSession() {
+function validateSession() {
 
   // ========================================================
-  // TOKEN OU USUÁRIO AUSENTE
+  // SEM TOKEN OU USUÁRIO
   // ========================================================
 
   if (
-    !accessToken ||
-    !currentUser
+    !accessToken
+    ||
+    !loggedUser
   ) {
 
     window.location.href =
@@ -241,17 +127,12 @@ function validateUserSession() {
 
 
   // ========================================================
-  // ADMIN
+  // SOMENTE COLABORADOR
   // ========================================================
 
   if (
-    currentUser.profile ===
-      "admin_principal"
-
-    ||
-
-    currentUser.profile ===
-      "admin_setor"
+    loggedUser.perfil !==
+    "colaborador"
   ) {
 
     window.location.href =
@@ -265,33 +146,11 @@ function validateUserSession() {
 
 
   // ========================================================
-  // PERFIL INVÁLIDO
+  // INATIVO
   // ========================================================
 
   if (
-    currentUser.profile !==
-    "colaborador"
-  ) {
-
-    clearSession();
-
-
-    window.location.href =
-      "/login/";
-
-
-    return false;
-
-  }
-
-
-
-  // ========================================================
-  // USUÁRIO INATIVO
-  // ========================================================
-
-  if (
-    currentUser.active ===
+    loggedUser.ativo ===
     false
   ) {
 
@@ -318,8 +177,18 @@ function validateUserSession() {
 // HEADERS AUTENTICADOS
 // ==========================================================
 //
-// Já deixamos esta função pronta porque posteriormente
-// as rotas de treinamentos/progresso serão protegidas.
+// Para JSON:
+//
+// getAuthHeaders(true)
+//
+// Para GET comum:
+//
+// getAuthHeaders()
+//
+// Para FormData:
+//
+// NÃO adicionamos Content-Type manualmente,
+// porque o navegador precisa gerar o boundary.
 //
 // ==========================================================
 
@@ -390,72 +259,433 @@ function handleUnauthorized(
 
 
 // ==========================================================
-// CURSOS
 // ==========================================================
-//
-// Começa vazio.
-//
-// Depois será preenchido por:
-//
-// GET /api/cursos
-//
+// ESTADO DA PÁGINA
+// ==========================================================
 // ==========================================================
 
-let courses =
+let myTrainings =
   [];
 
 
+let catalogCourses =
+  [];
 
-// ==========================================================
-// CURSO ATUALMENTE ABERTO
-// ==========================================================
 
-let currentCourseId =
+let summary =
+  {
+
+    obrigatorios:
+      0,
+
+    em_andamento:
+      0,
+
+    concluidos:
+      0,
+
+    carga_horaria:
+      0
+
+  };
+
+
+
+// Curso atualmente aberto.
+let currentCourse =
   null;
 
 
+// Inscrição atual.
+let currentEnrollment =
+  null;
 
-// ==========================================================
-// FILTRO ATUAL
-// ==========================================================
 
-let currentAreaFilter =
+// Entregas da inscrição atual.
+let currentDeliveries =
+  [];
+
+
+// Certificado atual.
+let currentCertificate =
+  null;
+
+
+// Arquivos selecionados antes de serem enviados.
+//
+// Chave:
+//
+// atividadeId
+//
+// Valor:
+//
+// File
+//
+const selectedActivityFiles =
+  {};
+
+
+
+// Filtro da seção "Seus treinamentos".
+let currentTrainingStatusFilter =
+  "todos";
+
+
+// Filtro de área do catálogo.
+let currentCatalogArea =
   "Todos";
 
 
-
-// ==========================================================
-// PROGRESSO TEMPORÁRIO
-// ==========================================================
-//
-// Ainda não salvamos progresso no Supabase.
-//
-// Estrutura:
-//
-// {
-//   cursoId: {
-//     atividadeId: true,
-//     atividadeId: false
-//   }
-// }
-//
-// ==========================================================
-
-const completedActivities =
-  {};
+// Pesquisa do catálogo.
+let currentSearch =
+  "";
 
 
 
 // ==========================================================
-// ARQUIVOS TEMPORÁRIOS
 // ==========================================================
-//
-// Nesta etapa continuam somente no navegador.
-//
+// ELEMENTOS
+// ==========================================================
 // ==========================================================
 
-const uploadedFiles =
-  {};
+const userAvatar =
+  document.getElementById(
+    "userAvatar"
+  );
+
+
+const userName =
+  document.getElementById(
+    "userName"
+  );
+
+
+const userRole =
+  document.getElementById(
+    "userRole"
+  );
+
+
+const logoutButton =
+  document.getElementById(
+    "logoutButton"
+  );
+
+
+
+const mandatoryCount =
+  document.getElementById(
+    "mandatoryCount"
+  );
+
+
+const inProgressCount =
+  document.getElementById(
+    "inProgressCount"
+  );
+
+
+const completedCount =
+  document.getElementById(
+    "completedCount"
+  );
+
+
+const totalHours =
+  document.getElementById(
+    "totalHours"
+  );
+
+
+
+const userTrainingGrid =
+  document.getElementById(
+    "userTrainingGrid"
+  );
+
+
+const courseCatalog =
+  document.getElementById(
+    "courseCatalog"
+  );
+
+
+const searchInput =
+  document.getElementById(
+    "searchInput"
+  );
+
+
+const filterButtons =
+  document.getElementById(
+    "filterButtons"
+  );
+
+
+const globalMessage =
+  document.getElementById(
+    "globalMessage"
+  );
+
+
+
+// ==========================================================
+// MODAL DO CURSO
+// ==========================================================
+
+const courseModal =
+  document.getElementById(
+    "courseModal"
+  );
+
+
+const closeCourseModalButton =
+  document.getElementById(
+    "closeCourseModalButton"
+  );
+
+
+const closeCourseFooterButton =
+  document.getElementById(
+    "closeCourseFooterButton"
+  );
+
+
+const modalCourseBadge =
+  document.getElementById(
+    "modalCourseBadge"
+  );
+
+
+const modalCourseStatus =
+  document.getElementById(
+    "modalCourseStatus"
+  );
+
+
+const modalCourseTitle =
+  document.getElementById(
+    "modalCourseTitle"
+  );
+
+
+const modalCourseArea =
+  document.getElementById(
+    "modalCourseArea"
+  );
+
+
+const modalCourseHours =
+  document.getElementById(
+    "modalCourseHours"
+  );
+
+
+const modalCourseLevel =
+  document.getElementById(
+    "modalCourseLevel"
+  );
+
+
+const modalCourseSector =
+  document.getElementById(
+    "modalCourseSector"
+  );
+
+
+const modalCourseRequirement =
+  document.getElementById(
+    "modalCourseRequirement"
+  );
+
+
+const modalCourseDescription =
+  document.getElementById(
+    "modalCourseDescription"
+  );
+
+
+const correctionAlert =
+  document.getElementById(
+    "correctionAlert"
+  );
+
+
+const correctionMessage =
+  document.getElementById(
+    "correctionMessage"
+  );
+
+
+const evaluationWaitingBox =
+  document.getElementById(
+    "evaluationWaitingBox"
+  );
+
+
+const approvedTrainingBox =
+  document.getElementById(
+    "approvedTrainingBox"
+  );
+
+
+
+// ==========================================================
+// CURSO EXTERNO
+// ==========================================================
+
+const externalCourseSection =
+  document.getElementById(
+    "externalCourseSection"
+  );
+
+
+const externalCourseLink =
+  document.getElementById(
+    "externalCourseLink"
+  );
+
+
+const externalCertificateArea =
+  document.getElementById(
+    "externalCertificateArea"
+  );
+
+
+const externalCertificateInput =
+  document.getElementById(
+    "externalCertificateInput"
+  );
+
+
+const externalCertificateFileName =
+  document.getElementById(
+    "externalCertificateFileName"
+  );
+
+
+const sendExternalCertificateButton =
+  document.getElementById(
+    "sendExternalCertificateButton"
+  );
+
+
+
+// ==========================================================
+// CURSO INTERNO
+// ==========================================================
+
+const internalCourseSection =
+  document.getElementById(
+    "internalCourseSection"
+  );
+
+
+const courseProgressText =
+  document.getElementById(
+    "courseProgressText"
+  );
+
+
+const courseProgressPercentage =
+  document.getElementById(
+    "courseProgressPercentage"
+  );
+
+
+const courseProgressFill =
+  document.getElementById(
+    "courseProgressFill"
+  );
+
+
+const courseActivities =
+  document.getElementById(
+    "courseActivities"
+  );
+
+
+const submitTrainingArea =
+  document.getElementById(
+    "submitTrainingArea"
+  );
+
+
+const submitTrainingButton =
+  document.getElementById(
+    "submitTrainingButton"
+  );
+
+
+
+// ==========================================================
+// CERTIFICADO
+// ==========================================================
+
+const certificateResultSection =
+  document.getElementById(
+    "certificateResultSection"
+  );
+
+
+const certificateFileName =
+  document.getElementById(
+    "certificateFileName"
+  );
+
+
+const openCertificateButton =
+  document.getElementById(
+    "openCertificateButton"
+  );
+
+
+
+// ==========================================================
+// AÇÕES DO MODAL
+// ==========================================================
+
+const startCourseButton =
+  document.getElementById(
+    "startCourseButton"
+  );
+
+
+const courseModalMessage =
+  document.getElementById(
+    "courseModalMessage"
+  );
+
+
+
+// ==========================================================
+// CONFIRMAÇÃO
+// ==========================================================
+
+const submitConfirmationModal =
+  document.getElementById(
+    "submitConfirmationModal"
+  );
+
+
+const cancelSubmitTrainingButton =
+  document.getElementById(
+    "cancelSubmitTrainingButton"
+  );
+
+
+const confirmSubmitTrainingButton =
+  document.getElementById(
+    "confirmSubmitTrainingButton"
+  );
+
+
+
+// ==========================================================
+// ==========================================================
+// FUNÇÕES UTILITÁRIAS
+// ==========================================================
+// ==========================================================
 
 
 
@@ -467,40 +697,25 @@ function escapeHTML(
   value
 ) {
 
-  if (
-    value === null ||
-    value === undefined
-  ) {
-
-    return "";
-
-  }
-
-
   return String(
-    value
+    value ?? ""
   )
-
     .replaceAll(
       "&",
       "&amp;"
     )
-
     .replaceAll(
       "<",
       "&lt;"
     )
-
     .replaceAll(
       ">",
       "&gt;"
     )
-
     .replaceAll(
       '"',
       "&quot;"
     )
-
     .replaceAll(
       "'",
       "&#039;"
@@ -511,23 +726,29 @@ function escapeHTML(
 
 
 // ==========================================================
-// GERAR INICIAIS
-// ==========================================================
-//
-// João Silva
-//
-// vira:
-//
-// JS
-//
+// INICIAIS
 // ==========================================================
 
 function getInitials(
   name
 ) {
 
+  const parts =
+    String(
+      name || ""
+    )
+      .trim()
+      .split(
+        /\s+/
+      )
+      .filter(
+        Boolean
+      );
+
+
   if (
-    !name
+    parts.length ===
+    0
   ) {
 
     return "--";
@@ -535,31 +756,28 @@ function getInitials(
   }
 
 
-  return name
+  if (
+    parts.length ===
+    1
+  ) {
 
-    .split(
-      " "
-    )
+    return parts[0]
+      .substring(
+        0,
+        2
+      )
+      .toUpperCase();
 
-    .filter(
-      word =>
-        word.length > 0
-    )
+  }
 
-    .slice(
-      0,
-      2
-    )
 
-    .map(
-      word =>
-        word[0]
-    )
-
-    .join(
-      ""
-    )
-
+  return (
+    parts[0][0]
+    +
+    parts[
+      parts.length - 1
+    ][0]
+  )
     .toUpperCase();
 
 }
@@ -567,203 +785,47 @@ function getInitials(
 
 
 // ==========================================================
-// NORMALIZAR TEXTO
-// ==========================================================
-//
-// Permite comparar:
-//
-// Tecnologia
-// tecnologia
-// TECNOLOGIA
-//
+// FORMATAÇÃO DE HORAS
 // ==========================================================
 
-function normalizeText(
+function formatHours(
   value
 ) {
 
-  return String(
-    value ||
-    ""
-  )
-
-    .trim()
-
-    .toLowerCase()
-
-    .normalize(
-      "NFD"
-    )
-
-    .replace(
-      /[\u0300-\u036f]/g,
-      ""
+  const number =
+    Number(
+      value || 0
     );
 
-}
-
-
-
-// ==========================================================
-// CONVERTER CURSO DA API
-// ==========================================================
-
-function mapApiCourse(
-  apiCourse
-) {
-
-  const apiActivities =
-    apiCourse.atividades_curso ||
-    [];
-
-
-
-  // ========================================================
-  // ORDENAR ATIVIDADES
-  // ========================================================
-
-  apiActivities.sort(
-    (
-      activityA,
-      activityB
-    ) => {
-
-      return (
-
-        Number(
-          activityA.ordem ||
-          0
-        )
-
-        -
-
-        Number(
-          activityB.ordem ||
-          0
-        )
-
-      );
-
-    }
-  );
-
-
-
-  return {
-
-    id:
-      apiCourse.id,
-
-
-    title:
-      apiCourse.titulo,
-
-
-    description:
-      apiCourse.descricao,
-
-
-    hours:
-      apiCourse.carga_horaria,
-
-
-    area:
-      apiCourse.area,
-
-
-    level:
-      apiCourse.nivel,
-
-
-    responsibleSector:
-      apiCourse.setor_responsavel,
-
-
-    targetSector:
-      apiCourse.setor_destino,
-
-
-    requirement:
-      apiCourse.classificacao,
-
-
-    external:
-      Boolean(
-        apiCourse.curso_externo
-      ),
-
-
-    externalLink:
-      apiCourse.link_externo ||
-      "",
-
-
-    active:
-      apiCourse.ativo,
-
-
-    activities:
-      apiActivities.map(
-        activity => {
-
-          return {
-
-            id:
-              activity.id,
-
-
-            courseId:
-              activity.curso_id,
-
-
-            title:
-              activity.titulo,
-
-
-            description:
-              activity.descricao ||
-              "",
-
-
-            type:
-              activity.tipo,
-
-
-            resource:
-              activity.recurso ||
-              "",
-
-
-            order:
-              activity.ordem
-
-          };
-
-        }
-      )
-
-  };
-
-}
-
-
-
-// ==========================================================
-// EXIBIR COLABORADOR LOGADO
-// ==========================================================
-//
-// IDs utilizados no novo index.html:
-//
-// sidebarUserAvatar
-// sidebarUserName
-// sidebarUserSector
-//
-// ==========================================================
-
-function renderCurrentUser() {
 
   if (
-    !currentUser
+    Number.isInteger(
+      number
+    )
+  ) {
+
+    return `${number}h`;
+
+  }
+
+
+  return `${number}h`;
+
+}
+
+
+
+// ==========================================================
+// MENSAGEM GLOBAL
+// ==========================================================
+
+function showGlobalMessage(
+  message,
+  type = "info"
+) {
+
+  if (
+    !globalMessage
   ) {
 
     return;
@@ -771,70 +833,104 @@ function renderCurrentUser() {
   }
 
 
-
-  const avatar =
-    document.getElementById(
-      "sidebarUserAvatar"
-    );
+  globalMessage.textContent =
+    message;
 
 
-  const name =
-    document.getElementById(
-      "sidebarUserName"
-    );
+  globalMessage.className =
+    `global-message show ${type}`;
 
 
-  const sector =
-    document.getElementById(
-      "sidebarUserSector"
-    );
+  window.setTimeout(
+    () => {
+
+      globalMessage.className =
+        "global-message";
+
+
+      globalMessage.textContent =
+        "";
+
+    },
+    4500
+  );
+
+}
 
 
 
-  // ========================================================
-  // AVATAR
-  // ========================================================
+// ==========================================================
+// MENSAGEM DO MODAL
+// ==========================================================
+
+function showModalMessage(
+  message,
+  type = "info"
+) {
 
   if (
-    avatar
+    !courseModalMessage
   ) {
 
-    avatar.textContent =
-      getInitials(
-        currentUser.name
-      );
+    return;
 
   }
 
 
+  courseModalMessage.textContent =
+    message;
 
-  // ========================================================
-  // NOME
-  // ========================================================
+
+  courseModalMessage.className =
+    `modal-message show ${type}`;
+
+}
+
+
+
+// ==========================================================
+// LIMPAR MENSAGEM DO MODAL
+// ==========================================================
+
+function clearModalMessage() {
 
   if (
-    name
+    !courseModalMessage
   ) {
 
-    name.textContent =
-      currentUser.name ||
-      "Colaborador";
+    return;
 
   }
 
 
+  courseModalMessage.textContent =
+    "";
 
-  // ========================================================
-  // SETOR
-  // ========================================================
 
-  if (
-    sector
+  courseModalMessage.className =
+    "modal-message";
+
+}
+
+
+
+// ==========================================================
+// PEGAR RESULTADO JSON COM SEGURANÇA
+// ==========================================================
+
+async function getResponseData(
+  response
+) {
+
+  try {
+
+    return await response.json();
+
+  } catch (
+    error
   ) {
 
-    sector.textContent =
-      currentUser.sector ||
-      "Setor não informado";
+    return {};
 
   }
 
@@ -843,28 +939,579 @@ function renderCurrentUser() {
 
 
 // ==========================================================
-// BUSCAR CURSOS NA API
+// CLASSE VISUAL POR ÁREA
 // ==========================================================
 
-async function loadCourses() {
+function getCourseAreaClass(
+  area
+) {
+
+  const value =
+    String(
+      area || ""
+    )
+      .toLowerCase()
+      .normalize(
+        "NFD"
+      )
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      );
+
+
+  if (
+    value.includes(
+      "tecnologia"
+    )
+  ) {
+
+    return "technology";
+
+  }
+
+
+  if (
+    value.includes(
+      "desenvolvimento"
+    )
+  ) {
+
+    return "development";
+
+  }
+
+
+  if (
+    value.includes(
+      "comunic"
+    )
+  ) {
+
+    return "communication";
+
+  }
+
+
+  if (
+    value.includes(
+      "lider"
+    )
+  ) {
+
+    return "leadership";
+
+  }
+
+
+  if (
+    value.includes(
+      "compliance"
+    )
+    ||
+    value.includes(
+      "seguranca"
+    )
+    ||
+    value.includes(
+      "lgpd"
+    )
+  ) {
+
+    return "compliance";
+
+  }
+
+
+  if (
+    value.includes(
+      "finance"
+    )
+  ) {
+
+    return "finance";
+
+  }
+
+
+  if (
+    value.includes(
+      "logistica"
+    )
+  ) {
+
+    return "logistics";
+
+  }
+
+
+  return "";
+
+}
+
+
+
+// ==========================================================
+// ÍCONE POR ÁREA
+// ==========================================================
+
+function getCourseIcon(
+  area
+) {
+
+  const value =
+    String(
+      area || ""
+    )
+      .toLowerCase()
+      .normalize(
+        "NFD"
+      )
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      );
+
+
+  if (
+    value.includes(
+      "tecnologia"
+    )
+    ||
+    value.includes(
+      "desenvolvimento"
+    )
+  ) {
+
+    return "fa-code";
+
+  }
+
+
+  if (
+    value.includes(
+      "comunic"
+    )
+  ) {
+
+    return "fa-comments";
+
+  }
+
+
+  if (
+    value.includes(
+      "lider"
+    )
+  ) {
+
+    return "fa-users";
+
+  }
+
+
+  if (
+    value.includes(
+      "finance"
+    )
+  ) {
+
+    return "fa-chart-line";
+
+  }
+
+
+  if (
+    value.includes(
+      "logistica"
+    )
+  ) {
+
+    return "fa-boxes-stacked";
+
+  }
+
+
+  if (
+    value.includes(
+      "compliance"
+    )
+    ||
+    value.includes(
+      "seguranca"
+    )
+  ) {
+
+    return "fa-shield-halved";
+
+  }
+
+
+  return "fa-graduation-cap";
+
+}
+
+
+
+// ==========================================================
+// STATUS DA INSCRIÇÃO
+// ==========================================================
+
+function getEnrollmentStatus(
+  course
+) {
+
+  return (
+    course
+      ?.inscricao
+      ?.status
+    ||
+    "nao_iniciado"
+  );
+
+}
+
+
+
+// ==========================================================
+// LABEL DO STATUS
+// ==========================================================
+
+function getStatusLabel(
+  status
+) {
+
+  const labels = {
+
+    nao_iniciado:
+      "Não iniciado",
+
+    em_andamento:
+      "Em andamento",
+
+    aguardando_avaliacao:
+      "Em avaliação",
+
+    correcao_solicitada:
+      "Correção solicitada",
+
+    aprovado:
+      "Concluído"
+
+  };
+
+
+  return (
+    labels[
+      status
+    ]
+    ||
+    "Não iniciado"
+  );
+
+}
+
+
+
+// ==========================================================
+// CLASSE DO STATUS
+// ==========================================================
+
+function getStatusClass(
+  status
+) {
+
+  const classes = {
+
+    nao_iniciado:
+      "not-started",
+
+    em_andamento:
+      "in-progress",
+
+    aguardando_avaliacao:
+      "waiting",
+
+    correcao_solicitada:
+      "correction",
+
+    aprovado:
+      "approved"
+
+  };
+
+
+  return (
+    classes[
+      status
+    ]
+    ||
+    "not-started"
+  );
+
+}
+
+
+
+// ==========================================================
+// CLASSE EXTRA DO CARD
+// ==========================================================
+
+function getTrainingCardStatusClass(
+  status
+) {
+
+  if (
+    status ===
+    "aguardando_avaliacao"
+  ) {
+
+    return "status-waiting";
+
+  }
+
+
+  if (
+    status ===
+    "correcao_solicitada"
+  ) {
+
+    return "status-correction";
+
+  }
+
+
+  if (
+    status ===
+    "aprovado"
+  ) {
+
+    return "status-approved";
+
+  }
+
+
+  return "";
+
+}
+
+
+
+// ==========================================================
+// TEXTO DO BOTÃO
+// ==========================================================
+
+function getCourseActionLabel(
+  course
+) {
+
+  const status =
+    getEnrollmentStatus(
+      course
+    );
+
+
+  if (
+    status ===
+    "nao_iniciado"
+  ) {
+
+    return "Ver treinamento";
+
+  }
+
+
+  if (
+    status ===
+    "em_andamento"
+  ) {
+
+    return "Continuar";
+
+  }
+
+
+  if (
+    status ===
+    "aguardando_avaliacao"
+  ) {
+
+    return "Ver envio";
+
+  }
+
+
+  if (
+    status ===
+    "correcao_solicitada"
+  ) {
+
+    return "Corrigir";
+
+  }
+
+
+  if (
+    status ===
+    "aprovado"
+  ) {
+
+    return "Ver conclusão";
+
+  }
+
+
+  return "Abrir";
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// USUÁRIO
+// ==========================================================
+// ==========================================================
+
+function renderLoggedUser() {
+
+  if (
+    !loggedUser
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    userAvatar
+  ) {
+
+    userAvatar.textContent =
+      getInitials(
+        loggedUser.nome
+      );
+
+  }
+
+
+  if (
+    userName
+  ) {
+
+    userName.textContent =
+      loggedUser.nome
+      ||
+      "Colaborador";
+
+  }
+
+
+  if (
+    userRole
+  ) {
+
+    userRole.textContent =
+      loggedUser.cargo
+      ||
+      loggedUser.setor
+      ||
+      "Colaborador";
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CARREGAR PÁGINA
+// ==========================================================
+// ==========================================================
+
+async function loadTrainings() {
+
+  // ========================================================
+  // LOADING
+  // ========================================================
+
+  if (
+    userTrainingGrid
+  ) {
+
+    userTrainingGrid.innerHTML = `
+
+      <div class="loading-state">
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        <span>
+          Carregando seus treinamentos...
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    courseCatalog
+  ) {
+
+    courseCatalog.innerHTML = `
+
+      <div class="loading-state">
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        <span>
+          Carregando catálogo...
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
 
   try {
 
     const response =
       await fetch(
-        "/api/cursos",
+        "/api/treinamentos",
         {
 
           method:
-            "GET"
+            "GET",
+
+          headers:
+            getAuthHeaders()
 
         }
       );
 
 
-    const data =
-      await response.json();
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
 
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
 
 
     if (
@@ -873,8 +1520,8 @@ async function loadCourses() {
 
       throw new Error(
 
-        data.erro ||
-        data.error ||
+        result.error
+        ||
         "Não foi possível carregar os treinamentos."
 
       );
@@ -884,58 +1531,69 @@ async function loadCourses() {
 
 
     // ======================================================
-    // TRANSFORMAR DADOS
+    // ATUALIZAR USUÁRIO COM DADOS DO BACKEND
     // ======================================================
 
-    courses =
-      (
-        data ||
-        []
-      )
+    if (
+      result.usuario
+    ) {
 
-        .map(
-          course =>
-            mapApiCourse(
-              course
-            )
+      loggedUser =
+        result.usuario;
+
+
+      localStorage.setItem(
+        "usuario_logado",
+        JSON.stringify(
+          loggedUser
         )
-
-        .filter(
-          course =>
-            course.active
-        );
+      );
 
 
+      renderLoggedUser();
 
-    console.log(
-      "Cursos recebidos:",
-      courses
-    );
+    }
 
 
 
     // ======================================================
-    // PROGRESSO TEMPORÁRIO
+    // DADOS
     // ======================================================
 
-    initializeTemporaryProgress();
+    myTrainings =
+      Array.isArray(
+        result.meus_treinamentos
+      )
+        ? result.meus_treinamentos
+        : [];
+
+
+    catalogCourses =
+      Array.isArray(
+        result.catalogo
+      )
+        ? result.catalogo
+        : [];
+
+
+    summary =
+      result.resumo
+      ||
+      summary;
 
 
 
     // ======================================================
-    // ATUALIZAR TELA
+    // RENDER
     // ======================================================
 
-    renderUserTrainings();
+    renderSummary();
 
+    createCatalogFilters();
 
-    renderAreaFilters();
-
+    renderMyTrainings();
 
     renderCatalog();
-
-
-    updateSummary();
 
 
   } catch (
@@ -948,8 +1606,22 @@ async function loadCourses() {
     );
 
 
-    showLoadingError(
-      error.message
+    myTrainings =
+      [];
+
+
+    catalogCourses =
+      [];
+
+
+    renderMyTrainings();
+
+    renderCatalog();
+
+
+    showGlobalMessage(
+      error.message,
+      "error"
     );
 
   }
@@ -959,168 +1631,80 @@ async function loadCourses() {
 
 
 // ==========================================================
-// CRIAR ESTRUTURA TEMPORÁRIA DE PROGRESSO
+// ==========================================================
+// RESUMO
+// ==========================================================
 // ==========================================================
 
-function initializeTemporaryProgress() {
+function renderSummary() {
 
-  courses.forEach(
-    course => {
+  if (
+    mandatoryCount
+  ) {
 
-      if (
-        !completedActivities[
-          course.id
-        ]
-      ) {
-
-        completedActivities[
-          course.id
-        ] =
-          {};
-
-      }
-
-
-
-      course.activities.forEach(
-        activity => {
-
-          if (
-            completedActivities[
-              course.id
-            ][
-              activity.id
-            ]
-            ===
-            undefined
-          ) {
-
-            completedActivities[
-              course.id
-            ][
-              activity.id
-            ] =
-              false;
-
-          }
-
-        }
+    mandatoryCount.textContent =
+      Number(
+        summary.obrigatorios || 0
       );
 
-    }
-  );
+  }
+
+
+  if (
+    inProgressCount
+  ) {
+
+    inProgressCount.textContent =
+      Number(
+        summary.em_andamento || 0
+      );
+
+  }
+
+
+  if (
+    completedCount
+  ) {
+
+    completedCount.textContent =
+      Number(
+        summary.concluidos || 0
+      );
+
+  }
+
+
+  if (
+    totalHours
+  ) {
+
+    totalHours.textContent =
+      formatHours(
+        summary.carga_horaria
+      );
+
+  }
 
 }
 
 
 
 // ==========================================================
-// MOSTRAR ERRO
+// ==========================================================
+// FILTRAR "SEUS TREINAMENTOS"
+// ==========================================================
 // ==========================================================
 
-function showLoadingError(
-  message
+function filterMyTrainings(
+  courses
 ) {
 
-  const userGrid =
-    document.getElementById(
-      "userTrainingGrid"
-    );
-
-
-  const catalog =
-    document.getElementById(
-      "courseCatalog"
-    );
-
-
-  const errorHTML = `
-
-    <div
-      class="
-        empty-state
-        error-state
-      "
-    >
-
-      <i
-        class="
-          fa-solid
-          fa-triangle-exclamation
-        "
-      ></i>
-
-
-      <strong>
-        Não foi possível carregar os treinamentos
-      </strong>
-
-
-      <span>
-        ${escapeHTML(
-          message
-        )}
-      </span>
-
-    </div>
-
-  `;
-
-
   if (
-    userGrid
+    currentTrainingStatusFilter ===
+    "todos"
   ) {
 
-    userGrid.innerHTML =
-      errorHTML;
-
-  }
-
-
-  if (
-    catalog
-  ) {
-
-    catalog.innerHTML =
-      errorHTML;
-
-  }
-
-}
-
-
-
-// ==========================================================
-// CURSOS DESTINADOS AO COLABORADOR
-// ==========================================================
-//
-// REGRA:
-//
-// setor_destino
-//
-// deve ser igual ao:
-//
-// setor do colaborador.
-//
-// Exemplo:
-//
-// João
-// setor = Tecnologia
-//
-// Curso Python
-// setor_destino = Tecnologia
-//
-// → aparece em "Seus treinamentos".
-//
-// ==========================================================
-
-function getUserCourses() {
-
-  if (
-    !currentUser
-  ) {
-
-    return [];
+    return courses;
 
   }
 
@@ -1128,19 +1712,78 @@ function getUserCourses() {
   return courses.filter(
     course => {
 
-      return (
+      const status =
+        getEnrollmentStatus(
+          course
+        );
 
-        normalizeText(
-          course.targetSector
-        )
 
-        ===
+      if (
+        currentTrainingStatusFilter ===
+        "pendentes"
+      ) {
 
-        normalizeText(
-          currentUser.sector
-        )
+        return (
+          status ===
+          "nao_iniciado"
+        );
 
-      );
+      }
+
+
+      if (
+        currentTrainingStatusFilter ===
+        "andamento"
+      ) {
+
+        return (
+          status ===
+          "em_andamento"
+        );
+
+      }
+
+
+      if (
+        currentTrainingStatusFilter ===
+        "avaliacao"
+      ) {
+
+        return (
+          status ===
+          "aguardando_avaliacao"
+        );
+
+      }
+
+
+      if (
+        currentTrainingStatusFilter ===
+        "correcao"
+      ) {
+
+        return (
+          status ===
+          "correcao_solicitada"
+        );
+
+      }
+
+
+      if (
+        currentTrainingStatusFilter ===
+        "concluidos"
+      ) {
+
+        return (
+          status ===
+          "aprovado"
+        );
+
+      }
+
+
+      return true;
 
     }
   );
@@ -1150,276 +1793,242 @@ function getUserCourses() {
 
 
 // ==========================================================
-// CALCULAR PROGRESSO
+// ==========================================================
+// CARD "SEUS TREINAMENTOS"
+// ==========================================================
 // ==========================================================
 
-function getCourseProgress(
+function createTrainingCard(
   course
 ) {
 
-  const total =
-    course.activities.length;
-
-
-
-  // ========================================================
-  // CURSO SEM ATIVIDADE
-  // ========================================================
-
-  if (
-    total ===
-    0
-  ) {
-
-    return {
-
-      total:
-        0,
-
-      completed:
-        0,
-
-      percentage:
-        0
-
-    };
-
-  }
-
-
-
-  const courseProgress =
-    completedActivities[
-      course.id
-    ]
-    ||
-    {};
-
-
-
-  const completed =
-    course.activities.filter(
-      activity =>
-
-        courseProgress[
-          activity.id
-        ]
-        ===
-        true
-
-    ).length;
-
-
-
-  const percentage =
-    Math.round(
-
-      (
-        completed /
-        total
-      )
-
-      *
-
-      100
-
+  const status =
+    getEnrollmentStatus(
+      course
     );
 
 
-
-  return {
-
-    total,
-
-    completed,
-
-    percentage
-
-  };
-
-}
+  const progress =
+    Number(
+      course
+        ?.inscricao
+        ?.progresso
+      ||
+      0
+    );
 
 
-
-// ==========================================================
-// VISUAL DO CURSO
-// ==========================================================
-
-function getCourseVisual(
-  course
-) {
-
-  const area =
-    normalizeText(
+  const areaClass =
+    getCourseAreaClass(
       course.area
     );
 
 
-
-  // ========================================================
-  // TECNOLOGIA
-  // ========================================================
-
-  if (
-    area.includes(
-      "tecnologia"
-    )
-
-    ||
-
-    area.includes(
-      "ti"
-    )
-  ) {
-
-    return {
-
-      icon:
-        "fa-solid fa-laptop-code",
-
-      className:
-        "technology"
-
-    };
-
-  }
+  const icon =
+    getCourseIcon(
+      course.area
+    );
 
 
+  const requirementClass =
 
-  // ========================================================
-  // DESENVOLVIMENTO
-  // ========================================================
+    course.classificacao ===
+    "Obrigatório"
 
-  if (
-    area.includes(
-      "desenvolvimento"
-    )
-  ) {
+      ? "mandatory"
 
-    return {
-
-      icon:
-        "fa-solid fa-chart-line",
-
-      className:
-        "development"
-
-    };
-
-  }
+      : "recommended";
 
 
-
-  // ========================================================
-  // COMUNICAÇÃO
-  // ========================================================
-
-  if (
-    area.includes(
-      "comunicacao"
-    )
-  ) {
-
-    return {
-
-      icon:
-        "fa-solid fa-comments",
-
-      className:
-        "communication"
-
-    };
-
-  }
+  const cardStatusClass =
+    getTrainingCardStatusClass(
+      status
+    );
 
 
-
-  // ========================================================
-  // LIDERANÇA
-  // ========================================================
-
-  if (
-    area.includes(
-      "lideranca"
-    )
-  ) {
-
-    return {
-
-      icon:
-        "fa-solid fa-users",
-
-      className:
-        "leadership"
-
-    };
-
-  }
+  const article =
+    document.createElement(
+      "article"
+    );
 
 
-
-  // ========================================================
-  // COMPLIANCE
-  // ========================================================
-
-  if (
-    area.includes(
-      "compliance"
-    )
-
-    ||
-
-    area.includes(
-      "lgpd"
-    )
-  ) {
-
-    return {
-
-      icon:
-        "fa-solid fa-shield-halved",
-
-      className:
-        "compliance"
-
-    };
-
-  }
+  article.className =
+    `training-card ${cardStatusClass}`;
 
 
+  article.innerHTML = `
 
-  // ========================================================
-  // PADRÃO
-  // ========================================================
+    <div
+      class="
+        training-image
+        ${areaClass}
+      "
+    >
 
-  return {
+      <span
+        class="
+          badge
+          ${requirementClass}
+        "
+      >
+        ${escapeHTML(
+          course.classificacao || "Recomendado"
+        )}
+      </span>
 
-    icon:
-      "fa-solid fa-graduation-cap",
 
-    className:
-      ""
+      <span
+        class="training-status-badge"
+      >
+        ${escapeHTML(
+          getStatusLabel(
+            status
+          )
+        )}
+      </span>
 
-  };
+
+      <i
+        class="
+          fa-solid
+          ${icon}
+        "
+      ></i>
+
+    </div>
+
+
+    <div class="training-content">
+
+      <span class="training-category">
+        ${escapeHTML(
+          course.area || "Treinamento"
+        )}
+      </span>
+
+
+      <h3>
+        ${escapeHTML(
+          course.titulo
+        )}
+      </h3>
+
+
+      <p>
+        ${escapeHTML(
+          course.descricao || ""
+        )}
+      </p>
+
+
+      <div class="training-info">
+
+        <span>
+
+          <i class="fa-regular fa-clock"></i>
+
+          ${escapeHTML(
+            String(
+              course.carga_horaria || 0
+            )
+          )}h
+
+        </span>
+
+
+        <span>
+
+          <i class="fa-solid fa-signal"></i>
+
+          ${escapeHTML(
+            course.nivel || "-"
+          )}
+
+        </span>
+
+      </div>
+
+
+      <div class="progress-container">
+
+        <div class="progress-header">
+
+          <span>
+            Progresso
+          </span>
+
+          <strong>
+            ${progress}%
+          </strong>
+
+        </div>
+
+
+        <div class="progress-bar">
+
+          <div
+            class="progress"
+            style="width: ${progress}%"
+          >
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="primary-button"
+        data-course-id="${course.id}"
+      >
+
+        ${escapeHTML(
+          getCourseActionLabel(
+            course
+          )
+        )}
+
+      </button>
+
+    </div>
+
+  `;
+
+
+
+  const button =
+    article.querySelector(
+      "[data-course-id]"
+    );
+
+
+  button.addEventListener(
+    "click",
+    () => {
+
+      openCourseModal(
+        course.id
+      );
+
+    }
+  );
+
+
+  return article;
 
 }
 
 
 
 // ==========================================================
-// RENDERIZAR CURSOS DO SETOR DO COLABORADOR
+// RENDER SEUS TREINAMENTOS
 // ==========================================================
 
-function renderUserTrainings() {
-
-  const container =
-    document.getElementById(
-      "userTrainingGrid"
-    );
-
+function renderMyTrainings() {
 
   if (
-    !container
+    !userTrainingGrid
   ) {
 
     return;
@@ -1427,45 +2036,34 @@ function renderUserTrainings() {
   }
 
 
-
-  const userCourses =
-    getUserCourses();
-
-
-  container.innerHTML =
+  userTrainingGrid.innerHTML =
     "";
 
 
+  const filtered =
+    filterMyTrainings(
+      myTrainings
+    );
 
-  // ========================================================
-  // NENHUM CURSO
-  // ========================================================
+
 
   if (
-    userCourses.length ===
+    filtered.length ===
     0
   ) {
 
-    container.innerHTML = `
+    userTrainingGrid.innerHTML = `
 
       <div class="empty-state">
 
-        <i
-          class="
-            fa-solid
-            fa-graduation-cap
-          "
-        ></i>
-
+        <i class="fa-solid fa-graduation-cap"></i>
 
         <strong>
-          Nenhum treinamento direcionado ao seu setor
+          Nenhum treinamento encontrado
         </strong>
 
-
         <span>
-          Você ainda pode acessar os cursos disponíveis
-          no catálogo geral abaixo.
+          Não existem treinamentos nesta categoria no momento.
         </span>
 
       </div>
@@ -1479,258 +2077,13 @@ function renderUserTrainings() {
 
 
 
-  // ========================================================
-  // ORDENAR
-  // ========================================================
-  //
-  // Obrigatórios aparecem primeiro.
-  //
-  // ========================================================
-
-  const orderedCourses =
-    [
-      ...userCourses
-    ].sort(
-      (
-        courseA,
-        courseB
-      ) => {
-
-        if (
-          courseA.requirement ===
-          courseB.requirement
-        ) {
-
-          return String(
-            courseA.title ||
-            ""
-          ).localeCompare(
-            String(
-              courseB.title ||
-              ""
-            )
-          );
-
-        }
-
-
-        if (
-          courseA.requirement ===
-          "Obrigatório"
-        ) {
-
-          return -1;
-
-        }
-
-
-        return 1;
-
-      }
-    );
-
-
-
-  // ========================================================
-  // CRIAR CARDS
-  // ========================================================
-
-  orderedCourses.forEach(
+  filtered.forEach(
     course => {
 
-      const progress =
-        getCourseProgress(
+      userTrainingGrid.appendChild(
+        createTrainingCard(
           course
-        );
-
-
-      const visual =
-        getCourseVisual(
-          course
-        );
-
-
-      const isMandatory =
-        course.requirement ===
-        "Obrigatório";
-
-
-      const badgeClass =
-        isMandatory
-          ? "mandatory"
-          : "recommended";
-
-
-      const card =
-        document.createElement(
-          "article"
-        );
-
-
-      card.className =
-        "training-card";
-
-
-      card.innerHTML = `
-
-        <div
-          class="
-            training-image
-            ${visual.className}
-          "
-        >
-
-          <span
-            class="
-              badge
-              ${badgeClass}
-            "
-          >
-
-            ${escapeHTML(
-              course.requirement
-            )}
-
-          </span>
-
-
-          <i
-            class="
-              ${visual.icon}
-            "
-          ></i>
-
-        </div>
-
-
-        <div class="training-content">
-
-
-          <span class="training-category">
-
-            ${escapeHTML(
-              course.area
-            )}
-
-          </span>
-
-
-          <h3>
-
-            ${escapeHTML(
-              course.title
-            )}
-
-          </h3>
-
-
-          <p>
-
-            ${escapeHTML(
-              course.description
-            )}
-
-          </p>
-
-
-          <div class="training-info">
-
-
-            <span>
-
-              <i
-                class="
-                  fa-regular
-                  fa-clock
-                "
-              ></i>
-
-              ${course.hours} horas
-
-            </span>
-
-
-            <span>
-
-              <i
-                class="
-                  fa-solid
-                  fa-signal
-                "
-              ></i>
-
-              ${escapeHTML(
-                course.level
-              )}
-
-            </span>
-
-
-          </div>
-
-
-          <div class="progress-container">
-
-
-            <div class="progress-header">
-
-              <span>
-                Progresso
-              </span>
-
-              <span>
-
-                ${progress.percentage}%
-
-              </span>
-
-            </div>
-
-
-            <div class="progress-bar">
-
-              <div
-                class="progress"
-                style="
-                  width:
-                  ${progress.percentage}%;
-                "
-              ></div>
-
-            </div>
-
-
-          </div>
-
-
-          <button
-            type="button"
-            class="primary-button"
-            onclick="
-              openCourseModal(
-                '${course.id}'
-              )
-            "
-          >
-
-            ${
-              progress.percentage > 0
-
-                ? "Continuar"
-
-                : "Ver treinamento"
-            }
-
-          </button>
-
-
-        </div>
-
-      `;
-
-
-      container.appendChild(
-        card
+        )
       );
 
     }
@@ -1738,20 +2091,18 @@ function renderUserTrainings() {
 
 }
 
+
+
 // ==========================================================
-// FILTROS DE ÁREA
+// ==========================================================
+// FILTROS DO CATÁLOGO
+// ==========================================================
 // ==========================================================
 
-function renderAreaFilters() {
-
-  const container =
-    document.getElementById(
-      "filterButtons"
-    );
-
+function createCatalogFilters() {
 
   if (
-    !container
+    !filterButtons
   ) {
 
     return;
@@ -1759,79 +2110,86 @@ function renderAreaFilters() {
   }
 
 
+  const areas =
+    [
 
-  // ========================================================
-  // PEGAR ÁREAS ÚNICAS
-  // ========================================================
+      ...new Set(
 
-  const areas = [
+        catalogCourses
 
-    ...new Set(
+          .map(
+            course =>
+              course.area
+          )
 
-      courses
+          .filter(
+            Boolean
+          )
 
-        .map(
-          course =>
-            course.area
-        )
-
-        .filter(
-          area =>
-            Boolean(area)
-        )
-
-    )
-
-  ];
-
-
-
-  // Ordenar alfabeticamente.
-  areas.sort(
-    (
-      areaA,
-      areaB
-    ) =>
-      areaA.localeCompare(
-        areaB
       )
+
+    ]
+      .sort(
+        (
+          a,
+          b
+        ) =>
+          a.localeCompare(
+            b,
+            "pt-BR"
+          )
+      );
+
+
+
+  filterButtons.innerHTML =
+    "";
+
+
+  const allButton =
+    document.createElement(
+      "button"
+    );
+
+
+  allButton.type =
+    "button";
+
+
+  allButton.className =
+    currentCatalogArea ===
+    "Todos"
+
+      ? "filter-button active"
+
+      : "filter-button";
+
+
+  allButton.dataset.area =
+    "Todos";
+
+
+  allButton.textContent =
+    "Todos";
+
+
+  allButton.addEventListener(
+    "click",
+    () => {
+
+      selectCatalogArea(
+        "Todos"
+      );
+
+    }
   );
 
 
-
-  // ========================================================
-  // BOTÃO TODOS
-  // ========================================================
-
-  container.innerHTML = `
-
-    <button
-      type="button"
-      class="
-        filter-button
-        ${
-          currentAreaFilter ===
-          "Todos"
-
-            ? "active"
-
-            : ""
-        }
-      "
-      data-area="Todos"
-    >
-
-      Todos
-
-    </button>
-
-  `;
+  filterButtons.appendChild(
+    allButton
+  );
 
 
-
-  // ========================================================
-  // OUTRAS ÁREAS
-  // ========================================================
 
   areas.forEach(
     area => {
@@ -1846,105 +2204,304 @@ function renderAreaFilters() {
         "button";
 
 
-      button.className =
-        "filter-button";
-
-
-      if (
-        currentAreaFilter ===
-        area
-      ) {
-
-        button.classList.add(
-          "active"
-        );
-
-      }
-
-
       button.dataset.area =
         area;
+
+
+      button.className =
+
+        currentCatalogArea ===
+        area
+
+          ? "filter-button active"
+
+          : "filter-button";
 
 
       button.textContent =
         area;
 
 
-      container.appendChild(
+      button.addEventListener(
+        "click",
+        () => {
+
+          selectCatalogArea(
+            area
+          );
+
+        }
+      );
+
+
+      filterButtons.appendChild(
         button
       );
 
     }
   );
 
+}
 
 
-  // ========================================================
-  // EVENTOS
-  // ========================================================
 
-  container
+// ==========================================================
+// SELECIONAR ÁREA
+// ==========================================================
+
+function selectCatalogArea(
+  area
+) {
+
+  currentCatalogArea =
+    area;
+
+
+  document
     .querySelectorAll(
       ".filter-button"
     )
     .forEach(
       button => {
 
-        button.addEventListener(
-          "click",
-          () => {
-
-            currentAreaFilter =
-              button.dataset.area;
-
-
-            renderAreaFilters();
-
-
-            renderCatalog();
-
-          }
+        button.classList.toggle(
+          "active",
+          button.dataset.area ===
+          area
         );
 
       }
     );
+
+
+  renderCatalog();
 
 }
 
 
 
 // ==========================================================
-// CATÁLOGO GERAL
+// FILTRAR CATÁLOGO
 // ==========================================================
-//
-// IMPORTANTE:
-//
-// Aqui mostramos TODOS os cursos ativos.
-//
-// Então:
-//
-// colaborador Tecnologia
-//
-// pode acessar:
-//
-// curso Financeiro
-// curso RH
-// curso Marketing
-//
-// caso queira realizar voluntariamente.
-//
+
+function getFilteredCatalog() {
+
+  return catalogCourses.filter(
+    course => {
+
+      // ====================================================
+      // ÁREA
+      // ====================================================
+
+      const areaMatch =
+
+        currentCatalogArea ===
+        "Todos"
+
+        ||
+
+        course.area ===
+        currentCatalogArea;
+
+
+
+      // ====================================================
+      // PESQUISA
+      // ====================================================
+
+      const search =
+        currentSearch
+          .trim()
+          .toLowerCase();
+
+
+      if (
+        !search
+      ) {
+
+        return areaMatch;
+
+      }
+
+
+
+      const searchable =
+        [
+
+          course.titulo,
+
+          course.descricao,
+
+          course.area,
+
+          course.nivel,
+
+          course.setor_responsavel
+
+        ]
+          .join(
+            " "
+          )
+          .toLowerCase();
+
+
+
+      return (
+        areaMatch
+        &&
+        searchable.includes(
+          search
+        )
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CARD DO CATÁLOGO
+// ==========================================================
+// ==========================================================
+
+function createCatalogCard(
+  course
+) {
+
+  const status =
+    getEnrollmentStatus(
+      course
+    );
+
+
+  const icon =
+    getCourseIcon(
+      course.area
+    );
+
+
+  const card =
+    document.createElement(
+      "article"
+    );
+
+
+  card.className =
+    "catalog-card";
+
+
+  card.innerHTML = `
+
+    <div class="catalog-icon">
+
+      <i
+        class="
+          fa-solid
+          ${icon}
+        "
+      ></i>
+
+    </div>
+
+
+    <div class="catalog-content">
+
+      <span class="catalog-category">
+        ${escapeHTML(
+          course.area || "Treinamento"
+        )}
+      </span>
+
+
+      <h3>
+        ${escapeHTML(
+          course.titulo
+        )}
+      </h3>
+
+
+      <p>
+        ${escapeHTML(
+          course.descricao || ""
+        )}
+      </p>
+
+
+      <div class="catalog-footer">
+
+        <span>
+
+          ${escapeHTML(
+            String(
+              course.carga_horaria || 0
+            )
+          )}h
+
+          ·
+
+          ${escapeHTML(
+            course.nivel || "-"
+          )}
+
+          ·
+
+          ${escapeHTML(
+            getStatusLabel(
+              status
+            )
+          )}
+
+        </span>
+
+
+        <button
+          type="button"
+          data-catalog-course="${course.id}"
+        >
+          Ver detalhes
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+
+  card
+    .querySelector(
+      "[data-catalog-course]"
+    )
+    .addEventListener(
+      "click",
+      () => {
+
+        openCourseModal(
+          course.id
+        );
+
+      }
+    );
+
+
+  return card;
+
+}
+
+
+
+// ==========================================================
+// RENDER CATÁLOGO
 // ==========================================================
 
 function renderCatalog() {
 
-  const container =
-    document.getElementById(
-      "courseCatalog"
-    );
-
-
   if (
-    !container
+    !courseCatalog
   ) {
 
     return;
@@ -1952,164 +2509,32 @@ function renderCatalog() {
   }
 
 
-
-  const searchInput =
-    document.getElementById(
-      "searchInput"
-    );
-
-
-  const search =
-    normalizeText(
-
-      searchInput
-
-        ? searchInput.value
-
-        : ""
-
-    );
-
-
-
-  // ========================================================
-  // FILTRAR
-  // ========================================================
-
-  const filteredCourses =
-    courses.filter(
-      course => {
-
-        const title =
-          normalizeText(
-            course.title
-          );
-
-
-        const description =
-          normalizeText(
-            course.description
-          );
-
-
-        const area =
-          normalizeText(
-            course.area
-          );
-
-
-        const responsibleSector =
-          normalizeText(
-            course.responsibleSector
-          );
-
-
-        const targetSector =
-          normalizeText(
-            course.targetSector
-          );
-
-
-
-        // ==================================================
-        // BUSCA
-        // ==================================================
-
-        const matchesSearch =
-
-          title.includes(
-            search
-          )
-
-          ||
-
-          description.includes(
-            search
-          )
-
-          ||
-
-          area.includes(
-            search
-          )
-
-          ||
-
-          responsibleSector.includes(
-            search
-          )
-
-          ||
-
-          targetSector.includes(
-            search
-          );
-
-
-
-        // ==================================================
-        // ÁREA
-        // ==================================================
-
-        const matchesArea =
-
-          currentAreaFilter ===
-          "Todos"
-
-          ||
-
-          course.area ===
-          currentAreaFilter;
-
-
-
-        return (
-
-          matchesSearch
-
-          &&
-
-          matchesArea
-
-        );
-
-      }
-    );
-
-
-
-  container.innerHTML =
+  courseCatalog.innerHTML =
     "";
 
 
+  const courses =
+    getFilteredCatalog();
 
-  // ========================================================
-  // SEM RESULTADOS
-  // ========================================================
+
 
   if (
-    filteredCourses.length ===
+    courses.length ===
     0
   ) {
 
-    container.innerHTML = `
+    courseCatalog.innerHTML = `
 
       <div class="empty-state">
 
-        <i
-          class="
-            fa-solid
-            fa-magnifying-glass
-          "
-        ></i>
+        <i class="fa-solid fa-magnifying-glass"></i>
 
         <strong>
           Nenhum treinamento encontrado
         </strong>
 
         <span>
-          Tente alterar sua pesquisa
-          ou selecionar outra área.
+          Tente utilizar outro termo ou selecionar outra área.
         </span>
 
       </div>
@@ -2123,125 +2548,13 @@ function renderCatalog() {
 
 
 
-  // ========================================================
-  // CARDS
-  // ========================================================
-
-  filteredCourses.forEach(
+  courses.forEach(
     course => {
 
-      const visual =
-        getCourseVisual(
+      courseCatalog.appendChild(
+        createCatalogCard(
           course
-        );
-
-
-      const progress =
-        getCourseProgress(
-          course
-        );
-
-
-      const card =
-        document.createElement(
-          "article"
-        );
-
-
-      card.className =
-        "catalog-card";
-
-
-      card.innerHTML = `
-
-        <div class="catalog-icon">
-
-          <i
-            class="
-              ${visual.icon}
-            "
-          ></i>
-
-        </div>
-
-
-        <div class="catalog-content">
-
-
-          <span class="catalog-category">
-
-            ${escapeHTML(
-              course.area
-            )}
-
-          </span>
-
-
-          <h3>
-
-            ${escapeHTML(
-              course.title
-            )}
-
-          </h3>
-
-
-          <p>
-
-            ${escapeHTML(
-              course.description
-            )}
-
-          </p>
-
-
-          <div class="catalog-footer">
-
-
-            <span>
-
-              <i
-                class="
-                  fa-regular
-                  fa-clock
-                "
-              ></i>
-
-              ${course.hours} horas
-
-            </span>
-
-
-            <button
-              type="button"
-              onclick="
-                openCourseModal(
-                  '${course.id}'
-                )
-              "
-            >
-
-              ${
-                progress.percentage > 0
-
-                  ? "Continuar"
-
-                  : "Ver curso"
-              }
-
-            </button>
-
-
-          </div>
-
-
-        </div>
-
-      `;
-
-
-      container.appendChild(
-        card
+        )
       );
 
     }
@@ -2252,413 +2565,155 @@ function renderCatalog() {
 
 
 // ==========================================================
-// PESQUISA DO CATÁLOGO
+// ==========================================================
+// ABRIR MODAL
+// ==========================================================
 // ==========================================================
 
-const searchInput =
-  document.getElementById(
-    "searchInput"
-  );
-
-
-if (
-  searchInput
-) {
-
-  searchInput.addEventListener(
-    "input",
-    renderCatalog
-  );
-
-}
-
-
-
-// ==========================================================
-// ABRIR MODAL DO CURSO
-// ==========================================================
-
-function openCourseModal(
+async function openCourseModal(
   courseId
 ) {
 
-  const course =
-    courses.find(
-      item =>
-        String(item.id) ===
-        String(courseId)
-    );
+  clearModalMessage();
 
 
-  if (
-    !course
-  ) {
-
-    console.warn(
-      "Curso não encontrado:",
-      courseId
-    );
+  resetCourseModalState();
 
 
-    return;
-
-  }
-
-
-
-  // ========================================================
-  // CURSO ATUAL
-  // ========================================================
-
-  currentCourseId =
-    course.id;
-
-
-
-  // ========================================================
-  // GARANTIR ESTRUTURA DE PROGRESSO
-  // ========================================================
-
-  if (
-    !completedActivities[
-      course.id
-    ]
-  ) {
-
-    completedActivities[
-      course.id
-    ] =
-      {};
-
-  }
-
-
-
-  course.activities.forEach(
-    activity => {
-
-      if (
-        completedActivities[
-          course.id
-        ][
-          activity.id
-        ]
-        ===
-        undefined
-      ) {
-
-        completedActivities[
-          course.id
-        ][
-          activity.id
-        ] =
-          false;
-
-      }
-
-    }
+  courseModal.classList.add(
+    "show"
   );
 
 
-
-  // ========================================================
-  // VISUAL
-  // ========================================================
-
-  const visual =
-    getCourseVisual(
-      course
-    );
-
-
-  const modalIcon =
-    document.getElementById(
-      "modalCourseIcon"
-    );
-
-
-  if (
-    modalIcon
-  ) {
-
-    modalIcon.className =
-      visual.icon;
-
-  }
-
-
-
-  // ========================================================
-  // BADGE
-  // ========================================================
-
-  const badge =
-    document.getElementById(
-      "modalCourseBadge"
-    );
-
-
-  if (
-    badge
-  ) {
-
-    const requirement =
-      course.requirement ||
-      "Recomendado";
-
-
-    badge.textContent =
-      `Treinamento ${requirement.toLowerCase()}`;
-
-
-    badge.className =
-      "modal-badge";
-
-
-    if (
-      requirement ===
-      "Obrigatório"
-    ) {
-
-      badge.classList.add(
-        "mandatory-modal"
-      );
-
-    } else {
-
-      badge.classList.add(
-        "recommended-modal"
-      );
-
-    }
-
-  }
-
-
-
-  // ========================================================
-  // TÍTULO
-  // ========================================================
-
-  const title =
-    document.getElementById(
-      "modalCourseTitle"
-    );
-
-
-  if (
-    title
-  ) {
-
-    title.textContent =
-      course.title ||
-      "Treinamento";
-
-  }
-
-
-
-  // ========================================================
-  // ÁREA
-  // ========================================================
-
-  const area =
-    document.getElementById(
-      "modalCourseArea"
-    );
-
-
-  if (
-    area
-  ) {
-
-    area.textContent =
-      course.area ||
-      "Área não informada";
-
-  }
-
-
-
-  // ========================================================
-  // HORAS
-  // ========================================================
-
-  const hours =
-    document.getElementById(
-      "modalCourseHours"
-    );
-
-
-  if (
-    hours
-  ) {
-
-    hours.textContent =
-      `${course.hours || 0} horas`;
-
-  }
-
-
-
-  // ========================================================
-  // NÍVEL
-  // ========================================================
-
-  const level =
-    document.getElementById(
-      "modalCourseLevel"
-    );
-
-
-  if (
-    level
-  ) {
-
-    level.textContent =
-      course.level ||
-      "Não informado";
-
-  }
-
-
-
-  // ========================================================
-  // SETOR RESPONSÁVEL
-  // ========================================================
-
-  const sector =
-    document.getElementById(
-      "modalCourseSector"
-    );
-
-
-  if (
-    sector
-  ) {
-
-    sector.textContent =
-      course.responsibleSector ||
-      "Não informado";
-
-  }
-
-
-
-  // ========================================================
-  // DESCRIÇÃO
-  // ========================================================
-
-  const description =
-    document.getElementById(
-      "modalCourseDescription"
-    );
-
-
-  if (
-    description
-  ) {
-
-    description.textContent =
-      course.description ||
-      "Sem descrição.";
-
-  }
-
-
-
-  // ========================================================
-  // CURSO EXTERNO
-  // ========================================================
-
-  const externalBox =
-    document.getElementById(
-      "externalCourseBox"
-    );
-
-
-  const externalLink =
-    document.getElementById(
-      "externalCourseLink"
-    );
-
-
-  if (
-    externalBox &&
-    externalLink
-  ) {
-
-    if (
-      course.external
-      &&
-      course.externalLink
-    ) {
-
-      externalBox.classList.add(
-        "show"
-      );
-
-
-      externalLink.href =
-        course.externalLink;
-
-    } else {
-
-      externalBox.classList.remove(
-        "show"
-      );
-
-
-      externalLink.href =
-        "#";
-
-    }
-
-  }
-
-
-
-  // ========================================================
-  // ATIVIDADES
-  // ========================================================
-
-  renderCourseActivities(
-    course
+  courseModal.setAttribute(
+    "aria-hidden",
+    "false"
   );
-
-
-
-  // ========================================================
-  // PROGRESSO
-  // ========================================================
-
-  updateCourseProgress();
-
-
-
-  // ========================================================
-  // EXIBIR MODAL
-  // ========================================================
-
-  const modal =
-    document.getElementById(
-      "courseModal"
-    );
-
-
-  if (
-    modal
-  ) {
-
-    modal.classList.add(
-      "show"
-    );
-
-  }
 
 
   document.body.style.overflow =
     "hidden";
+
+
+
+  // ========================================================
+  // LOADING DAS ATIVIDADES
+  // ========================================================
+
+  if (
+    courseActivities
+  ) {
+
+    courseActivities.innerHTML = `
+
+      <div class="loading-state">
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        <span>
+          Carregando treinamento...
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/treinamentos/${courseId}`,
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+
+        result.error
+        ||
+        "Não foi possível abrir o treinamento."
+
+      );
+
+    }
+
+
+
+    currentCourse =
+      result.curso;
+
+
+    currentEnrollment =
+      result.inscricao;
+
+
+    currentDeliveries =
+      Array.isArray(
+        result.entregas
+      )
+        ? result.entregas
+        : [];
+
+
+    currentCertificate =
+      result.certificado
+      ||
+      null;
+
+
+
+    renderCourseModal();
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao abrir treinamento:",
+      error
+    );
+
+
+    showModalMessage(
+      error.message,
+      "error"
+    );
+
+  }
 
 }
 
@@ -2670,50 +2725,130 @@ function openCourseModal(
 
 function closeCourseModal() {
 
-  const modal =
-    document.getElementById(
-      "courseModal"
-    );
+  courseModal.classList.remove(
+    "show"
+  );
 
 
-  if (
-    modal
-  ) {
-
-    modal.classList.remove(
-      "show"
-    );
-
-  }
+  courseModal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
 
 
   document.body.style.overflow =
-    "auto";
+    "";
 
 
-  currentCourseId =
+  currentCourse =
     null;
+
+
+  currentEnrollment =
+    null;
+
+
+  currentDeliveries =
+    [];
+
+
+  currentCertificate =
+    null;
+
+
+  Object
+    .keys(
+      selectedActivityFiles
+    )
+    .forEach(
+      key => {
+
+        delete selectedActivityFiles[
+          key
+        ];
+
+      }
+    );
+
+
+  clearModalMessage();
 
 }
 
 
 
 // ==========================================================
-// RENDERIZAR ATIVIDADES
+// RESET VISUAL
 // ==========================================================
 
-function renderCourseActivities(
-  course
-) {
+function resetCourseModalState() {
 
-  const container =
-    document.getElementById(
-      "courseActivities"
-    );
+  correctionAlert.classList.remove(
+    "show"
+  );
 
+
+  evaluationWaitingBox.classList.remove(
+    "show"
+  );
+
+
+  approvedTrainingBox.classList.remove(
+    "show"
+  );
+
+
+  externalCourseSection.classList.remove(
+    "show"
+  );
+
+
+  internalCourseSection.classList.remove(
+    "show"
+  );
+
+
+  certificateResultSection.classList.remove(
+    "show"
+  );
+
+
+  startCourseButton.classList.remove(
+    "show"
+  );
+
+
+  submitTrainingArea.classList.add(
+    "hidden"
+  );
+
+
+  externalCertificateArea.classList.remove(
+    "hidden"
+  );
+
+
+  externalCertificateInput.value =
+    "";
+
+
+  externalCertificateFileName.textContent =
+    "PDF, PNG ou JPG — máximo de 10 MB";
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// RENDER MODAL
+// ==========================================================
+// ==========================================================
+
+function renderCourseModal() {
 
   if (
-    !container
+    !currentCourse
   ) {
 
     return;
@@ -2721,38 +2856,531 @@ function renderCourseActivities(
   }
 
 
-  container.innerHTML =
-    "";
+  const status =
+    currentEnrollment
+      ?.status
+    ||
+    "nao_iniciado";
 
 
 
   // ========================================================
-  // SEM ATIVIDADES
+  // CABEÇALHO
+  // ========================================================
+
+  modalCourseBadge.textContent =
+    currentCourse.curso_externo
+
+      ? "Curso externo"
+
+      : currentCourse.classificacao
+        ||
+        "Treinamento";
+
+
+  modalCourseStatus.textContent =
+    getStatusLabel(
+      status
+    );
+
+
+  modalCourseStatus.className =
+    `status-pill ${getStatusClass(status)}`;
+
+
+  modalCourseTitle.textContent =
+    currentCourse.titulo
+    ||
+    "Treinamento";
+
+
+  modalCourseArea.textContent =
+    currentCourse.area
+    ||
+    "-";
+
+
+  modalCourseHours.textContent =
+    `${currentCourse.carga_horaria || 0} horas`;
+
+
+  modalCourseLevel.textContent =
+    currentCourse.nivel
+    ||
+    "-";
+
+
+  modalCourseSector.textContent =
+    currentCourse.setor_responsavel
+    ||
+    "-";
+
+
+  modalCourseRequirement.textContent =
+    currentCourse.classificacao
+    ||
+    "-";
+
+
+  modalCourseDescription.textContent =
+    currentCourse.descricao
+    ||
+    "Nenhuma descrição informada.";
+
+
+
+  // ========================================================
+  // ESTADOS
   // ========================================================
 
   if (
-    course.activities.length ===
+    status ===
+    "aguardando_avaliacao"
+  ) {
+
+    evaluationWaitingBox.classList.add(
+      "show"
+    );
+
+  }
+
+
+  if (
+    status ===
+    "correcao_solicitada"
+  ) {
+
+    correctionAlert.classList.add(
+      "show"
+    );
+
+
+    correctionMessage.textContent =
+      buildCorrectionMessage();
+
+  }
+
+
+  if (
+    status ===
+    "aprovado"
+  ) {
+
+    approvedTrainingBox.classList.add(
+      "show"
+    );
+
+  }
+
+
+
+  // ========================================================
+  // INICIAR
+  // ========================================================
+
+  if (
+    !currentEnrollment
+    ||
+    status ===
+    "nao_iniciado"
+  ) {
+
+    startCourseButton.classList.add(
+      "show"
+    );
+
+  }
+
+
+
+  // ========================================================
+  // CURSO EXTERNO
+  // ========================================================
+
+  if (
+    currentCourse.curso_externo ===
+    true
+  ) {
+
+    renderExternalCourse(
+      status
+    );
+
+  }
+
+
+
+  // ========================================================
+  // CURSO INTERNO
+  // ========================================================
+
+  else {
+
+    renderInternalCourse(
+      status
+    );
+
+  }
+
+
+
+  // ========================================================
+  // CERTIFICADO
+  // ========================================================
+
+  renderCertificate();
+
+}
+
+
+
+// ==========================================================
+// MENSAGEM DE CORREÇÃO
+// ==========================================================
+
+function buildCorrectionMessage() {
+
+  const rejectedDeliveries =
+    currentDeliveries.filter(
+      delivery =>
+        delivery.status ===
+        "nao_ok"
+    );
+
+
+  if (
+    rejectedDeliveries.length ===
     0
   ) {
 
-    container.innerHTML = `
+    return (
+      "O responsável solicitou ajustes. Revise suas entregas e envie novamente."
+    );
 
-      <div class="no-activities">
+  }
 
-        <i
-          class="
-            fa-regular
-            fa-clipboard
-          "
-        ></i>
+
+
+  const observations =
+    rejectedDeliveries
+
+      .map(
+        delivery =>
+          delivery.observacao_admin
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  if (
+    observations.length ===
+    0
+  ) {
+
+    return (
+      "Uma ou mais atividades precisam ser corrigidas."
+    );
+
+  }
+
+
+  return observations.join(
+    " | "
+  );
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CURSO EXTERNO
+// ==========================================================
+// ==========================================================
+
+function renderExternalCourse(
+  status
+) {
+
+  externalCourseSection.classList.add(
+    "show"
+  );
+
+
+  internalCourseSection.classList.remove(
+    "show"
+  );
+
+
+
+  // ========================================================
+  // LINK
+  // ========================================================
+
+  externalCourseLink.href =
+    currentCourse.link_externo
+    ||
+    "#";
+
+
+  if (
+    !currentCourse.link_externo
+  ) {
+
+    externalCourseLink.classList.add(
+      "hidden"
+    );
+
+  } else {
+
+    externalCourseLink.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+
+  // ========================================================
+  // BLOQUEAR UPLOAD QUANDO AGUARDANDO OU APROVADO
+  // ========================================================
+
+  if (
+    status ===
+      "aguardando_avaliacao"
+
+    ||
+
+    status ===
+      "aprovado"
+  ) {
+
+    externalCertificateArea.classList.add(
+      "hidden"
+    );
+
+  } else {
+
+    externalCertificateArea.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+
+  // ========================================================
+  // SE JÁ EXISTE CERTIFICADO EXTERNO
+  // ========================================================
+
+  if (
+    currentCertificate
+    ?.arquivo_nome
+  ) {
+
+    externalCertificateFileName.textContent =
+      currentCertificate.arquivo_nome;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CURSO INTERNO
+// ==========================================================
+// ==========================================================
+
+function renderInternalCourse(
+  status
+) {
+
+  internalCourseSection.classList.add(
+    "show"
+  );
+
+
+  externalCourseSection.classList.remove(
+    "show"
+  );
+
+
+  renderCourseProgress();
+
+
+  renderCourseActivities();
+
+
+
+  // ========================================================
+  // PODE ENVIAR PARA AVALIAÇÃO?
+  // ========================================================
+
+  if (
+    status ===
+      "em_andamento"
+
+    ||
+
+    status ===
+      "correcao_solicitada"
+  ) {
+
+    submitTrainingArea.classList.remove(
+      "hidden"
+    );
+
+  } else {
+
+    submitTrainingArea.classList.add(
+      "hidden"
+    );
+
+  }
+
+
+
+  updateSubmitTrainingButton();
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// PROGRESSO
+// ==========================================================
+// ==========================================================
+
+function renderCourseProgress() {
+
+  const activities =
+    currentCourse
+      ?.atividades_curso
+    ||
+    [];
+
+
+  const total =
+    activities.length;
+
+
+  const delivered =
+    currentDeliveries.length;
+
+
+  const progress =
+
+    currentEnrollment
+      ?.progresso
+    ??
+    (
+      total > 0
+
+        ? Math.round(
+            (
+              delivered /
+              total
+            )
+            *
+            100
+          )
+
+        : 0
+    );
+
+
+
+  courseProgressText.textContent =
+    `${delivered} de ${total} atividades enviadas`;
+
+
+  courseProgressPercentage.textContent =
+    `${progress}%`;
+
+
+  courseProgressFill.style.width =
+    `${progress}%`;
+
+}
+
+
+
+// ==========================================================
+// BUSCAR ENTREGA DE UMA ATIVIDADE
+// ==========================================================
+
+function getActivityDelivery(
+  activityId
+) {
+
+  return currentDeliveries.find(
+    delivery =>
+      Number(
+        delivery.atividade_id
+      )
+      ===
+      Number(
+        activityId
+      )
+  )
+  ||
+  null;
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// RENDER ATIVIDADES
+// ==========================================================
+// ==========================================================
+
+function renderCourseActivities() {
+
+  if (
+    !courseActivities
+  ) {
+
+    return;
+
+  }
+
+
+  courseActivities.innerHTML =
+    "";
+
+
+  const activities =
+    currentCourse
+      ?.atividades_curso
+    ||
+    [];
+
+
+
+  if (
+    activities.length ===
+    0
+  ) {
+
+    courseActivities.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-list-check"></i>
 
         <strong>
           Nenhuma atividade cadastrada
         </strong>
 
         <span>
-          Este treinamento não possui
-          atividades no momento.
+          Este treinamento não possui atividades disponíveis.
         </span>
 
       </div>
@@ -2766,164 +3394,17 @@ function renderCourseActivities(
 
 
 
-  // ========================================================
-  // CRIAR ATIVIDADES
-  // ========================================================
-
-  course.activities.forEach(
+  activities.forEach(
     (
       activity,
       index
     ) => {
 
-      const isCompleted =
-
-        completedActivities[
-          course.id
-        ][
-          activity.id
-        ]
-
-        ===
-
-        true;
-
-
-
-      const card =
-        document.createElement(
-          "div"
-        );
-
-
-      card.className =
-        "activity-card";
-
-
-      card.dataset.activity =
-        activity.id;
-
-
-      if (
-        isCompleted
-      ) {
-
-        card.classList.add(
-          "completed"
-        );
-
-      }
-
-
-
-      const resourceHTML =
-        createActivityResourceHTML(
-          activity
-        );
-
-
-      const actionHTML =
-        createActivityActionHTML(
-          course,
-          activity
-        );
-
-
-
-      card.innerHTML = `
-
-        <div class="activity-check">
-
-          <i
-            class="
-              fa-solid
-              fa-check
-            "
-          ></i>
-
-        </div>
-
-
-        <div class="activity-content">
-
-
-          <div class="activity-header">
-
-
-            <div>
-
-              <span class="activity-number">
-
-                Atividade
-                ${String(
-                  index + 1
-                ).padStart(
-                  2,
-                  "0"
-                )}
-
-              </span>
-
-
-              <h4>
-
-                ${escapeHTML(
-                  activity.title
-                )}
-
-              </h4>
-
-            </div>
-
-
-            <span class="activity-status">
-
-              ${
-                isCompleted
-
-                  ? "Concluída"
-
-                  : "Pendente"
-              }
-
-            </span>
-
-
-          </div>
-
-
-          ${
-            activity.description
-
-              ? `
-
-                <p>
-
-                  ${escapeHTML(
-                    activity.description
-                  )}
-
-                </p>
-
-              `
-
-              : ""
-          }
-
-
-          ${resourceHTML}
-
-
-          ${actionHTML}
-
-
-        </div>
-
-      `;
-
-
-      container.appendChild(
-        card
+      courseActivities.appendChild(
+        createActivityCard(
+          activity,
+          index
+        )
       );
 
     }
@@ -2934,41 +3415,240 @@ function renderCourseActivities(
 
 
 // ==========================================================
-// RECURSO DA ATIVIDADE
+// ==========================================================
+// CARD DA ATIVIDADE
+// ==========================================================
 // ==========================================================
 
-function createActivityResourceHTML(
-  activity
+function createActivityCard(
+  activity,
+  index
 ) {
 
+  const delivery =
+    getActivityDelivery(
+      activity.id
+    );
+
+
+  const courseStatus =
+    currentEnrollment
+      ?.status
+    ||
+    "nao_iniciado";
+
+
   // ========================================================
-  // TEXTO
+  // BLOQUEIO
+  // ========================================================
+
+  const locked =
+
+    courseStatus ===
+      "aguardando_avaliacao"
+
+    ||
+
+    courseStatus ===
+      "aprovado";
+
+
+
+  let evaluationClass =
+    "";
+
+
+  if (
+    delivery?.status ===
+    "ok"
+  ) {
+
+    evaluationClass =
+      "activity-ok";
+
+  }
+
+
+  if (
+    delivery?.status ===
+    "nao_ok"
+  ) {
+
+    evaluationClass =
+      "activity-not-ok";
+
+  }
+
+
+
+  const card =
+    document.createElement(
+      "article"
+    );
+
+
+  card.className =
+    `activity-card ${evaluationClass} ${locked ? "readonly" : ""}`;
+
+
+
+  // ========================================================
+  // MATERIAL DE REFERÊNCIA
+  // ========================================================
+
+  const materialHTML =
+    createActivityMaterialHTML(
+      activity
+    );
+
+
+
+  // ========================================================
+  // ENTREGA
+  // ========================================================
+
+  const deliveryHTML =
+    createActivityDeliveryHTML(
+      activity,
+      delivery,
+      locked
+    );
+
+
+
+  // ========================================================
+  // AVALIAÇÃO
+  // ========================================================
+
+  const evaluationHTML =
+    createActivityEvaluationHTML(
+      delivery
+    );
+
+
+
+  card.innerHTML = `
+
+    <div class="activity-header">
+
+      <div class="activity-header-main">
+
+        <div class="activity-number">
+          ${index + 1}
+        </div>
+
+
+        <div>
+
+          <h4>
+            ${escapeHTML(
+              activity.titulo
+            )}
+          </h4>
+
+
+          <p>
+            ${escapeHTML(
+              activity.descricao
+              ||
+              "Realize a atividade conforme as orientações."
+            )}
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <span class="activity-type">
+
+        ${escapeHTML(
+          activity.tipo || "Atividade"
+        )}
+
+      </span>
+
+    </div>
+
+
+    ${materialHTML}
+
+    ${deliveryHTML}
+
+    ${evaluationHTML}
+
+  `;
+
+
+
+  // ========================================================
+  // EVENTOS DA ATIVIDADE
   // ========================================================
 
   if (
-    activity.type ===
-    "Texto"
+    !locked
+  ) {
+
+    attachActivityEvents(
+      card,
+      activity
+    );
+
+  }
+
+
+  return card;
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// MATERIAL DA ATIVIDADE
+// ==========================================================
+// ==========================================================
+
+function createActivityMaterialHTML(
+  activity
+) {
+
+  if (
+    !activity.recurso
+  ) {
+
+    return "";
+
+  }
+
+
+
+  if (
+    activity.tipo ===
+    "Link"
   ) {
 
     return `
 
-      <div class="activity-instructions">
+      <div class="course-material">
 
-        <strong>
-          Instruções
-        </strong>
+        <i class="fa-solid fa-link"></i>
 
-        <p>
 
-          ${
-            escapeHTML(
-              activity.description
-              ||
-              "Realize a atividade conforme as orientações informadas."
-            )
-          }
+        <span>
+          Material da atividade
+        </span>
 
-        </p>
+
+        <a
+          href="${escapeHTML(
+            activity.recurso
+          )}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Abrir link
+        </a>
 
       </div>
 
@@ -2978,12 +3658,8 @@ function createActivityResourceHTML(
 
 
 
-  // ========================================================
-  // ARQUIVO
-  // ========================================================
-
   if (
-    activity.type ===
+    activity.tipo ===
     "Arquivo"
   ) {
 
@@ -2991,61 +3667,109 @@ function createActivityResourceHTML(
 
       <div class="course-material">
 
-
-        <div class="material-icon">
-
-          <i
-            class="
-              fa-solid
-              fa-file
-            "
-          ></i>
-
-        </div>
+        <i class="fa-solid fa-file"></i>
 
 
-        <div>
+        <span>
+          ${escapeHTML(
+            activity.recurso
+          )}
+        </span>
 
-          <strong>
+      </div>
+
+    `;
+
+  }
+
+
+
+  return `
+
+    <div class="course-material">
+
+      <i class="fa-solid fa-circle-info"></i>
+
+
+      <span>
+        ${escapeHTML(
+          activity.recurso
+        )}
+      </span>
+
+    </div>
+
+  `;
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// FORMULÁRIO DA ENTREGA
+// ==========================================================
+// ==========================================================
+
+function createActivityDeliveryHTML(
+  activity,
+  delivery,
+  locked
+) {
+
+  // ========================================================
+  // ATIVIDADE TEXTO
+  // ========================================================
+
+  if (
+    activity.tipo ===
+    "Texto"
+  ) {
+
+    return `
+
+      <div class="activity-delivery">
+
+        <label
+          for="activityText_${activity.id}"
+        >
+          Sua resposta
+        </label>
+
+
+        <textarea
+          id="activityText_${activity.id}"
+          placeholder="Digite sua resposta..."
+          ${locked ? "disabled" : ""}
+        >${escapeHTML(
+          delivery?.resposta_texto || ""
+        )}</textarea>
+
+
+        ${createSavedDeliveryHTML(
+          delivery
+        )}
+
+
+        <div class="activity-actions">
+
+          <button
+            type="button"
+            class="activity-save-button"
+            data-save-activity="${activity.id}"
+          >
+
+            <i class="fa-solid fa-floppy-disk"></i>
 
             ${
-              escapeHTML(
-                activity.resource
-                ||
-                "Material do treinamento"
-              )
+              delivery
+                ? "Atualizar atividade"
+                : "Salvar atividade"
             }
 
-          </strong>
-
-
-          <span>
-            Material disponibilizado pelo administrador
-          </span>
+          </button>
 
         </div>
-
-
-        <button
-          type="button"
-          onclick="
-            showMaterialNotice(
-              '${activity.id}'
-            )
-          "
-        >
-
-          <i
-            class="
-              fa-solid
-              fa-download
-            "
-          ></i>
-
-          Baixar
-
-        </button>
-
 
       </div>
 
@@ -3056,82 +3780,332 @@ function createActivityResourceHTML(
 
 
   // ========================================================
-  // LINK
+  // ATIVIDADE LINK
   // ========================================================
 
   if (
-    activity.type ===
+    activity.tipo ===
     "Link"
   ) {
 
-    if (
-      activity.resource
-    ) {
+    return `
 
-      return `
+      <div class="activity-delivery">
 
-        <div class="course-material">
+        <label
+          for="activityLink_${activity.id}"
+        >
+          Link da sua entrega
+        </label>
 
 
-          <div
-            class="
-              material-icon
-              link-material
-            "
+        <input
+          type="url"
+          id="activityLink_${activity.id}"
+          placeholder="https://..."
+          value="${escapeHTML(
+            delivery?.resposta_link || ""
+          )}"
+          ${locked ? "disabled" : ""}
+        />
+
+
+        ${createSavedDeliveryHTML(
+          delivery
+        )}
+
+
+        <div class="activity-actions">
+
+          <button
+            type="button"
+            class="activity-save-button"
+            data-save-activity="${activity.id}"
           >
 
-            <i
-              class="
-                fa-solid
-                fa-link
-              "
-            ></i>
+            <i class="fa-solid fa-floppy-disk"></i>
 
-          </div>
+            ${
+              delivery
+                ? "Atualizar atividade"
+                : "Salvar atividade"
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  // ========================================================
+  // ATIVIDADE ARQUIVO
+  // ========================================================
+
+  return `
+
+    <div class="activity-delivery">
+
+      <label>
+        Sua entrega
+      </label>
+
+
+      <div class="activity-file-area">
+
+        <input
+          type="file"
+          id="activityFile_${activity.id}"
+          class="file-input"
+          data-activity-file="${activity.id}"
+          ${locked ? "disabled" : ""}
+        />
+
+
+        <label
+          class="upload-label"
+          for="activityFile_${activity.id}"
+        >
+
+          <i class="fa-solid fa-cloud-arrow-up"></i>
 
 
           <div>
 
             <strong>
-              Link da atividade
+              ${
+                delivery?.arquivo_nome
+                  ? "Substituir arquivo"
+                  : "Selecionar arquivo"
+              }
             </strong>
 
-            <span>
 
-              ${escapeHTML(
-                activity.resource
-              )}
+            <span
+              id="activityFileName_${activity.id}"
+            >
+
+              ${
+                escapeHTML(
+                  delivery?.arquivo_nome
+                  ||
+                  "Selecione um arquivo de até 10 MB"
+                )
+              }
 
             </span>
 
           </div>
 
-
-          <a
-            href="${escapeHTML(
-              activity.resource
-            )}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-
-            <i
-              class="
-                fa-solid
-                fa-arrow-up-right-from-square
-              "
-            ></i>
-
-            Abrir
-
-          </a>
+        </label>
 
 
+        <div
+          id="selectedActivityFile_${activity.id}"
+        >
         </div>
 
-      `;
+      </div>
 
-    }
+
+      ${createSavedDeliveryHTML(
+        delivery
+      )}
+
+
+      <div class="activity-actions">
+
+        <button
+          type="button"
+          class="activity-save-button"
+          data-save-activity="${activity.id}"
+        >
+
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+
+          ${
+            delivery
+              ? "Atualizar entrega"
+              : "Enviar atividade"
+          }
+
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+
+// ==========================================================
+// ENTREGA SALVA
+// ==========================================================
+
+function createSavedDeliveryHTML(
+  delivery
+) {
+
+  if (
+    !delivery
+  ) {
+
+    return "";
+
+  }
+
+
+
+  let detail =
+    "Entrega salva.";
+
+
+  if (
+    delivery.arquivo_nome
+  ) {
+
+    detail =
+      delivery.arquivo_nome;
+
+  } else if (
+    delivery.resposta_link
+  ) {
+
+    detail =
+      delivery.resposta_link;
+
+  } else if (
+    delivery.resposta_texto
+  ) {
+
+    detail =
+      "Resposta de texto salva.";
+
+  }
+
+
+
+  return `
+
+    <div class="saved-delivery">
+
+      <i class="fa-solid fa-circle-check"></i>
+
+
+      <div>
+
+        <strong>
+          Entrega registrada
+        </strong>
+
+
+        <span>
+          ${escapeHTML(
+            detail
+          )}
+        </span>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+
+// ==========================================================
+// AVALIAÇÃO DA ATIVIDADE
+// ==========================================================
+
+function createActivityEvaluationHTML(
+  delivery
+) {
+
+  if (
+    !delivery
+  ) {
+
+    return "";
+
+  }
+
+
+
+  if (
+    delivery.status ===
+    "ok"
+  ) {
+
+    return `
+
+      <div class="activity-evaluation ok">
+
+        <strong>
+          <i class="fa-solid fa-circle-check"></i>
+          Atividade aprovada
+        </strong>
+
+
+        ${
+          delivery.observacao_admin
+
+            ? `
+
+              <p>
+                ${escapeHTML(
+                  delivery.observacao_admin
+                )}
+              </p>
+
+            `
+
+            : ""
+        }
+
+      </div>
+
+    `;
+
+  }
+
+
+
+  if (
+    delivery.status ===
+    "nao_ok"
+  ) {
+
+    return `
+
+      <div class="activity-evaluation nao-ok">
+
+        <strong>
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Correção necessária
+        </strong>
+
+
+        <p>
+          ${escapeHTML(
+            delivery.observacao_admin
+            ||
+            "Revise esta atividade."
+          )}
+        </p>
+
+      </div>
+
+    `;
 
   }
 
@@ -3144,83 +4118,174 @@ function createActivityResourceHTML(
 
 
 // ==========================================================
-// ÁREA DE AÇÃO DA ATIVIDADE
 // ==========================================================
-//
-// Nesta etapa:
-//
-// Texto:
-// → pode ser marcado manualmente como concluído.
-//
-// Link/Arquivo:
-// → exige seleção de um comprovante.
-//
-// Tudo ainda é temporário no navegador.
-//
+// EVENTOS DA ATIVIDADE
+// ==========================================================
 // ==========================================================
 
-function createActivityActionHTML(
-  course,
+function attachActivityEvents(
+  card,
   activity
 ) {
 
-  const fileKey =
-    `${course.id}_${activity.id}`;
+  // ========================================================
+  // ARQUIVO
+  // ========================================================
+
+  const fileInput =
+    card.querySelector(
+      `[data-activity-file="${activity.id}"]`
+    );
 
 
-  const file =
-    uploadedFiles[
-      fileKey
+  if (
+    fileInput
+  ) {
+
+    fileInput.addEventListener(
+      "change",
+      () => {
+
+        handleActivityFileSelection(
+          activity.id,
+          fileInput
+        );
+
+      }
+    );
+
+  }
+
+
+
+  // ========================================================
+  // SALVAR
+  // ========================================================
+
+  const saveButton =
+    card.querySelector(
+      `[data-save-activity="${activity.id}"]`
+    );
+
+
+  if (
+    saveButton
+  ) {
+
+    saveButton.addEventListener(
+      "click",
+      () => {
+
+        saveActivity(
+          activity,
+          saveButton
+        );
+
+      }
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// SELEÇÃO DE ARQUIVO
+// ==========================================================
+
+function handleActivityFileSelection(
+  activityId,
+  input
+) {
+
+  if (
+    !input.files
+    ||
+    input.files.length ===
+    0
+  ) {
+
+    delete selectedActivityFiles[
+      activityId
     ];
 
 
+    return;
 
-  // ========================================================
-  // TEXTO
-  // ========================================================
+  }
+
+
+  const file =
+    input.files[0];
+
+
 
   if (
-    activity.type ===
-    "Texto"
+    file.size >
+    10 * 1024 * 1024
   ) {
 
-    const completed =
-
-      completedActivities[
-        course.id
-      ][
-        activity.id
-      ]
-
-      ===
-
-      true;
+    alert(
+      "O arquivo deve possuir no máximo 10 MB."
+    );
 
 
-    return `
+    input.value =
+      "";
 
-      <div class="activity-simple-action">
 
-        <button
-          type="button"
-          class="activity-complete-button"
-          onclick="
-            toggleTextActivity(
-              '${course.id}',
-              '${activity.id}'
-            )
-          "
-        >
+    return;
 
-          ${
-            completed
+  }
 
-              ? "Marcar como pendente"
 
-              : "Marcar como concluída"
-          }
 
-        </button>
+  selectedActivityFiles[
+    activityId
+  ] =
+    file;
+
+
+
+  const nameElement =
+    document.getElementById(
+      `activityFileName_${activityId}`
+    );
+
+
+  if (
+    nameElement
+  ) {
+
+    nameElement.textContent =
+      file.name;
+
+  }
+
+
+
+  const selectedArea =
+    document.getElementById(
+      `selectedActivityFile_${activityId}`
+    );
+
+
+  if (
+    selectedArea
+  ) {
+
+    selectedArea.innerHTML = `
+
+      <div class="selected-file">
+
+        <i class="fa-solid fa-file-circle-check"></i>
+
+        <span>
+          ${escapeHTML(
+            file.name
+          )}
+        </span>
 
       </div>
 
@@ -3228,185 +4293,23 @@ function createActivityActionHTML(
 
   }
 
-
-
-  // ========================================================
-  // ARQUIVO / LINK
-  // ========================================================
-
-  const inputId =
-    `file_${course.id}_${activity.id}`;
-
-
-  const uploadedContainerId =
-    `uploadedFile_${course.id}_${activity.id}`;
-
-
-  return `
-
-    <div class="upload-area">
-
-
-      <input
-        type="file"
-        id="${inputId}"
-        class="file-input"
-        onchange="
-          handleFileUpload(
-            this,
-            '${course.id}',
-            '${activity.id}'
-          )
-        "
-      >
-
-
-      <label
-        for="${inputId}"
-        class="upload-label"
-      >
-
-        <i
-          class="
-            fa-solid
-            fa-cloud-arrow-up
-          "
-        ></i>
-
-
-        <div>
-
-          <strong>
-            Enviar comprovante da atividade
-          </strong>
-
-          <span>
-            Clique para selecionar um arquivo
-          </span>
-
-        </div>
-
-      </label>
-
-
-      <div
-        class="
-          uploaded-file
-          ${file ? "show" : ""}
-        "
-        id="${uploadedContainerId}"
-      >
-
-        ${
-          file
-
-            ? createUploadedFileHTML(
-                file,
-                course.id,
-                activity.id
-              )
-
-            : ""
-        }
-
-      </div>
-
-
-    </div>
-
-  `;
-
 }
 
 
 
 // ==========================================================
-// ATIVIDADE DE TEXTO
+// ==========================================================
+// SALVAR ATIVIDADE
+// ==========================================================
 // ==========================================================
 
-function toggleTextActivity(
-  courseId,
-  activityId
+async function saveActivity(
+  activity,
+  button
 ) {
 
   if (
-    !completedActivities[
-      courseId
-    ]
-  ) {
-
-    completedActivities[
-      courseId
-    ] =
-      {};
-
-  }
-
-
-  completedActivities[
-    courseId
-  ][
-    activityId
-  ] =
-
-    !completedActivities[
-      courseId
-    ][
-      activityId
-    ];
-
-
-
-  const course =
-    courses.find(
-      item =>
-        String(item.id) ===
-        String(courseId)
-    );
-
-
-  if (
-    course
-  ) {
-
-    renderCourseActivities(
-      course
-    );
-
-
-    updateCourseProgress();
-
-
-    renderUserTrainings();
-
-
-    renderCatalog();
-
-
-    updateSummary();
-
-  }
-
-}
-
-
-
-// ==========================================================
-// SELECIONAR ARQUIVO
-// ==========================================================
-
-function handleFileUpload(
-  input,
-  courseId,
-  activityId
-) {
-
-  const file =
-    input.files?.[0];
-
-
-  if (
-    !file
+    !currentCourse
   ) {
 
     return;
@@ -3416,430 +4319,33 @@ function handleFileUpload(
 
 
   // ========================================================
-  // CHAVE
-  // ========================================================
-
-  const key =
-    `${courseId}_${activityId}`;
-
-
-
-  // ========================================================
-  // GUARDAR ARQUIVO TEMPORÁRIO
-  // ========================================================
-
-  uploadedFiles[
-    key
-  ] =
-    file;
-
-
-
-  // ========================================================
-  // MARCAR CONCLUÍDA
+  // SE NÃO INICIOU, INICIAMOS PRIMEIRO
   // ========================================================
 
   if (
-    !completedActivities[
-      courseId
-    ]
+    !currentEnrollment
   ) {
 
-    completedActivities[
-      courseId
-    ] =
-      {};
-
-  }
-
-
-  completedActivities[
-    courseId
-  ][
-    activityId
-  ] =
-    true;
-
-
-
-  // ========================================================
-  // CONTAINER VISUAL
-  // ========================================================
-
-  const uploadedFileContainer =
-    document.getElementById(
-      `uploadedFile_${courseId}_${activityId}`
-    );
-
-
-  if (
-    uploadedFileContainer
-  ) {
-
-    uploadedFileContainer.innerHTML =
-      createUploadedFileHTML(
-        file,
-        courseId,
-        activityId
+    const started =
+      await startCourse(
+        false
       );
 
 
-    uploadedFileContainer
-      .classList
-      .add(
-        "show"
-      );
+    if (
+      !started
+    ) {
+
+      return;
+
+    }
 
   }
 
 
 
-  // ========================================================
-  // VISUAL DA ATIVIDADE
-  // ========================================================
-
-  updateActivityStatus(
-    courseId,
-    activityId
-  );
-
-
-
-  // ========================================================
-  // PROGRESSO
-  // ========================================================
-
-  updateCourseProgress();
-
-
-  renderUserTrainings();
-
-
-  renderCatalog();
-
-
-  updateSummary();
-
-}
-
-// ==========================================================
-// CRIAR HTML DO ARQUIVO ENVIADO
-// ==========================================================
-
-function createUploadedFileHTML(
-  file,
-  courseId,
-  activityId
-) {
-
-  return `
-
-    <div class="uploaded-file-info">
-
-
-      <div class="uploaded-file-icon">
-
-        <i class="fa-solid fa-file"></i>
-
-      </div>
-
-
-      <div class="uploaded-file-text">
-
-        <strong>
-
-          ${escapeHTML(
-            file.name
-          )}
-
-        </strong>
-
-
-        <span>
-
-          ${formatFileSize(
-            file.size
-          )}
-
-        </span>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="remove-file-button"
-        onclick="
-          removeFile(
-            '${courseId}',
-            '${activityId}'
-          )
-        "
-        title="Remover arquivo"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-    </div>
-
-  `;
-
-}
-
-
-
-// ==========================================================
-// FORMATAR TAMANHO DO ARQUIVO
-// ==========================================================
-
-function formatFileSize(
-  bytes
-) {
-
-  if (
-    !bytes ||
-    bytes <= 0
-  ) {
-
-    return "0 KB";
-
-  }
-
-
-  const kilobytes =
-    bytes / 1024;
-
-
-  if (
-    kilobytes < 1024
-  ) {
-
-    return `${kilobytes.toFixed(1)} KB`;
-
-  }
-
-
-  const megabytes =
-    kilobytes / 1024;
-
-
-  return `${megabytes.toFixed(1)} MB`;
-
-}
-
-
-
-// ==========================================================
-// REMOVER ARQUIVO
-// ==========================================================
-
-function removeFile(
-  courseId,
-  activityId
-) {
-
-  const key =
-    `${courseId}_${activityId}`;
-
-
-  // ========================================================
-  // REMOVER ARQUIVO TEMPORÁRIO
-  // ========================================================
-
-  delete uploadedFiles[
-    key
-  ];
-
-
-
-  // ========================================================
-  // MARCAR ATIVIDADE COMO PENDENTE
-  // ========================================================
-
-  if (
-    completedActivities[
-      courseId
-    ]
-  ) {
-
-    completedActivities[
-      courseId
-    ][
-      activityId
-    ] =
-      false;
-
-  }
-
-
-
-  // ========================================================
-  // BUSCAR CURSO
-  // ========================================================
-
-  const course =
-    courses.find(
-      item =>
-        String(item.id) ===
-        String(courseId)
-    );
-
-
-  if (
-    course
-  ) {
-
-    renderCourseActivities(
-      course
-    );
-
-
-    updateCourseProgress();
-
-
-    renderUserTrainings();
-
-
-    renderCatalog();
-
-
-    updateSummary();
-
-  }
-
-}
-
-
-
-// ==========================================================
-// ATUALIZAR STATUS VISUAL DA ATIVIDADE
-// ==========================================================
-
-function updateActivityStatus(
-  courseId,
-  activityId
-) {
-
-  const card =
-    document.querySelector(
-      `
-        .activity-card[
-          data-activity="${activityId}"
-        ]
-      `
-        .replace(
-          /\s+/g,
-          ""
-        )
-    );
-
-
-  if (
-    !card
-  ) {
-
-    return;
-
-  }
-
-
-
-  const completed =
-
-    completedActivities[
-      courseId
-    ]
-    ?.[
-      activityId
-    ]
-
-    ===
-
-    true;
-
-
-
-  if (
-    completed
-  ) {
-
-    card.classList.add(
-      "completed"
-    );
-
-  } else {
-
-    card.classList.remove(
-      "completed"
-    );
-
-  }
-
-
-
-  const status =
-    card.querySelector(
-      ".activity-status"
-    );
-
-
-  if (
-    status
-  ) {
-
-    status.textContent =
-      completed
-        ? "Concluída"
-        : "Pendente";
-
-  }
-
-}
-
-
-
-// ==========================================================
-// ATUALIZAR PROGRESSO DO CURSO ABERTO
-// ==========================================================
-
-function updateCourseProgress() {
-
-  if (
-    currentCourseId ===
-    null
-  ) {
-
-    return;
-
-  }
-
-
-
-  const course =
-    courses.find(
-      item =>
-        String(item.id) ===
-        String(currentCourseId)
-    );
-
-
-  if (
-    !course
-  ) {
-
-    return;
-
-  }
-
-
-
-  const progress =
-    getCourseProgress(
-      course
-    );
+  const formData =
+    new FormData();
 
 
 
@@ -3847,306 +4353,331 @@ function updateCourseProgress() {
   // TEXTO
   // ========================================================
 
-  const text =
-    document.getElementById(
-      "courseProgressText"
-    );
-
-
   if (
-    text
+    activity.tipo ===
+    "Texto"
   ) {
 
-    text.textContent =
-      `${progress.completed} de ${progress.total} atividades concluídas`;
-
-  }
-
-
-
-  // ========================================================
-  // PERCENTUAL
-  // ========================================================
-
-  const percentage =
-    document.getElementById(
-      "courseProgressPercentage"
-    );
+    const input =
+      document.getElementById(
+        `activityText_${activity.id}`
+      );
 
 
-  if (
-    percentage
-  ) {
-
-    percentage.textContent =
-      `${progress.percentage}%`;
-
-  }
-
-
-
-  // ========================================================
-  // BARRA
-  // ========================================================
-
-  const fill =
-    document.getElementById(
-      "courseProgressFill"
-    );
-
-
-  if (
-    fill
-  ) {
-
-    fill.style.width =
-      `${progress.percentage}%`;
-
-  }
-
-
-
-  // ========================================================
-  // MENSAGEM DE CONCLUSÃO
-  // ========================================================
-
-  const completedMessage =
-    document.getElementById(
-      "courseCompletedMessage"
-    );
-
-
-  if (
-    completedMessage
-  ) {
-
-    const finished =
-
-      progress.total > 0
-
-      &&
-
-      progress.completed ===
-      progress.total;
+    const value =
+      input
+        ?.value
+        ?.trim()
+      ||
+      "";
 
 
     if (
-      finished
+      !value
     ) {
 
-      completedMessage.classList.add(
-        "show"
+      showModalMessage(
+        "Digite sua resposta antes de salvar a atividade.",
+        "error"
+      );
+
+
+      return;
+
+    }
+
+
+    formData.append(
+      "resposta_texto",
+      value
+    );
+
+  }
+
+
+
+  // ========================================================
+  // LINK
+  // ========================================================
+
+  else if (
+    activity.tipo ===
+    "Link"
+  ) {
+
+    const input =
+      document.getElementById(
+        `activityLink_${activity.id}`
+      );
+
+
+    const value =
+      input
+        ?.value
+        ?.trim()
+      ||
+      "";
+
+
+    if (
+      !value
+    ) {
+
+      showModalMessage(
+        "Informe o link da sua entrega.",
+        "error"
+      );
+
+
+      return;
+
+    }
+
+
+
+    try {
+
+      new URL(
+        value
+      );
+
+    } catch (
+      error
+    ) {
+
+      showModalMessage(
+        "Informe um link válido. Exemplo: https://...",
+        "error"
+      );
+
+
+      return;
+
+    }
+
+
+    formData.append(
+      "resposta_link",
+      value
+    );
+
+  }
+
+
+
+  // ========================================================
+  // ARQUIVO
+  // ========================================================
+
+  else {
+
+    const file =
+      selectedActivityFiles[
+        activity.id
+      ];
+
+
+    const existingDelivery =
+      getActivityDelivery(
+        activity.id
+      );
+
+
+    // Se já existe arquivo no banco,
+    // não obrigamos selecionar outro para manter a entrega.
+    //
+    // Porém, como o usuário clicou em "Atualizar entrega",
+    // precisamos garantir que exista algum conteúdo.
+    //
+    if (
+      !file
+      &&
+      !existingDelivery
+        ?.arquivo_url
+    ) {
+
+      showModalMessage(
+        "Selecione um arquivo antes de enviar a atividade.",
+        "error"
+      );
+
+
+      return;
+
+    }
+
+
+
+    if (
+      file
+    ) {
+
+      formData.append(
+        "arquivo",
+        file
       );
 
     } else {
 
-      completedMessage.classList.remove(
-        "show"
+      // Backend exige pelo menos uma resposta.
+      //
+      // Caso a entrega já exista e o usuário não
+      // tenha escolhido novo arquivo, não precisamos
+      // reenviá-la.
+      //
+      showModalMessage(
+        "Selecione um novo arquivo caso queira atualizar esta entrega.",
+        "info"
       );
+
+
+      return;
 
     }
 
   }
 
-}
+
+
+  // ========================================================
+  // BOTÃO
+  // ========================================================
+
+  const originalHTML =
+    button.innerHTML;
+
+
+  button.disabled =
+    true;
+
+
+  button.innerHTML = `
+
+    <i class="fa-solid fa-spinner fa-spin"></i>
+
+    Salvando...
+
+  `;
 
 
 
-// ==========================================================
-// ATUALIZAR RESUMO
-// ==========================================================
+  try {
 
-function updateSummary() {
+    const response =
+      await fetch(
 
-  if (
-    !currentUser
+        `/api/treinamentos/${currentCourse.id}/atividades/${activity.id}`,
+
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders(),
+
+          body:
+            formData
+
+        }
+
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+
+        result.error
+        ||
+        "Não foi possível salvar a atividade."
+
+      );
+
+    }
+
+
+
+    // ======================================================
+    // ATUALIZAR INSCRIÇÃO
+    // ======================================================
+
+    currentEnrollment =
+      result.inscricao
+      ||
+      currentEnrollment;
+
+
+
+    // ======================================================
+    // LIMPAR ARQUIVO TEMPORÁRIO
+    // ======================================================
+
+    delete selectedActivityFiles[
+      activity.id
+    ];
+
+
+
+    // ======================================================
+    // RECARREGAR DETALHES
+    // ======================================================
+
+    await reloadCurrentCourse();
+
+
+    showModalMessage(
+      "Atividade salva com sucesso.",
+      "success"
+    );
+
+
+    await refreshTrainingsAfterChange();
+
+
+  } catch (
+    error
   ) {
 
-    return;
-
-  }
-
-
-
-  const userCourses =
-    getUserCourses();
-
-
-
-  // ========================================================
-  // OBRIGATÓRIOS
-  // ========================================================
-
-  const mandatoryCourses =
-    userCourses.filter(
-      course =>
-        course.requirement ===
-        "Obrigatório"
+    console.error(
+      "Erro ao salvar atividade:",
+      error
     );
 
 
-
-  // ========================================================
-  // CONCLUÍDOS
-  // ========================================================
-
-  const completedCourses =
-    userCourses.filter(
-      course => {
-
-        const progress =
-          getCourseProgress(
-            course
-          );
-
-
-        return (
-
-          progress.total > 0
-
-          &&
-
-          progress.completed ===
-          progress.total
-
-        );
-
-      }
+    showModalMessage(
+      error.message,
+      "error"
     );
 
 
+  } finally {
 
-  // ========================================================
-  // EM ANDAMENTO
-  // ========================================================
-
-  const inProgressCourses =
-    userCourses.filter(
-      course => {
-
-        const progress =
-          getCourseProgress(
-            course
-          );
+    button.disabled =
+      false;
 
 
-        return (
-
-          progress.completed > 0
-
-          &&
-
-          progress.completed <
-          progress.total
-
-        );
-
-      }
-    );
-
-
-
-  // ========================================================
-  // HORAS CONCLUÍDAS
-  // ========================================================
-  //
-  // TEMPORÁRIO:
-  //
-  // Consideramos a carga horária completa
-  // quando todas as atividades forem concluídas.
-  //
-  // Depois essa informação dependerá da aprovação
-  // do Admin.
-  //
-  // ========================================================
-
-  const totalCompletedHours =
-    completedCourses.reduce(
-      (
-        total,
-        course
-      ) => {
-
-        return (
-          total +
-          Number(
-            course.hours || 0
-          )
-        );
-
-      },
-      0
-    );
-
-
-
-  // ========================================================
-  // EXIBIR CONTADORES
-  // ========================================================
-
-  const mandatoryCount =
-    document.getElementById(
-      "mandatoryCount"
-    );
-
-
-  if (
-    mandatoryCount
-  ) {
-
-    mandatoryCount.textContent =
-      mandatoryCourses.length;
-
-  }
-
-
-
-  const inProgressCount =
-    document.getElementById(
-      "inProgressCount"
-    );
-
-
-  if (
-    inProgressCount
-  ) {
-
-    inProgressCount.textContent =
-      inProgressCourses.length;
-
-  }
-
-
-
-  const completedCount =
-    document.getElementById(
-      "completedCount"
-    );
-
-
-  if (
-    completedCount
-  ) {
-
-    completedCount.textContent =
-      completedCourses.length;
-
-  }
-
-
-
-  const totalHours =
-    document.getElementById(
-      "totalHours"
-    );
-
-
-  if (
-    totalHours
-  ) {
-
-    totalHours.textContent =
-      `${totalCompletedHours}h`;
+    button.innerHTML =
+      originalHTML;
 
   }
 
@@ -4155,27 +4686,165 @@ function updateSummary() {
 
 
 // ==========================================================
-// AVISO DO MATERIAL
 // ==========================================================
-//
-// Ainda não temos download real pelo Supabase Storage.
-//
+// INICIAR TREINAMENTO
+// ==========================================================
 // ==========================================================
 
-function showMaterialNotice(
-  activityId
+async function startCourse(
+  showSuccessMessage = true
 ) {
 
-  const course =
-    courses.find(
-      item =>
-        String(item.id) ===
-        String(currentCourseId)
+  if (
+    !currentCourse
+  ) {
+
+    return false;
+
+  }
+
+
+  startCourseButton.disabled =
+    true;
+
+
+  const originalHTML =
+    startCourseButton.innerHTML;
+
+
+  startCourseButton.innerHTML = `
+
+    <i class="fa-solid fa-spinner fa-spin"></i>
+
+    Iniciando...
+
+  `;
+
+
+
+  try {
+
+    const response =
+      await fetch(
+
+        `/api/treinamentos/${currentCourse.id}/iniciar`,
+
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders()
+
+        }
+
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return false;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+
+        result.error
+        ||
+        "Não foi possível iniciar o treinamento."
+
+      );
+
+    }
+
+
+
+    currentEnrollment =
+      result.inscricao;
+
+
+    await reloadCurrentCourse();
+
+
+    await refreshTrainingsAfterChange();
+
+
+
+    if (
+      showSuccessMessage
+    ) {
+
+      showModalMessage(
+        "Treinamento iniciado com sucesso.",
+        "success"
+      );
+
+    }
+
+
+    return true;
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao iniciar treinamento:",
+      error
     );
 
 
+    showModalMessage(
+      error.message,
+      "error"
+    );
+
+
+    return false;
+
+
+  } finally {
+
+    startCourseButton.disabled =
+      false;
+
+
+    startCourseButton.innerHTML =
+      originalHTML;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// RECARREGAR CURSO ABERTO
+// ==========================================================
+// ==========================================================
+
+async function reloadCurrentCourse() {
+
   if (
-    !course
+    !currentCourse
   ) {
 
     return;
@@ -4183,18 +4852,507 @@ function showMaterialNotice(
   }
 
 
+  const courseId =
+    currentCourse.id;
 
-  const activity =
-    course.activities.find(
-      item =>
-        String(item.id) ===
-        String(activityId)
+
+  const response =
+    await fetch(
+
+      `/api/treinamentos/${courseId}`,
+
+      {
+
+        method:
+          "GET",
+
+        headers:
+          getAuthHeaders()
+
+      }
+
     );
 
 
   if (
-    !activity
+    handleUnauthorized(
+      response
+    )
   ) {
+
+    return;
+
+  }
+
+
+  const result =
+    await getResponseData(
+      response
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    throw new Error(
+
+      result.error
+      ||
+      "Não foi possível atualizar o treinamento."
+
+    );
+
+  }
+
+
+
+  currentCourse =
+    result.curso;
+
+
+  currentEnrollment =
+    result.inscricao;
+
+
+  currentDeliveries =
+    Array.isArray(
+      result.entregas
+    )
+      ? result.entregas
+      : [];
+
+
+  currentCertificate =
+    result.certificado
+    ||
+    null;
+
+
+  resetCourseModalState();
+
+
+  renderCourseModal();
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// ATUALIZAR LISTAS DEPOIS DE ALTERAÇÃO
+// ==========================================================
+// ==========================================================
+
+async function refreshTrainingsAfterChange() {
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/treinamentos",
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    myTrainings =
+      Array.isArray(
+        result.meus_treinamentos
+      )
+        ? result.meus_treinamentos
+        : [];
+
+
+    catalogCourses =
+      Array.isArray(
+        result.catalogo
+      )
+        ? result.catalogo
+        : [];
+
+
+    summary =
+      result.resumo
+      ||
+      summary;
+
+
+    renderSummary();
+
+    createCatalogFilters();
+
+    renderMyTrainings();
+
+    renderCatalog();
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao atualizar listas:",
+      error
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// PODE ENVIAR CURSO?
+// ==========================================================
+// ==========================================================
+
+function canSubmitInternalCourse() {
+
+  if (
+    !currentCourse
+    ||
+    !currentEnrollment
+  ) {
+
+    return false;
+
+  }
+
+
+  const activities =
+    currentCourse
+      .atividades_curso
+    ||
+    [];
+
+
+  if (
+    activities.length ===
+    0
+  ) {
+
+    return false;
+
+  }
+
+
+
+  const deliveredIds =
+    new Set(
+
+      currentDeliveries.map(
+        delivery =>
+          Number(
+            delivery.atividade_id
+          )
+      )
+
+    );
+
+
+
+  return activities.every(
+    activity =>
+      deliveredIds.has(
+        Number(
+          activity.id
+        )
+      )
+  );
+
+}
+
+
+
+// ==========================================================
+// ATUALIZAR BOTÃO DE ENVIO
+// ==========================================================
+
+function updateSubmitTrainingButton() {
+
+  if (
+    !submitTrainingButton
+  ) {
+
+    return;
+
+  }
+
+
+  const canSubmit =
+    canSubmitInternalCourse();
+
+
+  submitTrainingButton.disabled =
+    !canSubmit;
+
+
+
+  if (
+    canSubmit
+  ) {
+
+    submitTrainingButton.innerHTML = `
+
+      <i class="fa-solid fa-paper-plane"></i>
+
+      Enviar para avaliação
+
+    `;
+
+  } else {
+
+    submitTrainingButton.innerHTML = `
+
+      <i class="fa-solid fa-lock"></i>
+
+      Conclua todas as atividades
+
+    `;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// ABRIR CONFIRMAÇÃO
+// ==========================================================
+// ==========================================================
+
+function openSubmitConfirmation() {
+
+  if (
+    !canSubmitInternalCourse()
+  ) {
+
+    showModalMessage(
+      "Conclua todas as atividades antes de enviar o treinamento.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+  submitConfirmationModal.classList.add(
+    "show"
+  );
+
+
+  submitConfirmationModal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+}
+
+
+
+// ==========================================================
+// FECHAR CONFIRMAÇÃO
+// ==========================================================
+
+function closeSubmitConfirmation() {
+
+  submitConfirmationModal.classList.remove(
+    "show"
+  );
+
+
+  submitConfirmationModal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// ENVIAR TREINAMENTO PARA AVALIAÇÃO
+// ==========================================================
+// ==========================================================
+
+async function submitTraining() {
+
+  if (
+    !currentCourse
+  ) {
+
+    return;
+
+  }
+
+
+  confirmSubmitTrainingButton.disabled =
+    true;
+
+
+  const originalHTML =
+    confirmSubmitTrainingButton.innerHTML;
+
+
+  confirmSubmitTrainingButton.innerHTML = `
+
+    <i class="fa-solid fa-spinner fa-spin"></i>
+
+    Enviando...
+
+  `;
+
+
+
+  try {
+
+    const response =
+      await fetch(
+
+        `/api/treinamentos/${currentCourse.id}/enviar`,
+
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders()
+
+        }
+
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+
+        result.error
+        ||
+        "Não foi possível enviar o treinamento."
+
+      );
+
+    }
+
+
+
+    closeSubmitConfirmation();
+
+
+    await reloadCurrentCourse();
+
+
+    await refreshTrainingsAfterChange();
+
+
+    showModalMessage(
+      "Treinamento enviado para avaliação.",
+      "success"
+    );
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao enviar treinamento:",
+      error
+    );
+
+
+    closeSubmitConfirmation();
+
+
+    showModalMessage(
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    confirmSubmitTrainingButton.disabled =
+      false;
+
+
+    confirmSubmitTrainingButton.innerHTML =
+      originalHTML;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CERTIFICADO EXTERNO
+// ==========================================================
+// ==========================================================
+
+function handleExternalCertificateSelection() {
+
+  const file =
+    externalCertificateInput
+      ?.files
+      ?.[0];
+
+
+  if (
+    !file
+  ) {
+
+    externalCertificateFileName.textContent =
+      "PDF, PNG ou JPG — máximo de 10 MB";
+
 
     return;
 
@@ -4203,11 +5361,96 @@ function showMaterialNotice(
 
 
   if (
-    !activity.resource
+    file.size >
+    10 * 1024 * 1024
   ) {
 
     alert(
-      "Nenhum material foi disponibilizado para esta atividade."
+      "O certificado deve possuir no máximo 10 MB."
+    );
+
+
+    externalCertificateInput.value =
+      "";
+
+
+    externalCertificateFileName.textContent =
+      "PDF, PNG ou JPG — máximo de 10 MB";
+
+
+    return;
+
+  }
+
+
+
+  const allowedTypes = [
+
+    "application/pdf",
+
+    "image/png",
+
+    "image/jpeg"
+
+  ];
+
+
+
+  if (
+    !allowedTypes.includes(
+      file.type
+    )
+  ) {
+
+    alert(
+      "Envie o certificado em PDF, PNG ou JPG."
+    );
+
+
+    externalCertificateInput.value =
+      "";
+
+
+    return;
+
+  }
+
+
+  externalCertificateFileName.textContent =
+    file.name;
+
+}
+
+
+
+// ==========================================================
+// ENVIAR CERTIFICADO EXTERNO
+// ==========================================================
+
+async function sendExternalCertificate() {
+
+  if (
+    !currentCourse
+  ) {
+
+    return;
+
+  }
+
+
+  const file =
+    externalCertificateInput
+      ?.files
+      ?.[0];
+
+
+  if (
+    !file
+  ) {
+
+    showModalMessage(
+      "Selecione o certificado antes de enviar.",
+      "error"
     );
 
 
@@ -4217,18 +5460,389 @@ function showMaterialNotice(
 
 
 
-  alert(
+  const formData =
+    new FormData();
 
-    "Nesta etapa do projeto o material está registrado como:\n\n"
 
-    +
+  formData.append(
+    "arquivo",
+    file
+  );
 
-    activity.resource
 
-    +
 
-    "\n\nO download real será conectado ao Supabase Storage posteriormente."
+  sendExternalCertificateButton.disabled =
+    true;
 
+
+  const originalHTML =
+    sendExternalCertificateButton.innerHTML;
+
+
+  sendExternalCertificateButton.innerHTML = `
+
+    <i class="fa-solid fa-spinner fa-spin"></i>
+
+    Enviando...
+
+  `;
+
+
+
+  try {
+
+    const response =
+      await fetch(
+
+        `/api/treinamentos/${currentCourse.id}/certificado-externo`,
+
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders(),
+
+          body:
+            formData
+
+        }
+
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+
+        result.error
+        ||
+        "Não foi possível enviar o certificado."
+
+      );
+
+    }
+
+
+
+    await reloadCurrentCourse();
+
+
+    await refreshTrainingsAfterChange();
+
+
+    showModalMessage(
+      "Certificado enviado para avaliação.",
+      "success"
+    );
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao enviar certificado:",
+      error
+    );
+
+
+    showModalMessage(
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    sendExternalCertificateButton.disabled =
+      false;
+
+
+    sendExternalCertificateButton.innerHTML =
+      originalHTML;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CERTIFICADO DISPONÍVEL
+// ==========================================================
+// ==========================================================
+
+function renderCertificate() {
+
+  certificateResultSection.classList.remove(
+    "show"
+  );
+
+
+
+  if (
+    !currentCertificate
+  ) {
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // CERTIFICADO EXTERNO
+  // ========================================================
+  //
+  // O certificado externo já existe antes da aprovação,
+  // pois foi enviado pelo próprio colaborador.
+  //
+  // Mas só mostraremos como "Certificado disponível"
+  // depois da aprovação.
+  //
+  // ========================================================
+
+  if (
+    currentEnrollment
+      ?.status !==
+    "aprovado"
+  ) {
+
+    return;
+
+  }
+
+
+
+  certificateResultSection.classList.add(
+    "show"
+  );
+
+
+  certificateFileName.textContent =
+    currentCertificate.arquivo_nome
+    ||
+    "Certificado do treinamento";
+
+}
+
+
+
+// ==========================================================
+// ABRIR CERTIFICADO
+// ==========================================================
+
+async function openCertificate() {
+
+  if (
+    !currentCertificate
+  ) {
+
+    showModalMessage(
+      "Nenhum certificado está disponível.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+
+  openCertificateButton.disabled =
+    true;
+
+
+  try {
+
+    const response =
+      await fetch(
+
+        `/api/treinamentos/certificados/${currentCertificate.id}`,
+
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+
+        result.error
+        ||
+        "Não foi possível abrir o certificado."
+
+      );
+
+    }
+
+
+
+    if (
+      !result.url
+    ) {
+
+      throw new Error(
+        "O certificado não possui um endereço disponível."
+      );
+
+    }
+
+
+
+    window.open(
+      result.url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao abrir certificado:",
+      error
+    );
+
+
+    showModalMessage(
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    openCertificateButton.disabled =
+      false;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// FILTROS - EVENTOS
+// ==========================================================
+// ==========================================================
+
+document
+  .querySelectorAll(
+    ".training-status-filter"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          currentTrainingStatusFilter =
+            button.dataset.status
+            ||
+            "todos";
+
+
+          document
+            .querySelectorAll(
+              ".training-status-filter"
+            )
+            .forEach(
+              item => {
+
+                item.classList.toggle(
+                  "active",
+                  item === button
+                );
+
+              }
+            );
+
+
+          renderMyTrainings();
+
+        }
+      );
+
+    }
+  );
+
+
+
+// ==========================================================
+// PESQUISA
+// ==========================================================
+
+if (
+  searchInput
+) {
+
+  searchInput.addEventListener(
+    "input",
+    () => {
+
+      currentSearch =
+        searchInput.value;
+
+
+      renderCatalog();
+
+    }
   );
 
 }
@@ -4236,14 +5850,129 @@ function showMaterialNotice(
 
 
 // ==========================================================
-// CLICAR FORA DO MODAL
+// ==========================================================
+// EVENTOS DO MODAL
+// ==========================================================
 // ==========================================================
 
-const courseModal =
-  document.getElementById(
-    "courseModal"
+if (
+  closeCourseModalButton
+) {
+
+  closeCourseModalButton.addEventListener(
+    "click",
+    closeCourseModal
   );
 
+}
+
+
+if (
+  closeCourseFooterButton
+) {
+
+  closeCourseFooterButton.addEventListener(
+    "click",
+    closeCourseModal
+  );
+
+}
+
+
+if (
+  startCourseButton
+) {
+
+  startCourseButton.addEventListener(
+    "click",
+    () => {
+
+      startCourse(
+        true
+      );
+
+    }
+  );
+
+}
+
+
+if (
+  submitTrainingButton
+) {
+
+  submitTrainingButton.addEventListener(
+    "click",
+    openSubmitConfirmation
+  );
+
+}
+
+
+if (
+  cancelSubmitTrainingButton
+) {
+
+  cancelSubmitTrainingButton.addEventListener(
+    "click",
+    closeSubmitConfirmation
+  );
+
+}
+
+
+if (
+  confirmSubmitTrainingButton
+) {
+
+  confirmSubmitTrainingButton.addEventListener(
+    "click",
+    submitTraining
+  );
+
+}
+
+
+if (
+  externalCertificateInput
+) {
+
+  externalCertificateInput.addEventListener(
+    "change",
+    handleExternalCertificateSelection
+  );
+
+}
+
+
+if (
+  sendExternalCertificateButton
+) {
+
+  sendExternalCertificateButton.addEventListener(
+    "click",
+    sendExternalCertificate
+  );
+
+}
+
+
+if (
+  openCertificateButton
+) {
+
+  openCertificateButton.addEventListener(
+    "click",
+    openCertificate
+  );
+
+}
+
+
+
+// ==========================================================
+// FECHAR MODAL CLICANDO FORA
+// ==========================================================
 
 if (
   courseModal
@@ -4268,9 +5997,32 @@ if (
 }
 
 
+if (
+  submitConfirmationModal
+) {
+
+  submitConfirmationModal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target ===
+        submitConfirmationModal
+      ) {
+
+        closeSubmitConfirmation();
+
+      }
+
+    }
+  );
+
+}
+
+
 
 // ==========================================================
-// FECHAR MODAL COM ESC
+// ESC
 // ==========================================================
 
 document.addEventListener(
@@ -4278,8 +6030,37 @@ document.addEventListener(
   event => {
 
     if (
-      event.key ===
+      event.key !==
       "Escape"
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      submitConfirmationModal
+        ?.classList
+        .contains(
+          "show"
+        )
+    ) {
+
+      closeSubmitConfirmation();
+
+
+      return;
+
+    }
+
+
+    if (
+      courseModal
+        ?.classList
+        .contains(
+          "show"
+        )
     ) {
 
       closeCourseModal();
@@ -4292,19 +6073,10 @@ document.addEventListener(
 
 
 // ==========================================================
+// ==========================================================
 // LOGOUT
 // ==========================================================
-//
-// Essa parte agora utiliza exatamente
-// a mesma sessão usada na tela de Férias.
-//
 // ==========================================================
-
-const logoutButton =
-  document.getElementById(
-    "logoutButton"
-  );
-
 
 if (
   logoutButton
@@ -4329,18 +6101,8 @@ if (
       }
 
 
-
-      // ====================================================
-      // APAGAR SESSÃO
-      // ====================================================
-
       clearSession();
 
-
-
-      // ====================================================
-      // VOLTAR AO LOGIN
-      // ====================================================
 
       window.location.href =
         "/login/";
@@ -4353,45 +6115,19 @@ if (
 
 
 // ==========================================================
+// ==========================================================
 // INICIALIZAÇÃO
 // ==========================================================
-//
-// FLUXO:
-//
-// /treinamentos/
-//       ↓
-// existe access_token?
-//       ↓
-// existe usuario_logado?
-//       ↓
-// perfil = colaborador?
-//       ↓
-// SIM
-//       ↓
-// mostra usuário real
-//       ↓
-// carrega cursos
-//
 // ==========================================================
 
-async function initializeTrainingPage() {
-
-  console.log(
-    "Iniciando tela de Treinamentos..."
-  );
-
-
+async function initializeTrainingsPage() {
 
   // ========================================================
   // VALIDAR SESSÃO
   // ========================================================
 
-  const validSession =
-    validateUserSession();
-
-
   if (
-    !validSession
+    !validateSession()
   ) {
 
     return;
@@ -4401,47 +6137,25 @@ async function initializeTrainingPage() {
 
 
   // ========================================================
-  // MOSTRAR USUÁRIO REAL
+  // USUÁRIO INICIAL
   // ========================================================
 
-  renderCurrentUser();
-
-
-
-  console.log(
-    "Colaborador autenticado:",
-    currentUser.name
-  );
-
-
-  console.log(
-    "Setor do colaborador:",
-    currentUser.sector
-  );
+  renderLoggedUser();
 
 
 
   // ========================================================
-  // CARREGAR CURSOS
+  // CARREGAR DADOS REAIS
   // ========================================================
 
-  await loadCourses();
-
-
-
-  console.log(
-    "Tela de Treinamentos carregada com sucesso."
-  );
+  await loadTrainings();
 
 }
 
 
 
 // ==========================================================
-// INICIAR QUANDO O HTML ESTIVER PRONTO
+// EXECUTAR
 // ==========================================================
 
-document.addEventListener(
-  "DOMContentLoaded",
-  initializeTrainingPage
-);
+initializeTrainingsPage();

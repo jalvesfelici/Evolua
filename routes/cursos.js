@@ -1,570 +1,1044 @@
 // ==========================================================
-// ROTAS DE TREINAMENTOS
+// EVOLUA+
+// ROTAS DE CURSOS
 // ==========================================================
 //
-// Este arquivo será responsável por:
+// RESPONSABILIDADES:
 //
-// GET    /api/cursos
-// POST   /api/cursos
-// PATCH  /api/cursos/:id/desativar
-//
-// Posteriormente poderemos acrescentar:
-//
-// PUT    /api/cursos/:id
-// GET    /api/cursos/:id
-//
-// ==========================================================
-
-
-const express = require("express");
-
-
-// Criamos um roteador do Express.
-const router = express.Router();
-
-
-// Importamos nossa conexão com o Supabase.
-const supabase = require("../config/supabase");
-
-
-
-// ==========================================================
 // GET /api/cursos
+// - listar cursos conforme o perfil do usuário.
+//
+// GET /api/cursos/:id
+// - consultar um curso específico.
+//
+// POST /api/cursos
+// - criar curso;
+// - criar atividades;
+// - limitar setor responsável ao setor do Admin;
+// - distribuir o curso aos colaboradores do setor destino.
+//
+// PUT /api/cursos/:id
+// - atualizar curso do próprio setor;
+// - atualizar suas atividades.
+//
+// PATCH /api/cursos/:id/desativar
+// - desativar curso sem apagar histórico.
+//
 // ==========================================================
-//
-// Busca todos os cursos ativos.
-//
-// Também buscamos as atividades relacionadas
-// a cada curso.
-//
+
+
+
+// ==========================================================
+// IMPORTAÇÕES
 // ==========================================================
 
-router.get("/", async (req, res) => {
+const express =
+  require(
+    "express"
+  );
 
-  try {
 
-    const {
-      data,
-      error
-    } = await supabase
+const router =
+  express.Router();
 
-      .from("cursos")
 
-      .select(`
-        id,
-        titulo,
-        descricao,
-        carga_horaria,
-        area,
-        nivel,
-        setor_responsavel,
-        setor_destino,
-        classificacao,
-        curso_externo,
-        link_externo,
-        ativo,
-        created_at,
 
-        atividades_curso (
-          id,
-          curso_id,
-          titulo,
-          descricao,
-          tipo,
-          recurso,
-          ordem,
-          created_at
-        )
-      `)
+const supabase =
+  require(
+    "../config/supabase"
+  );
 
-      // Por enquanto mostramos apenas cursos ativos.
-      .eq(
-        "ativo",
-        true
+
+const supabaseAdmin =
+  require(
+    "../config/supabaseAdmin"
+  );
+
+
+
+// ==========================================================
+// CONSTANTES
+// ==========================================================
+
+const COURSE_REQUIREMENTS = [
+
+  "Obrigatório",
+
+  "Recomendado"
+
+];
+
+
+const COURSE_LEVELS = [
+
+  "Básico",
+
+  "Intermediário",
+
+  "Avançado"
+
+];
+
+
+const ACTIVITY_TYPES = [
+
+  "Texto",
+
+  "Arquivo",
+
+  "Link"
+
+];
+
+
+
+// ==========================================================
+// PEGAR TOKEN
+// ==========================================================
+
+function getBearerToken(
+  req
+) {
+
+  const authorization =
+    req.headers.authorization;
+
+
+  if (
+    !authorization
+  ) {
+
+    return null;
+
+  }
+
+
+  const parts =
+    authorization.split(
+      " "
+    );
+
+
+  if (
+    parts.length !==
+    2
+  ) {
+
+    return null;
+
+  }
+
+
+  if (
+    parts[0].toLowerCase() !==
+    "bearer"
+  ) {
+
+    return null;
+
+  }
+
+
+  return parts[1];
+
+}
+
+
+
+// ==========================================================
+// USUÁRIO LOGADO
+// ==========================================================
+
+async function getLoggedUser(
+  req
+) {
+
+  const token =
+    getBearerToken(
+      req
+    );
+
+
+  if (
+    !token
+  ) {
+
+    return {
+
+      error:
+        "Token de autenticação não informado.",
+
+      status:
+        401
+
+    };
+
+  }
+
+
+
+  // ========================================================
+  // VALIDAR TOKEN
+  // ========================================================
+
+  const {
+
+    data:
+      authData,
+
+    error:
+      authError
+
+  } =
+    await supabase
+      .auth
+      .getUser(
+        token
+      );
+
+
+  if (
+    authError
+    ||
+    !authData?.user
+  ) {
+
+    console.error(
+      "Erro ao validar token de cursos:",
+      authError
+    );
+
+
+    return {
+
+      error:
+        "Sessão inválida ou expirada.",
+
+      status:
+        401
+
+    };
+
+  }
+
+
+
+  // ========================================================
+  // PERFIL
+  // ========================================================
+
+  const {
+
+    data:
+      profile,
+
+    error:
+      profileError
+
+  } =
+    await supabaseAdmin
+      .from(
+        "usuario"
       )
+      .select(
+        `
+          id,
+          nome,
+          email,
+          matricula,
+          cargo,
+          setor,
+          perfil,
+          ativo
+        `
+      )
+      .eq(
+        "id",
+        authData.user.id
+      )
+      .maybeSingle();
 
-      // Cursos mais novos primeiro.
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
+
+
+  if (
+    profileError
+  ) {
+
+    console.error(
+      "Erro ao buscar perfil nas rotas de cursos:",
+      profileError
+    );
+
+
+    return {
+
+      error:
+        "Não foi possível validar o usuário.",
+
+      status:
+        500
+
+    };
+
+  }
+
+
+
+  if (
+    !profile
+  ) {
+
+    return {
+
+      error:
+        "Usuário não encontrado.",
+
+      status:
+        404
+
+    };
+
+  }
+
+
+
+  if (
+    profile.ativo ===
+    false
+  ) {
+
+    return {
+
+      error:
+        "Usuário inativo.",
+
+      status:
+        403
+
+    };
+
+  }
+
+
+
+  return {
+
+    user:
+      profile
+
+  };
+
+}
+
+
+
+// ==========================================================
+// ADMIN?
+// ==========================================================
+
+function isAdmin(
+  user
+) {
+
+  return (
+
+    user.perfil ===
+      "admin_principal"
+
+    ||
+
+    user.perfil ===
+      "admin_setor"
+
+  );
+
+}
+
+
+
+// ==========================================================
+// TEXTO
+// ==========================================================
+
+function normalizeText(
+  value
+) {
+
+  return String(
+    value || ""
+  ).trim();
+
+}
+
+
+
+// ==========================================================
+// VALIDAR ID BIGINT
+// ==========================================================
+
+function normalizeBigIntId(
+  value
+) {
+
+  const id =
+    Number(
+      value
+    );
+
+
+  if (
+    !Number.isInteger(
+      id
+    )
+    ||
+    id <= 0
+  ) {
+
+    return null;
+
+  }
+
+
+  return id;
+
+}
+
+
+
+// ==========================================================
+// FORMATAR ATIVIDADES
+// ==========================================================
+
+function normalizeActivities(
+  atividades
+) {
+
+  if (
+    !Array.isArray(
+      atividades
+    )
+  ) {
+
+    return [];
+
+  }
+
+
+  return atividades.map(
+    (
+      activity,
+      index
+    ) => {
+
+      return {
+
+        titulo:
+          normalizeText(
+            activity.titulo
+          ),
+
+        descricao:
+          normalizeText(
+            activity.descricao
+          )
+          ||
+          null,
+
+        tipo:
+          normalizeText(
+            activity.tipo
+          ),
+
+        recurso:
+          normalizeText(
+            activity.recurso
+          )
+          ||
+          null,
+
+        ordem:
+          index + 1
+
+      };
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// VALIDAR ATIVIDADES
+// ==========================================================
+
+function validateActivities(
+  activities
+) {
+
+  for (
+    const activity
+    of activities
+  ) {
+
+    if (
+      !activity.titulo
+    ) {
+
+      return (
+        "Todas as atividades precisam possuir título."
       );
-
-
-    // Caso o Supabase retorne algum erro.
-    if (error) {
-
-      console.error(
-        "Erro Supabase:",
-        error
-      );
-
-
-      return res
-        .status(500)
-        .json({
-          erro:
-            "Não foi possível buscar os cursos."
-        });
 
     }
 
 
-    // Ordenamos as atividades de cada curso.
-    const cursos = (data || []).map(
-      curso => {
+    if (
+      !ACTIVITY_TYPES.includes(
+        activity.tipo
+      )
+    ) {
 
-        const atividades =
-          curso.atividades_curso || [];
+      return (
+        "Existe uma atividade com tipo inválido."
+      );
+
+    }
 
 
-        atividades.sort(
-          (a, b) =>
-            (a.ordem || 0) -
-            (b.ordem || 0)
-        );
+    if (
+      activity.tipo ===
+        "Link"
 
+      &&
+
+      !activity.recurso
+    ) {
+
+      return (
+        "Atividades do tipo Link precisam possuir uma URL."
+      );
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+
+// ==========================================================
+// VERIFICAR ADMIN RESPONSÁVEL PELO CURSO
+// ==========================================================
+
+async function validateCourseAdmin(
+  admin,
+  courseId
+) {
+
+  const {
+
+    data:
+      course,
+
+    error
+
+  } =
+    await supabaseAdmin
+      .from(
+        "cursos"
+      )
+      .select(
+        "*"
+      )
+      .eq(
+        "id",
+        courseId
+      )
+      .maybeSingle();
+
+
+
+  if (
+    error
+  ) {
+
+    console.error(
+      "Erro ao buscar curso:",
+      error
+    );
+
+
+    return {
+
+      error:
+        "Não foi possível carregar o curso.",
+
+      status:
+        500
+
+    };
+
+  }
+
+
+
+  if (
+    !course
+  ) {
+
+    return {
+
+      error:
+        "Curso não encontrado.",
+
+      status:
+        404
+
+    };
+
+  }
+
+
+
+  // ========================================================
+  // TODOS OS ADMINS SÓ GERENCIAM CURSOS DO PRÓPRIO SETOR
+  // ========================================================
+
+  if (
+    course.setor_responsavel !==
+    admin.setor
+  ) {
+
+    return {
+
+      error:
+        "Você só pode gerenciar cursos do seu próprio setor.",
+
+      status:
+        403
+
+    };
+
+  }
+
+
+
+  return {
+
+    course
+
+  };
+
+}
+
+
+
+// ==========================================================
+// DISTRIBUIR CURSO PARA SETOR
+// ==========================================================
+//
+// Ao criar um curso:
+//
+// setor_destino = Tecnologia
+//
+// todos os colaboradores ativos de Tecnologia
+// recebem uma inscrição:
+//
+// origem = setor
+//
+// Esta função também pode ser reaproveitada
+// após alteração do setor destino.
+//
+// ==========================================================
+
+async function assignCourseToSector(
+  courseId,
+  targetSector
+) {
+
+  // ========================================================
+  // COLABORADORES
+  // ========================================================
+
+  const {
+
+    data:
+      collaborators,
+
+    error:
+      usersError
+
+  } =
+    await supabaseAdmin
+      .from(
+        "usuario"
+      )
+      .select(
+        "id"
+      )
+      .eq(
+        "perfil",
+        "colaborador"
+      )
+      .eq(
+        "ativo",
+        true
+      )
+      .eq(
+        "setor",
+        targetSector
+      );
+
+
+
+  if (
+    usersError
+  ) {
+
+    console.error(
+      "Erro ao buscar colaboradores para distribuição:",
+      usersError
+    );
+
+
+    return {
+
+      error:
+        usersError
+
+    };
+
+  }
+
+
+
+  if (
+    !collaborators
+    ||
+    collaborators.length ===
+    0
+  ) {
+
+    return {
+
+      inserted:
+        0
+
+    };
+
+  }
+
+
+
+  // ========================================================
+  // PREPARAR INSCRIÇÕES
+  // ========================================================
+
+  const enrollments =
+    collaborators.map(
+      collaborator => {
 
         return {
-          ...curso,
 
-          atividades_curso:
-            atividades
+          usuario_id:
+            collaborator.id,
+
+          curso_id:
+            courseId,
+
+          status:
+            "nao_iniciado",
+
+          progresso:
+            0,
+
+          origem:
+            "setor"
+
         };
 
       }
     );
 
 
-    // Retornamos os cursos.
-    return res.json(
-      cursos
-    );
 
-  } catch (erro) {
+  // ========================================================
+  // UPSERT
+  // ========================================================
+  //
+  // O UNIQUE usuario_id + curso_id evita duplicações.
+  //
+  // ignoreDuplicates impede sobrescrever o progresso
+  // se o colaborador já estiver inscrito.
+  //
+  // ========================================================
 
-    console.error(
-      "Erro inesperado ao buscar cursos:",
-      erro
-    );
+  const {
 
+    error:
+      enrollmentError
 
-    return res
-      .status(500)
-      .json({
-        erro:
-          "Erro interno do servidor."
-      });
+  } =
+    await supabaseAdmin
+      .from(
+        "inscricoes_curso"
+      )
+      .upsert(
+        enrollments,
+        {
 
-  }
+          onConflict:
+            "usuario_id,curso_id",
 
-});
+          ignoreDuplicates:
+            true
 
-
-
-// ==========================================================
-// POST /api/cursos
-// ==========================================================
-//
-// Cria:
-//
-// 1. O curso.
-// 2. As atividades relacionadas.
-//
-// Esperamos receber:
-//
-// {
-//   titulo,
-//   descricao,
-//   carga_horaria,
-//   area,
-//   nivel,
-//   setor_responsavel,
-//   setor_destino,
-//   classificacao,
-//   curso_externo,
-//   link_externo,
-//   atividades: []
-// }
-//
-// ==========================================================
-
-router.post("/", async (req, res) => {
-
-  try {
-
-    // Pegamos os dados enviados pelo frontend.
-    const {
-
-      titulo,
-
-      descricao,
-
-      carga_horaria,
-
-      area,
-
-      nivel,
-
-      setor_responsavel,
-
-      setor_destino,
-
-      classificacao,
-
-      curso_externo,
-
-      link_externo,
-
-      atividades
-
-    } = req.body;
-
-
-
-    // ======================================================
-    // VALIDAÇÕES BÁSICAS
-    // ======================================================
-
-    if (
-      !titulo ||
-      !descricao ||
-      !carga_horaria ||
-      !area ||
-      !nivel ||
-      !setor_responsavel ||
-      !setor_destino ||
-      !classificacao
-    ) {
-
-      return res
-        .status(400)
-        .json({
-          erro:
-            "Preencha todos os campos obrigatórios."
-        });
-
-    }
-
-
-
-    // ======================================================
-    // CRIAR O CURSO
-    // ======================================================
-
-    const {
-      data: cursoCriado,
-      error: erroCurso
-    } = await supabase
-
-      .from("cursos")
-
-      .insert({
-
-        titulo:
-          titulo.trim(),
-
-        descricao:
-          descricao.trim(),
-
-        carga_horaria:
-          Number(carga_horaria),
-
-        area,
-
-        nivel,
-
-        setor_responsavel,
-
-        setor_destino,
-
-        classificacao,
-
-        curso_externo:
-          Boolean(curso_externo),
-
-        link_externo:
-          link_externo || null,
-
-        ativo:
-          true
-
-      })
-
-      // Precisamos receber o curso criado
-      // para descobrir o seu ID.
-      .select()
-
-      .single();
-
-
-
-    // Caso falhe a criação do curso.
-    if (erroCurso) {
-
-      console.error(
-        "Erro ao criar curso:",
-        erroCurso
+        }
       );
 
 
-      return res
-        .status(500)
-        .json({
-          erro:
-            "Não foi possível criar o curso."
-        });
 
-    }
+  if (
+    enrollmentError
+  ) {
+
+    console.error(
+      "Erro ao distribuir curso:",
+      enrollmentError
+    );
+
+
+    return {
+
+      error:
+        enrollmentError
+
+    };
+
+  }
 
 
 
-    // ======================================================
-    // CRIAR AS ATIVIDADES
-    // ======================================================
+  return {
 
-    if (
-      Array.isArray(atividades) &&
-      atividades.length > 0
-    ) {
+    inserted:
+      enrollments.length
 
-      // Transformamos as atividades recebidas
-      // no formato da tabela atividades_curso.
-      const atividadesParaSalvar =
-        atividades.map(
-          (atividade, index) => ({
+  };
 
-            // Ligação da atividade ao curso.
-            curso_id:
-              cursoCriado.id,
+}
 
-            titulo:
-              atividade.titulo.trim(),
 
-            descricao:
-              atividade.descricao
-                ? atividade.descricao.trim()
-                : null,
 
-            tipo:
-              atividade.tipo,
+// ==========================================================
+// SELECT PADRÃO DOS CURSOS
+// ==========================================================
 
-            recurso:
-              atividade.recurso || null,
+const COURSE_SELECT = `
 
-            ordem:
-              index + 1
+  id,
+  titulo,
+  descricao,
+  carga_horaria,
+  area,
+  nivel,
+  setor_responsavel,
+  setor_destino,
+  classificacao,
+  curso_externo,
+  link_externo,
+  ativo,
+  created_at,
 
-          })
+  atividades_curso (
+    id,
+    curso_id,
+    titulo,
+    descricao,
+    tipo,
+    recurso,
+    ordem,
+    created_at
+  )
+
+`;
+
+
+
+// ==========================================================
+// ==========================================================
+// GET /api/cursos
+// ==========================================================
+// ==========================================================
+//
+// COLABORADOR:
+//
+// recebe TODOS os cursos ativos.
+//
+// Isso é necessário porque:
+//
+// - parte superior = cursos do seu setor;
+// - catálogo inferior = todos os cursos.
+//
+// A separação final será feita por /api/treinamentos.
+//
+// ADMIN:
+//
+// recebe somente cursos cujo:
+//
+// setor_responsavel = setor do Admin.
+//
+// ==========================================================
+
+router.get(
+  "/",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
+      const authResult =
+        await getLoggedUser(
+          req
         );
 
 
-      const {
-        error: erroAtividades
-      } = await supabase
-
-        .from(
-          "atividades_curso"
-        )
-
-        .insert(
-          atividadesParaSalvar
-        );
-
-
-
-      // Caso tenha ocorrido erro nas atividades.
-      if (erroAtividades) {
-
-        console.error(
-          "Erro ao criar atividades:",
-          erroAtividades
-        );
-
-
-        // Para não deixar um curso incompleto
-        // aparecendo na plataforma,
-        // desativamos o curso.
-        await supabase
-
-          .from("cursos")
-
-          .update({
-            ativo: false
-          })
-
-          .eq(
-            "id",
-            cursoCriado.id
-          );
-
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(500)
+          .status(
+            authResult.status
+          )
           .json({
-            erro:
-              "O curso foi criado, mas ocorreu um erro ao salvar as atividades."
+
+            error:
+              authResult.error
+
           });
 
       }
 
-    }
+
+
+      const user =
+        authResult.user;
 
 
 
-    // ======================================================
-    // BUSCAR O CURSO COMPLETO
-    // ======================================================
-    //
-    // Buscamos novamente para devolver também
-    // as atividades cadastradas.
-    //
-    // ======================================================
+      // ====================================================
+      // CONSULTA
+      // ====================================================
 
-    const {
-      data: cursoCompleto,
-      error: erroBusca
-    } = await supabase
+      let query =
+        supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .select(
+            COURSE_SELECT
+          )
+          .order(
+            "created_at",
+            {
 
-      .from("cursos")
+              ascending:
+                false
 
-      .select(`
-        id,
-        titulo,
-        descricao,
-        carga_horaria,
-        area,
-        nivel,
-        setor_responsavel,
-        setor_destino,
-        classificacao,
-        curso_externo,
-        link_externo,
-        ativo,
-        created_at,
+            }
+          );
 
-        atividades_curso (
-          id,
-          curso_id,
-          titulo,
-          descricao,
-          tipo,
-          recurso,
-          ordem
+
+
+      // ====================================================
+      // ADMIN
+      // ====================================================
+
+      if (
+        isAdmin(
+          user
         )
-      `)
+      ) {
 
-      .eq(
-        "id",
-        cursoCriado.id
-      )
+        query =
+          query.eq(
+            "setor_responsavel",
+            user.setor
+          );
 
-      .single();
-
-
-
-    if (erroBusca) {
-
-      console.error(
-        "Erro ao buscar curso criado:",
-        erroBusca
-      );
-
-    }
+      }
 
 
 
-    // Retornamos status 201 = recurso criado.
-    return res
-      .status(201)
-      .json({
-        mensagem:
-          "Treinamento criado com sucesso.",
+      // ====================================================
+      // COLABORADOR
+      // ====================================================
 
-        curso:
-          cursoCompleto || cursoCriado
-      });
+      else if (
+        user.perfil ===
+        "colaborador"
+      ) {
 
-  } catch (erro) {
+        query =
+          query.eq(
+            "ativo",
+            true
+          );
 
-    console.error(
-      "Erro inesperado ao criar curso:",
-      erro
-    );
-
-
-    return res
-      .status(500)
-      .json({
-        erro:
-          "Erro interno do servidor."
-      });
-
-  }
-
-});
+      }
 
 
 
-// ==========================================================
-// PATCH /api/cursos/:id/desativar
-// ==========================================================
-//
-// Fazemos soft delete.
-//
-// Em vez de:
-//
-// DELETE FROM cursos
-//
-// fazemos:
-//
-// ativo = false
-//
-// Assim preservamos o histórico.
-//
-// ==========================================================
+      // ====================================================
+      // PERFIL DESCONHECIDO
+      // ====================================================
 
-router.patch(
-  "/:id/desativar",
-  async (req, res) => {
+      else {
 
-    try {
+        return res
+          .status(403)
+          .json({
 
-      // Pegamos o ID que veio na URL.
-      const cursoId =
-        req.params.id;
+            error:
+              "Perfil sem permissão para acessar cursos."
 
+          });
+
+      }
+
+
+
+      // ====================================================
+      // EXECUTAR
+      // ====================================================
 
       const {
+
         data,
+
         error
-      } = await supabase
 
-        .from("cursos")
-
-        .update({
-
-          ativo:
-            false
-
-        })
-
-        .eq(
-          "id",
-          cursoId
-        )
-
-        .select()
-
-        .single();
+      } =
+        await query;
 
 
 
-      if (error) {
+      if (
+        error
+      ) {
 
         console.error(
-          "Erro ao desativar curso:",
+          "Erro ao carregar cursos:",
           error
         );
 
@@ -572,36 +1046,41 @@ router.patch(
         return res
           .status(500)
           .json({
-            erro:
-              "Não foi possível remover o treinamento."
+
+            error:
+              "Não foi possível carregar os cursos.",
+
+            details:
+              error.message
+
           });
 
       }
 
 
-      return res.json({
 
-        mensagem:
-          "Treinamento removido da plataforma.",
+      return res.json(
+        data || []
+      );
 
-        curso:
-          data
 
-      });
-
-    } catch (erro) {
+    } catch (
+      error
+    ) {
 
       console.error(
-        "Erro inesperado ao desativar curso:",
-        erro
+        "Erro GET /api/cursos:",
+        error
       );
 
 
       return res
         .status(500)
         .json({
-          erro:
-            "Erro interno do servidor."
+
+          error:
+            "Erro interno ao carregar os cursos."
+
         });
 
     }
@@ -612,7 +1091,1950 @@ router.patch(
 
 
 // ==========================================================
-// EXPORTAR ROTAS
+// ==========================================================
+// GET /api/cursos/:id
+// ==========================================================
 // ==========================================================
 
-module.exports = router;
+router.get(
+  "/:id",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const authResult =
+        await getLoggedUser(
+          req
+        );
+
+
+      if (
+        authResult.error
+      ) {
+
+        return res
+          .status(
+            authResult.status
+          )
+          .json({
+
+            error:
+              authResult.error
+
+          });
+
+      }
+
+
+
+      const user =
+        authResult.user;
+
+
+      const courseId =
+        normalizeBigIntId(
+          req.params.id
+        );
+
+
+
+      if (
+        !courseId
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "ID de curso inválido."
+
+          });
+
+      }
+
+
+
+      const {
+
+        data:
+          course,
+
+        error
+
+      } =
+        await supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .select(
+            COURSE_SELECT
+          )
+          .eq(
+            "id",
+            courseId
+          )
+          .maybeSingle();
+
+
+
+      if (
+        error
+      ) {
+
+        console.error(
+          "Erro ao buscar curso:",
+          error
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível buscar o curso."
+
+          });
+
+      }
+
+
+
+      if (
+        !course
+      ) {
+
+        return res
+          .status(404)
+          .json({
+
+            error:
+              "Curso não encontrado."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // ADMIN
+      // ====================================================
+
+      if (
+        isAdmin(
+          user
+        )
+        &&
+        course.setor_responsavel !==
+          user.setor
+      ) {
+
+        return res
+          .status(403)
+          .json({
+
+            error:
+              "Você não possui acesso administrativo a este curso."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // COLABORADOR
+      // ====================================================
+
+      if (
+        user.perfil ===
+          "colaborador"
+
+        &&
+
+        course.ativo ===
+          false
+      ) {
+
+        return res
+          .status(404)
+          .json({
+
+            error:
+              "Curso não disponível."
+
+          });
+
+      }
+
+
+
+      return res.json(
+        course
+      );
+
+
+    } catch (
+      error
+    ) {
+
+      console.error(
+        "Erro GET /api/cursos/:id:",
+        error
+      );
+
+
+      return res
+        .status(500)
+        .json({
+
+          error:
+            "Erro interno ao buscar o curso."
+
+        });
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// ==========================================================
+// POST /api/cursos
+// ==========================================================
+// ==========================================================
+//
+// ADMIN:
+//
+// cria curso.
+//
+// REGRA CRÍTICA:
+//
+// setor_responsavel NÃO é confiado ao frontend.
+//
+// Sempre:
+//
+// setor_responsavel = admin.setor
+//
+// ==========================================================
+
+router.post(
+  "/",
+  async (
+    req,
+    res
+  ) => {
+
+    let createdCourseId =
+      null;
+
+
+    try {
+
+      // ====================================================
+      // ADMIN
+      // ====================================================
+
+      const authResult =
+        await getLoggedUser(
+          req
+        );
+
+
+      if (
+        authResult.error
+      ) {
+
+        return res
+          .status(
+            authResult.status
+          )
+          .json({
+
+            error:
+              authResult.error
+
+          });
+
+      }
+
+
+
+      const admin =
+        authResult.user;
+
+
+
+      if (
+        !isAdmin(
+          admin
+        )
+      ) {
+
+        return res
+          .status(403)
+          .json({
+
+            error:
+              "Somente administradores podem criar cursos."
+
+          });
+
+      }
+
+
+
+      if (
+        !admin.setor
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Seu usuário administrador não possui um setor definido."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // BODY
+      // ====================================================
+
+      const {
+
+        titulo,
+
+        descricao,
+
+        carga_horaria,
+
+        area,
+
+        nivel,
+
+        setor_destino,
+
+        classificacao,
+
+        curso_externo,
+
+        link_externo,
+
+        atividades
+
+      } =
+        req.body;
+
+
+
+      // ====================================================
+      // NORMALIZAR
+      // ====================================================
+
+      const normalizedTitle =
+        normalizeText(
+          titulo
+        );
+
+
+      const normalizedDescription =
+        normalizeText(
+          descricao
+        );
+
+
+      const normalizedArea =
+        normalizeText(
+          area
+        );
+
+
+      const normalizedLevel =
+        normalizeText(
+          nivel
+        );
+
+
+      const normalizedTargetSector =
+        normalizeText(
+          setor_destino
+        );
+
+
+      const normalizedRequirement =
+        normalizeText(
+          classificacao
+        );
+
+
+      const externalCourse =
+        Boolean(
+          curso_externo
+        );
+
+
+      const externalLink =
+        normalizeText(
+          link_externo
+        );
+
+
+      const hours =
+        Number(
+          carga_horaria
+        );
+
+
+      const normalizedActivities =
+        normalizeActivities(
+          atividades
+        );
+
+
+
+      // ====================================================
+      // CAMPOS
+      // ====================================================
+
+      if (
+        !normalizedTitle
+        ||
+        !normalizedDescription
+        ||
+        !normalizedArea
+        ||
+        !normalizedLevel
+        ||
+        !normalizedTargetSector
+        ||
+        !normalizedRequirement
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Preencha todos os campos obrigatórios do treinamento."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // CARGA HORÁRIA
+      // ====================================================
+
+      if (
+        !Number.isFinite(
+          hours
+        )
+        ||
+        hours <= 0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Informe uma carga horária válida."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // NÍVEL
+      // ====================================================
+
+      if (
+        !COURSE_LEVELS.includes(
+          normalizedLevel
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Nível de treinamento inválido."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // CLASSIFICAÇÃO
+      // ====================================================
+
+      if (
+        !COURSE_REQUIREMENTS.includes(
+          normalizedRequirement
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Classificação do treinamento inválida."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // CURSO EXTERNO
+      // ====================================================
+      //
+      // Curso externo:
+      //
+      // - precisa de link;
+      // - não utiliza atividades internas;
+      // - colaborador comprova depois com certificado.
+      //
+      // ====================================================
+
+      if (
+        externalCourse
+        &&
+        !externalLink
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Informe o link do curso externo."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // CURSO INTERNO
+      // ====================================================
+      //
+      // Para o fluxo completo de avaliação,
+      // curso interno precisa ter pelo menos uma atividade.
+      //
+      // ====================================================
+
+      if (
+        !externalCourse
+        &&
+        normalizedActivities.length ===
+          0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Cursos internos precisam possuir pelo menos uma atividade."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // ATIVIDADES
+      // ====================================================
+
+      if (
+        !externalCourse
+      ) {
+
+        const activityError =
+          validateActivities(
+            normalizedActivities
+          );
+
+
+        if (
+          activityError
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                activityError
+
+            });
+
+        }
+
+      }
+
+
+
+      // ====================================================
+      // CRIAR CURSO
+      // ====================================================
+
+      const {
+
+        data:
+          createdCourse,
+
+        error:
+          courseError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .insert({
+
+            titulo:
+              normalizedTitle,
+
+            descricao:
+              normalizedDescription,
+
+            carga_horaria:
+              hours,
+
+            area:
+              normalizedArea,
+
+            nivel:
+              normalizedLevel,
+
+
+            // ==============================================
+            // NÃO VEM DO FRONTEND
+            // ==============================================
+
+            setor_responsavel:
+              admin.setor,
+
+
+            setor_destino:
+              normalizedTargetSector,
+
+            classificacao:
+              normalizedRequirement,
+
+            curso_externo:
+              externalCourse,
+
+            link_externo:
+
+              externalCourse
+
+                ? externalLink
+
+                : null,
+
+            ativo:
+              true
+
+          })
+          .select()
+          .single();
+
+
+
+      if (
+        courseError
+      ) {
+
+        console.error(
+          "Erro ao criar curso:",
+          courseError
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível criar o treinamento.",
+
+            details:
+              courseError.message
+
+          });
+
+      }
+
+
+
+      createdCourseId =
+        createdCourse.id;
+
+
+
+      // ====================================================
+      // CRIAR ATIVIDADES
+      // ====================================================
+
+      if (
+        !externalCourse
+        &&
+        normalizedActivities.length > 0
+      ) {
+
+        const activityRows =
+          normalizedActivities.map(
+            activity => {
+
+              return {
+
+                curso_id:
+                  createdCourseId,
+
+                titulo:
+                  activity.titulo,
+
+                descricao:
+                  activity.descricao,
+
+                tipo:
+                  activity.tipo,
+
+                recurso:
+                  activity.recurso,
+
+                ordem:
+                  activity.ordem
+
+              };
+
+            }
+          );
+
+
+
+        const {
+
+          error:
+            activitiesError
+
+        } =
+          await supabaseAdmin
+            .from(
+              "atividades_curso"
+            )
+            .insert(
+              activityRows
+            );
+
+
+
+        if (
+          activitiesError
+        ) {
+
+          console.error(
+            "Erro ao criar atividades:",
+            activitiesError
+          );
+
+
+
+          // ================================================
+          // ROLLBACK
+          // ================================================
+
+          await supabaseAdmin
+            .from(
+              "cursos"
+            )
+            .delete()
+            .eq(
+              "id",
+              createdCourseId
+            );
+
+
+
+          return res
+            .status(500)
+            .json({
+
+              error:
+                "Não foi possível criar as atividades do treinamento.",
+
+              details:
+                activitiesError.message
+
+            });
+
+        }
+
+      }
+
+
+
+      // ====================================================
+      // DISTRIBUIÇÃO AUTOMÁTICA
+      // ====================================================
+
+      const distribution =
+        await assignCourseToSector(
+
+          createdCourseId,
+
+          normalizedTargetSector
+
+        );
+
+
+
+      if (
+        distribution.error
+      ) {
+
+        // Não apagamos o curso aqui.
+        //
+        // A sincronização em /api/treinamentos
+        // poderá corrigir inscrições ausentes depois.
+
+        console.error(
+          "Curso criado, mas houve erro na distribuição inicial."
+        );
+
+      }
+
+
+
+      // ====================================================
+      // BUSCAR CURSO COMPLETO
+      // ====================================================
+
+      const {
+
+        data:
+          fullCourse,
+
+        error:
+          fullCourseError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .select(
+            COURSE_SELECT
+          )
+          .eq(
+            "id",
+            createdCourseId
+          )
+          .single();
+
+
+
+      if (
+        fullCourseError
+      ) {
+
+        console.error(
+          "Erro ao recarregar curso criado:",
+          fullCourseError
+        );
+
+      }
+
+
+
+      return res
+        .status(201)
+        .json({
+
+          message:
+            "Treinamento criado com sucesso.",
+
+          curso:
+            fullCourse ||
+            createdCourse,
+
+          distribuido_para:
+            distribution.inserted ||
+            0
+
+        });
+
+
+    } catch (
+      error
+    ) {
+
+      console.error(
+        "Erro POST /api/cursos:",
+        error
+      );
+
+
+      return res
+        .status(500)
+        .json({
+
+          error:
+            "Erro interno ao criar o treinamento."
+
+        });
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// ==========================================================
+// PUT /api/cursos/:id
+// ==========================================================
+// ==========================================================
+//
+// Já deixamos a rota pronta para edição futura.
+//
+// Dessa forma não precisaremos voltar aqui quando
+// adicionarmos o botão Editar no Admin.
+//
+// ==========================================================
+
+router.put(
+  "/:id",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const authResult =
+        await getLoggedUser(
+          req
+        );
+
+
+      if (
+        authResult.error
+      ) {
+
+        return res
+          .status(
+            authResult.status
+          )
+          .json({
+
+            error:
+              authResult.error
+
+          });
+
+      }
+
+
+
+      const admin =
+        authResult.user;
+
+
+
+      if (
+        !isAdmin(
+          admin
+        )
+      ) {
+
+        return res
+          .status(403)
+          .json({
+
+            error:
+              "Somente administradores podem editar cursos."
+
+          });
+
+      }
+
+
+
+      const courseId =
+        normalizeBigIntId(
+          req.params.id
+        );
+
+
+
+      if (
+        !courseId
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "ID de curso inválido."
+
+          });
+
+      }
+
+
+
+      const permission =
+        await validateCourseAdmin(
+          admin,
+          courseId
+        );
+
+
+      if (
+        permission.error
+      ) {
+
+        return res
+          .status(
+            permission.status
+          )
+          .json({
+
+            error:
+              permission.error
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // DADOS
+      // ====================================================
+
+      const {
+
+        titulo,
+
+        descricao,
+
+        carga_horaria,
+
+        area,
+
+        nivel,
+
+        setor_destino,
+
+        classificacao,
+
+        curso_externo,
+
+        link_externo,
+
+        atividades
+
+      } =
+        req.body;
+
+
+
+      const normalizedTitle =
+        normalizeText(
+          titulo
+        );
+
+
+      const normalizedDescription =
+        normalizeText(
+          descricao
+        );
+
+
+      const normalizedArea =
+        normalizeText(
+          area
+        );
+
+
+      const normalizedLevel =
+        normalizeText(
+          nivel
+        );
+
+
+      const normalizedTargetSector =
+        normalizeText(
+          setor_destino
+        );
+
+
+      const normalizedRequirement =
+        normalizeText(
+          classificacao
+        );
+
+
+      const externalCourse =
+        Boolean(
+          curso_externo
+        );
+
+
+      const externalLink =
+        normalizeText(
+          link_externo
+        );
+
+
+      const hours =
+        Number(
+          carga_horaria
+        );
+
+
+      const normalizedActivities =
+        normalizeActivities(
+          atividades
+        );
+
+
+
+      // ====================================================
+      // VALIDAÇÕES
+      // ====================================================
+
+      if (
+        !normalizedTitle
+        ||
+        !normalizedDescription
+        ||
+        !normalizedArea
+        ||
+        !normalizedLevel
+        ||
+        !normalizedTargetSector
+        ||
+        !normalizedRequirement
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Preencha todos os campos obrigatórios."
+
+          });
+
+      }
+
+
+
+      if (
+        !Number.isFinite(
+          hours
+        )
+        ||
+        hours <= 0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Carga horária inválida."
+
+          });
+
+      }
+
+
+
+      if (
+        !COURSE_LEVELS.includes(
+          normalizedLevel
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Nível inválido."
+
+          });
+
+      }
+
+
+
+      if (
+        !COURSE_REQUIREMENTS.includes(
+          normalizedRequirement
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Classificação inválida."
+
+          });
+
+      }
+
+
+
+      if (
+        externalCourse
+        &&
+        !externalLink
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Cursos externos precisam possuir um link."
+
+          });
+
+      }
+
+
+
+      if (
+        !externalCourse
+        &&
+        normalizedActivities.length ===
+          0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Cursos internos precisam possuir atividades."
+
+          });
+
+      }
+
+
+
+      if (
+        !externalCourse
+      ) {
+
+        const activityError =
+          validateActivities(
+            normalizedActivities
+          );
+
+
+        if (
+          activityError
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                activityError
+
+            });
+
+        }
+
+      }
+
+
+
+      // ====================================================
+      // ATUALIZAR CURSO
+      // ====================================================
+
+      const {
+
+        data:
+          updatedCourse,
+
+        error:
+          updateError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .update({
+
+            titulo:
+              normalizedTitle,
+
+            descricao:
+              normalizedDescription,
+
+            carga_horaria:
+              hours,
+
+            area:
+              normalizedArea,
+
+            nivel:
+              normalizedLevel,
+
+
+            // NÃO É ALTERÁVEL.
+            setor_responsavel:
+              admin.setor,
+
+
+            setor_destino:
+              normalizedTargetSector,
+
+            classificacao:
+              normalizedRequirement,
+
+            curso_externo:
+              externalCourse,
+
+            link_externo:
+
+              externalCourse
+
+                ? externalLink
+
+                : null
+
+          })
+          .eq(
+            "id",
+            courseId
+          )
+          .select()
+          .single();
+
+
+
+      if (
+        updateError
+      ) {
+
+        console.error(
+          "Erro ao atualizar curso:",
+          updateError
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível atualizar o treinamento.",
+
+            details:
+              updateError.message
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // ATIVIDADES
+      // ====================================================
+      //
+      // Para simplificar e manter consistência:
+      //
+      // removemos as definições antigas
+      // e criamos as atuais novamente.
+      //
+      // Só permitiremos isso se ainda não houver entregas.
+      //
+      // ====================================================
+
+      const {
+
+        data:
+          currentActivities,
+
+        error:
+          currentActivitiesError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "atividades_curso"
+          )
+          .select(
+            "id"
+          )
+          .eq(
+            "curso_id",
+            courseId
+          );
+
+
+
+      if (
+        currentActivitiesError
+      ) {
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível validar as atividades existentes."
+
+          });
+
+      }
+
+
+
+      const currentActivityIds =
+        (
+          currentActivities ||
+          []
+        )
+          .map(
+            item =>
+              item.id
+          );
+
+
+
+      if (
+        currentActivityIds.length >
+        0
+      ) {
+
+        const {
+
+          data:
+            existingSubmission
+
+        } =
+          await supabaseAdmin
+            .from(
+              "entregas_atividades"
+            )
+            .select(
+              "id"
+            )
+            .in(
+              "atividade_id",
+              currentActivityIds
+            )
+            .limit(1)
+            .maybeSingle();
+
+
+
+        if (
+          existingSubmission
+        ) {
+
+          return res
+            .status(409)
+            .json({
+
+              error:
+                "Este curso já possui entregas de colaboradores e suas atividades não podem mais ser substituídas."
+
+            });
+
+        }
+
+      }
+
+
+
+      // ====================================================
+      // APAGAR DEFINIÇÕES ANTIGAS
+      // ====================================================
+
+      const {
+
+        error:
+          deleteActivitiesError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "atividades_curso"
+          )
+          .delete()
+          .eq(
+            "curso_id",
+            courseId
+          );
+
+
+
+      if (
+        deleteActivitiesError
+      ) {
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível atualizar as atividades."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // RECRIAR
+      // ====================================================
+
+      if (
+        !externalCourse
+      ) {
+
+        const newRows =
+          normalizedActivities.map(
+            activity => {
+
+              return {
+
+                curso_id:
+                  courseId,
+
+                titulo:
+                  activity.titulo,
+
+                descricao:
+                  activity.descricao,
+
+                tipo:
+                  activity.tipo,
+
+                recurso:
+                  activity.recurso,
+
+                ordem:
+                  activity.ordem
+
+              };
+
+            }
+          );
+
+
+
+        const {
+
+          error:
+            insertActivitiesError
+
+        } =
+          await supabaseAdmin
+            .from(
+              "atividades_curso"
+            )
+            .insert(
+              newRows
+            );
+
+
+
+        if (
+          insertActivitiesError
+        ) {
+
+          console.error(
+            "Erro ao recriar atividades:",
+            insertActivitiesError
+          );
+
+
+          return res
+            .status(500)
+            .json({
+
+              error:
+                "Curso atualizado, mas ocorreu um erro ao salvar as novas atividades.",
+
+              details:
+                insertActivitiesError.message
+
+            });
+
+        }
+
+      }
+
+
+
+      // ====================================================
+      // GARANTIR DISTRIBUIÇÃO NO NOVO SETOR
+      // ====================================================
+
+      await assignCourseToSector(
+
+        courseId,
+
+        normalizedTargetSector
+
+      );
+
+
+
+      // ====================================================
+      // RETORNO COMPLETO
+      // ====================================================
+
+      const {
+
+        data:
+          finalCourse
+
+      } =
+        await supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .select(
+            COURSE_SELECT
+          )
+          .eq(
+            "id",
+            courseId
+          )
+          .single();
+
+
+
+      return res.json({
+
+        message:
+          "Treinamento atualizado com sucesso.",
+
+        curso:
+          finalCourse ||
+          updatedCourse
+
+      });
+
+
+    } catch (
+      error
+    ) {
+
+      console.error(
+        "Erro PUT /api/cursos/:id:",
+        error
+      );
+
+
+      return res
+        .status(500)
+        .json({
+
+          error:
+            "Erro interno ao atualizar o treinamento."
+
+        });
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// ==========================================================
+// PATCH /api/cursos/:id/desativar
+// ==========================================================
+// ==========================================================
+//
+// NÃO apagamos o curso.
+//
+// Motivo:
+//
+// inscrições
+// avaliações
+// certificados
+// horas concluídas
+//
+// precisam continuar existindo.
+//
+// ==========================================================
+
+router.patch(
+  "/:id/desativar",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const authResult =
+        await getLoggedUser(
+          req
+        );
+
+
+      if (
+        authResult.error
+      ) {
+
+        return res
+          .status(
+            authResult.status
+          )
+          .json({
+
+            error:
+              authResult.error
+
+          });
+
+      }
+
+
+
+      const admin =
+        authResult.user;
+
+
+
+      if (
+        !isAdmin(
+          admin
+        )
+      ) {
+
+        return res
+          .status(403)
+          .json({
+
+            error:
+              "Somente administradores podem remover treinamentos."
+
+          });
+
+      }
+
+
+
+      const courseId =
+        normalizeBigIntId(
+          req.params.id
+        );
+
+
+
+      if (
+        !courseId
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "ID de curso inválido."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // PERMISSÃO POR SETOR
+      // ====================================================
+
+      const permission =
+        await validateCourseAdmin(
+          admin,
+          courseId
+        );
+
+
+      if (
+        permission.error
+      ) {
+
+        return res
+          .status(
+            permission.status
+          )
+          .json({
+
+            error:
+              permission.error
+
+          });
+
+      }
+
+
+
+      if (
+        permission.course.ativo ===
+        false
+      ) {
+
+        return res.json({
+
+          message:
+            "O treinamento já está desativado.",
+
+          curso:
+            permission.course
+
+        });
+
+      }
+
+
+
+      const {
+
+        data:
+          disabledCourse,
+
+        error
+
+      } =
+        await supabaseAdmin
+          .from(
+            "cursos"
+          )
+          .update({
+
+            ativo:
+              false
+
+          })
+          .eq(
+            "id",
+            courseId
+          )
+          .select()
+          .single();
+
+
+
+      if (
+        error
+      ) {
+
+        console.error(
+          "Erro ao desativar curso:",
+          error
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível desativar o treinamento.",
+
+            details:
+              error.message
+
+          });
+
+      }
+
+
+
+      return res.json({
+
+        message:
+          "Treinamento removido da plataforma.",
+
+        curso:
+          disabledCourse
+
+      });
+
+
+    } catch (
+      error
+    ) {
+
+      console.error(
+        "Erro PATCH /api/cursos/:id/desativar:",
+        error
+      );
+
+
+      return res
+        .status(500)
+        .json({
+
+          error:
+            "Erro interno ao remover o treinamento."
+
+        });
+
+    }
+
+  }
+);
+
+
+
+// ==========================================================
+// EXPORTAR
+// ==========================================================
+
+module.exports =
+  router;

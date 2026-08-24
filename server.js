@@ -8,9 +8,8 @@
 // - iniciar o servidor Node.js;
 // - configurar o Express;
 // - receber JSON;
-// - disponibilizar arquivos das telas;
+// - disponibilizar as telas;
 // - conectar as rotas da API;
-// - redirecionar a rota inicial para o login;
 // - iniciar o sistema na porta 3000.
 //
 // ==========================================================
@@ -21,15 +20,12 @@
 // IMPORTAÇÕES
 // ==========================================================
 
-// Framework utilizado para criar o backend.
 const express =
   require(
     "express"
   );
 
 
-// Módulo nativo do Node.js para trabalhar
-// com caminhos de arquivos.
 const path =
   require(
     "path"
@@ -59,14 +55,8 @@ const PORT =
 // PERMITIR JSON
 // ==========================================================
 //
-// Permite receber:
-//
-// {
-//   "nome": "...",
-//   "email": "..."
-// }
-//
-// nas requisições POST, PUT e PATCH.
+// Necessário para receber dados enviados pelo frontend
+// através de POST, PUT e PATCH.
 //
 // ==========================================================
 
@@ -77,10 +67,10 @@ app.use(
 
 
 // ==========================================================
-// DISPONIBILIZAR AS TELAS
+// ARQUIVOS ESTÁTICOS
 // ==========================================================
 //
-// Estrutura esperada:
+// Estrutura:
 //
 // views/
 //
@@ -96,7 +86,7 @@ app.use(
 // /treinamentos/
 // /ferias/
 //
-// ficam acessíveis diretamente.
+// ficam disponíveis no navegador.
 //
 // ==========================================================
 
@@ -127,7 +117,7 @@ app.use(
 //
 // routes/auth.js
 //
-// Endereço:
+// Base:
 //
 // /api/auth
 //
@@ -158,14 +148,9 @@ app.use(
 //
 // routes/usuarios.js
 //
-// Endereço:
+// Base:
 //
 // /api/usuarios
-//
-// Exemplos:
-//
-// GET  /api/usuarios
-// POST /api/usuarios
 //
 // ==========================================================
 
@@ -190,14 +175,16 @@ app.use(
 //
 // routes/cursos.js
 //
-// Endereço:
+// Base:
 //
 // /api/cursos
 //
 // Exemplos:
 //
 // GET   /api/cursos
+// GET   /api/cursos/:id
 // POST  /api/cursos
+// PUT   /api/cursos/:id
 // PATCH /api/cursos/:id/desativar
 //
 // ==========================================================
@@ -223,33 +210,9 @@ app.use(
 //
 // routes/ferias.js
 //
-// Todas as rotas presentes naquele arquivo
-// passam a começar com:
+// Base:
 //
 // /api/ferias
-//
-// Portanto:
-//
-// GET
-// /api/ferias/minhas
-//
-// GET
-// /api/ferias/solicitacoes
-//
-// POST
-// /api/ferias/solicitacoes
-//
-// GET
-// /api/ferias/admin/periodos/:usuarioId
-//
-// PUT
-// /api/ferias/admin/periodos/:usuarioId
-//
-// GET
-// /api/ferias/admin/solicitacoes
-//
-// PATCH
-// /api/ferias/admin/solicitacoes/:id
 //
 // ==========================================================
 
@@ -267,6 +230,73 @@ app.use(
 
 
 // ==========================================================
+// TREINAMENTOS
+// ==========================================================
+//
+// Arquivo:
+//
+// routes/treinamentos.js
+//
+// Base:
+//
+// /api/treinamentos
+//
+// Exemplos:
+//
+// COLABORADOR:
+//
+// GET
+// /api/treinamentos
+//
+// GET
+// /api/treinamentos/:cursoId
+//
+// POST
+// /api/treinamentos/:cursoId/iniciar
+//
+// POST
+// /api/treinamentos/:cursoId/atividades/:atividadeId
+//
+// POST
+// /api/treinamentos/:cursoId/enviar
+//
+// POST
+// /api/treinamentos/:cursoId/certificado-externo
+//
+//
+// ADMIN:
+//
+// GET
+// /api/treinamentos/admin/avaliacoes
+//
+// GET
+// /api/treinamentos/admin/avaliacoes/:inscricaoId
+//
+// PATCH
+// /api/treinamentos/admin/entregas/:entregaId
+//
+// PATCH
+// /api/treinamentos/admin/avaliacoes/:inscricaoId
+//
+// POST
+// /api/treinamentos/admin/avaliacoes/:inscricaoId/certificado
+//
+// ==========================================================
+
+const treinamentosRoutes =
+  require(
+    "./routes/treinamentos"
+  );
+
+
+app.use(
+  "/api/treinamentos",
+  treinamentosRoutes
+);
+
+
+
+// ==========================================================
 // ==========================================================
 // ROTAS DAS TELAS
 // ==========================================================
@@ -276,16 +306,6 @@ app.use(
 
 // ==========================================================
 // ROTA INICIAL
-// ==========================================================
-//
-// Ao acessar:
-//
-// http://localhost:3000
-//
-// enviamos o usuário para:
-//
-// http://localhost:3000/login/
-//
 // ==========================================================
 
 app.get(
@@ -305,80 +325,7 @@ app.get(
 
 
 // ==========================================================
-// ROTA EXPLÍCITA DE FÉRIAS
-// ==========================================================
-//
-// Tecnicamente o express.static já permite:
-//
-// /ferias/
-//
-// se existir:
-//
-// views/ferias/index.html
-//
-// Mas deixamos esta rota também para tornar
-// o comportamento explícito.
-//
-// ==========================================================
-
-app.get(
-  "/ferias",
-  (
-    req,
-    res
-  ) => {
-
-    res.redirect(
-      "/ferias/"
-    );
-
-  }
-);
-
-
-
-// ==========================================================
-// ROTA EXPLÍCITA DE TREINAMENTOS
-// ==========================================================
-
-app.get(
-  "/treinamentos",
-  (
-    req,
-    res
-  ) => {
-
-    res.redirect(
-      "/treinamentos/"
-    );
-
-  }
-);
-
-
-
-// ==========================================================
-// ROTA EXPLÍCITA DO ADMIN
-// ==========================================================
-
-app.get(
-  "/admin",
-  (
-    req,
-    res
-  ) => {
-
-    res.redirect(
-      "/admin/"
-    );
-
-  }
-);
-
-
-
-// ==========================================================
-// ROTA EXPLÍCITA DO LOGIN
+// LOGIN
 // ==========================================================
 
 app.get(
@@ -398,19 +345,72 @@ app.get(
 
 
 // ==========================================================
-// STATUS DO SERVIDOR
+// ADMIN
+// ==========================================================
+
+app.get(
+  "/admin",
+  (
+    req,
+    res
+  ) => {
+
+    res.redirect(
+      "/admin/"
+    );
+
+  }
+);
+
+
+
+// ==========================================================
+// TREINAMENTOS
+// ==========================================================
+
+app.get(
+  "/treinamentos",
+  (
+    req,
+    res
+  ) => {
+
+    res.redirect(
+      "/treinamentos/"
+    );
+
+  }
+);
+
+
+
+// ==========================================================
+// FÉRIAS
+// ==========================================================
+
+app.get(
+  "/ferias",
+  (
+    req,
+    res
+  ) => {
+
+    res.redirect(
+      "/ferias/"
+    );
+
+  }
+);
+
+
+
+// ==========================================================
+// STATUS DA API
 // ==========================================================
 //
 // Teste:
 //
 // http://localhost:3000/api/status
-//
-// Deve retornar:
-//
-// {
-//   "status": "ok",
-//   "mensagem": "..."
-// }
 //
 // ==========================================================
 
@@ -437,21 +437,12 @@ app.get(
 
 
 // ==========================================================
-// ROTA DE API NÃO ENCONTRADA
+// API NÃO ENCONTRADA
 // ==========================================================
 //
 // IMPORTANTE:
 //
-// Isto precisa ficar DEPOIS das rotas reais.
-//
-// Caso contrário:
-//
-// /api/ferias
-// /api/usuarios
-// /api/cursos
-//
-// poderiam ser interceptadas antes de chegar
-// aos respectivos arquivos.
+// Precisa ficar DEPOIS de todas as rotas reais.
 //
 // ==========================================================
 
@@ -477,20 +468,16 @@ app.use(
 
 
 // ==========================================================
-// TRATAMENTO DE ERRO GLOBAL
+// TRATAMENTO GLOBAL DE ERROS
 // ==========================================================
 //
-// Caso algum erro inesperado chegue até aqui,
-// evitamos que o servidor responda HTML.
+// Garante que erros inesperados retornem JSON.
 //
-// Isso é importante porque nosso frontend executa:
-//
-// response.json()
-//
-// Se o Express devolvesse uma página HTML,
-// teríamos erros semelhantes a:
+// Isso evita erros no frontend como:
 //
 // Unexpected token '<'
+//
+// quando response.json() recebe HTML.
 //
 // ==========================================================
 
@@ -517,6 +504,28 @@ app.use(
       );
 
     }
+
+
+    // ======================================================
+    // MULTER - ARQUIVO MUITO GRANDE
+    // ======================================================
+
+    if (
+      error.code ===
+      "LIMIT_FILE_SIZE"
+    ) {
+
+      return res
+        .status(400)
+        .json({
+
+          error:
+            "O arquivo enviado ultrapassa o tamanho máximo permitido."
+
+        });
+
+    }
+
 
 
     return res
@@ -601,6 +610,11 @@ app.listen(
 
     console.log(
       `API Férias: http://localhost:${PORT}/api/ferias`
+    );
+
+
+    console.log(
+      `API Treinamentos: http://localhost:${PORT}/api/treinamentos`
     );
 
 
