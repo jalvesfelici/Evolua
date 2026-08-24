@@ -1,362 +1,665 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
+
 
 <head>
 
   <meta charset="UTF-8">
+
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
   >
 
+
   <title>
     Evolua+ | Férias
   </title>
+
+
+  <!-- =====================================================
+       CSS DA TELA
+  ====================================================== -->
 
   <link
     rel="stylesheet"
     href="ferias.css"
   >
 
+
+  <!-- =====================================================
+       FONT AWESOME
+  ====================================================== -->
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
 </head>
+
 
 
 <body>
 
-  <div class="app-shell">
+
+  <!-- =====================================================
+       CONTAINER PRINCIPAL
+  ====================================================== -->
+
+  <div class="app-container">
 
 
-    <!-- =====================================================
-         TOPO
-    ====================================================== -->
 
-    <header class="topbar">
+    <!-- ===================================================
+         SIDEBAR
+    ==================================================== -->
+
+    <aside class="sidebar">
 
 
-      <!-- MARCA -->
+      <!-- =================================================
+           LOGO
+      ================================================== -->
 
-      <div class="brand">
+      <div class="sidebar-logo">
 
-        <div class="brand-mark">
-          E
+
+        <div class="logo-icon">
+
+          <i class="fa-solid fa-chart-line"></i>
+
         </div>
+
+
+        <div class="logo-text">
+
+          <h1>
+            Evolua<span>+</span>
+          </h1>
+
+          <p>
+            Portal de Gestão de Carreira
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           MENU
+      ================================================== -->
+
+      <nav class="sidebar-menu">
+
+
+        <!-- DASHBOARD -->
+
+        <a
+          href="#"
+          class="menu-item"
+        >
+
+          <i class="fa-solid fa-house"></i>
+
+          <span>
+            Dashboard
+          </span>
+
+        </a>
+
+
+
+        <!-- FÉRIAS -->
+
+        <a
+          href="/ferias/index.html"
+          class="menu-item active"
+        >
+
+          <i class="fa-solid fa-calendar-days"></i>
+
+          <span>
+            Férias
+          </span>
+
+        </a>
+
+
+
+        <!-- PONTO -->
+
+        <a
+          href="#"
+          class="menu-item"
+        >
+
+          <i class="fa-solid fa-clock"></i>
+
+          <span>
+            Ponto
+          </span>
+
+        </a>
+
+
+
+        <!-- TREINAMENTOS -->
+
+        <a
+          href="/treinamentos/"
+          class="menu-item"
+        >
+
+          <i class="fa-solid fa-graduation-cap"></i>
+
+          <span>
+            Treinamentos
+          </span>
+
+        </a>
+
+
+
+        <!-- CARREIRA -->
+
+        <a
+          href="#"
+          class="menu-item"
+        >
+
+          <i class="fa-solid fa-briefcase"></i>
+
+          <span>
+            Carreira
+          </span>
+
+        </a>
+
+
+
+        <!-- FEEDBACKS -->
+
+        <a
+          href="#"
+          class="menu-item"
+        >
+
+          <i class="fa-solid fa-comments"></i>
+
+          <span>
+            Feedbacks
+          </span>
+
+        </a>
+
+
+      </nav>
+
+
+
+      <!-- =================================================
+           USUÁRIO LOGADO
+      ================================================== -->
+
+      <div class="sidebar-user">
+
+
+        <div class="user-avatar" id="sidebarUserAvatar">
+
+          --
+
+        </div>
+
+
+        <div class="user-info">
+
+          <strong id="sidebarUserName">
+
+            Carregando...
+
+          </strong>
+
+
+          <span id="sidebarUserSector">
+
+            Carregando setor...
+
+          </span>
+
+        </div>
+
+
+        <!-- =================================================
+             LOGOUT
+        ================================================== -->
+
+        <button
+          type="button"
+          class="logout-button"
+          id="logoutButton"
+          title="Sair"
+        >
+
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+        </button>
+
+
+      </div>
+
+
+    </aside>
+
+
+
+    <!-- ===================================================
+         CONTEÚDO PRINCIPAL
+    ==================================================== -->
+
+    <main class="main-content">
+
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
+      <header class="page-header">
 
 
         <div>
 
-          <span class="brand-name">
-
-            Evolua<span>+</span>
-
+          <span class="page-eyebrow">
+            Gestão pessoal
           </span>
 
-          <small>
-            Portal de Gestão de Carreira
-          </small>
 
-        </div>
-
-      </div>
+          <h2>
+            Minhas férias
+          </h2>
 
 
-
-      <!-- USUÁRIO + AÇÕES -->
-
-      <div class="topbar-actions">
-
-
-        <div
-          class="logged-user"
-          id="loggedUserArea"
-        >
-
-          <span id="loggedUserName">
-            Colaborador
-          </span>
-
-          <small id="loggedUserSector">
-            Setor
-          </small>
+          <p>
+            Acompanhe seu período aquisitivo, saldo e solicitações.
+          </p>
 
         </div>
 
 
-        <button
-          class="ghost-btn"
-          type="button"
-          id="voltarTreinamentos"
-        >
-          Treinamentos
-        </button>
 
+        <!-- =================================================
+             SOLICITAR FÉRIAS
+        ================================================== -->
 
         <button
-          class="primary-btn"
           type="button"
-          id="abrirModal"
+          class="primary-button"
+          id="openVacationRequestButton"
+          disabled
         >
+
+          <i class="fa-solid fa-calendar-plus"></i>
+
           Solicitar férias
+
         </button>
 
-      </div>
 
-    </header>
+      </header>
 
-
-
-    <!-- =====================================================
-         CONTEÚDO
-    ====================================================== -->
-
-    <main class="content">
 
 
       <!-- =================================================
-           CARDS
+           MENSAGEM GERAL
       ================================================== -->
 
-      <section
-        class="summary-grid"
-        aria-label="Resumo de férias"
+      <div
+        class="page-message"
+        id="vacationPageMessage"
       >
+      </div>
 
 
-        <!-- SALDO -->
 
-        <article class="summary-card accent-blue">
+      <!-- =================================================
+           RESUMO DAS FÉRIAS
+      ================================================== -->
 
-          <span class="label">
-            Saldo disponível
-          </span>
+      <section class="summary-grid">
 
-          <strong id="saldoDisponivel">
-            0 dias
-          </strong>
 
-          <small>
-            Disponíveis para solicitação
-          </small>
+        <!-- =================================================
+             SALDO
+        ================================================== -->
+
+        <article class="summary-card">
+
+
+          <div class="summary-icon purple">
+
+            <i class="fa-solid fa-umbrella-beach"></i>
+
+          </div>
+
+
+          <div class="summary-content">
+
+            <span>
+              Saldo disponível
+            </span>
+
+
+            <strong id="availableDays">
+
+              0 dias
+
+            </strong>
+
+
+            <small id="availableDaysDescription">
+
+              Aguardando informações
+
+            </small>
+
+          </div>
+
 
         </article>
 
 
 
-        <!-- USADOS -->
+        <!-- =================================================
+             UTILIZADOS
+        ================================================== -->
 
-        <article class="summary-card accent-green">
+        <article class="summary-card">
 
-          <span class="label">
-            Dias utilizados
-          </span>
 
-          <strong id="diasUsados">
-            0 dias
-          </strong>
+          <div class="summary-icon green">
 
-          <small>
-            Férias já aprovadas
-          </small>
+            <i class="fa-solid fa-circle-check"></i>
+
+          </div>
+
+
+          <div class="summary-content">
+
+            <span>
+              Dias utilizados
+            </span>
+
+
+            <strong id="usedDays">
+
+              0 dias
+
+            </strong>
+
+
+            <small>
+
+              Férias já utilizadas neste período
+
+            </small>
+
+          </div>
+
 
         </article>
 
 
 
-        <!-- VENCIMENTO -->
+        <!-- =================================================
+             VENCIMENTO
+        ================================================== -->
 
-        <article class="summary-card accent-orange">
+        <article class="summary-card">
 
-          <span class="label">
-            Próximo vencimento
-          </span>
 
-          <strong id="proximoVencimento">
-            -
-          </strong>
+          <div class="summary-icon orange">
 
-          <small>
-            Data limite do período atual
-          </small>
+            <i class="fa-solid fa-calendar-exclamation"></i>
+
+          </div>
+
+
+          <div class="summary-content">
+
+            <span>
+              Vencimento
+            </span>
+
+
+            <strong id="expirationDate">
+
+              --
+
+            </strong>
+
+
+            <small>
+
+              Data limite do período atual
+
+            </small>
+
+          </div>
+
 
         </article>
 
 
 
-        <!-- STATUS -->
+        <!-- =================================================
+             STATUS
+        ================================================== -->
 
-        <article class="summary-card accent-purple">
+        <article class="summary-card">
 
-          <span class="label">
-            Status
-          </span>
 
-          <strong id="statusFerias">
-            -
-          </strong>
+          <div class="summary-icon blue">
 
-          <small id="statusFeriasDescricao">
-            Carregando informações...
-          </small>
+            <i class="fa-solid fa-chart-line"></i>
+
+          </div>
+
+
+          <div class="summary-content">
+
+            <span>
+              Status
+            </span>
+
+
+            <strong id="vacationStatus">
+
+              Carregando...
+
+            </strong>
+
+
+            <small id="vacationStatusDescription">
+
+              Verificando período aquisitivo
+
+            </small>
+
+          </div>
+
 
         </article>
+
 
       </section>
 
 
 
       <!-- =================================================
-           PERÍODO ATUAL
+           PERÍODO AQUISITIVO
       ================================================== -->
 
-      <section class="panel-grid">
+      <section class="content-grid">
 
 
-        <article class="panel panel-large">
+        <!-- =================================================
+             PERÍODO ATUAL
+        ================================================== -->
+
+        <article class="panel period-panel">
 
 
-          <div class="section-header">
+          <div class="panel-header">
+
 
             <div>
 
-              <p class="eyebrow">
+              <span class="panel-eyebrow">
                 Período atual
-              </p>
+              </span>
 
-              <h2>
-                Minhas férias
-              </h2>
+
+              <h3>
+                Período aquisitivo
+              </h3>
 
             </div>
 
 
             <span
-              class="status-pill success"
-              id="periodoStatus"
+              class="status-badge neutral"
+              id="periodStatusBadge"
             >
-              -
+
+              Carregando
+
             </span>
+
 
           </div>
 
 
 
           <!-- =================================================
-               RESUMO DO PERÍODO
+               DADOS DO PERÍODO
           ================================================== -->
 
-          <div class="period-overview">
+          <div class="period-data-grid">
 
 
-            <div>
+            <div class="period-data-item">
 
               <span>
-                Período aquisitivo
+                Início
               </span>
 
-              <strong id="periodoAquisitivo">
-                -
+              <strong id="periodStart">
+
+                --
+
               </strong>
 
             </div>
 
 
+            <div class="period-data-item">
 
-            <div>
+              <span>
+                Fim
+              </span>
+
+              <strong id="periodEnd">
+
+                --
+
+              </strong>
+
+            </div>
+
+
+            <div class="period-data-item">
 
               <span>
                 Direito adquirido
               </span>
 
-              <strong id="diasDireito">
+              <strong id="entitledDays">
+
                 0 dias
+
               </strong>
 
             </div>
 
 
-
-            <div>
+            <div class="period-data-item">
 
               <span>
-                Férias já utilizadas
+                Dias utilizados
               </span>
 
-              <strong id="periodoDiasUsados">
+              <strong id="periodUsedDays">
+
                 0 dias
+
               </strong>
 
             </div>
+
 
           </div>
 
 
 
           <!-- =================================================
-               LINHA DO TEMPO
+               PROGRESSO
           ================================================== -->
 
-          <div class="timeline">
+          <div class="acquisition-progress">
 
 
-            <div class="timeline-item">
+            <div class="progress-header">
 
-              <span class="dot blue"></span>
+              <span>
+                Progresso do período aquisitivo
+              </span>
 
-              <div>
 
-                <strong>
-                  Início do período
-                </strong>
+              <strong id="acquisitionProgressText">
 
-                <small id="periodoInicio">
-                  -
-                </small>
+                0%
 
+              </strong>
+
+            </div>
+
+
+            <div class="progress-track">
+
+              <div
+                class="progress-bar"
+                id="acquisitionProgressBar"
+              >
               </div>
 
             </div>
 
 
+            <p id="acquisitionMessage">
 
-            <div class="timeline-item">
+              As informações serão carregadas automaticamente.
 
-              <span class="dot green"></span>
+            </p>
 
-              <div>
-
-                <strong>
-                  Saldo atual
-                </strong>
-
-                <small id="timelineSaldo">
-                  0 dias disponíveis
-                </small>
-
-              </div>
-
-            </div>
-
-
-
-            <div class="timeline-item">
-
-              <span class="dot orange"></span>
-
-              <div>
-
-                <strong>
-                  Vencimento
-                </strong>
-
-                <small id="periodoVencimento">
-                  -
-                </small>
-
-              </div>
-
-            </div>
 
           </div>
+
 
         </article>
 
@@ -366,73 +669,118 @@
              INFORMAÇÕES
         ================================================== -->
 
-        <aside class="panel panel-side">
+        <aside class="panel information-panel">
 
 
-          <div class="section-header compact">
+          <div class="panel-header">
+
 
             <div>
 
-              <p class="eyebrow">
+              <span class="panel-eyebrow">
                 Informações
-              </p>
+              </span>
+
 
               <h3>
-                Resumo do período
+                Como funciona?
               </h3>
 
             </div>
 
+
           </div>
 
 
-          <ul class="vencimentos-list">
+
+          <div class="information-list">
 
 
-            <li>
-
-              <span>
-                Dias de direito
-              </span>
-
-              <strong id="resumoDireito">
-                0 dias
-              </strong>
-
-            </li>
+            <div class="information-item">
 
 
+              <div class="information-icon">
 
-            <li>
+                <i class="fa-solid fa-hourglass-half"></i>
 
-              <span>
-                Dias utilizados
-              </span>
-
-              <strong id="resumoUsados">
-                0 dias
-              </strong>
-
-            </li>
+              </div>
 
 
+              <div>
 
-            <li>
+                <strong>
+                  Período aquisitivo
+                </strong>
 
-              <span>
-                Dias disponíveis
-              </span>
+                <p>
+                  Durante o período aquisitivo, seus dias de férias ainda estão sendo adquiridos.
+                </p>
 
-              <strong id="resumoDisponiveis">
-                0 dias
-              </strong>
-
-            </li>
+              </div>
 
 
-          </ul>
+            </div>
+
+
+
+            <div class="information-item">
+
+
+              <div class="information-icon">
+
+                <i class="fa-solid fa-calendar-check"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Liberação automática
+                </strong>
+
+                <p>
+                  Após a conclusão do período cadastrado pela empresa, o sistema libera automaticamente os dias correspondentes.
+                </p>
+
+              </div>
+
+
+            </div>
+
+
+
+            <div class="information-item">
+
+
+              <div class="information-icon">
+
+                <i class="fa-solid fa-paper-plane"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Solicitação
+                </strong>
+
+                <p>
+                  Quando houver saldo disponível, você poderá solicitar suas férias diretamente pelo portal.
+                </p>
+
+              </div>
+
+
+            </div>
+
+
+          </div>
+
 
         </aside>
+
 
       </section>
 
@@ -442,39 +790,147 @@
            SOLICITAÇÕES PENDENTES
       ================================================== -->
 
-      <section class="panel">
+      <section class="panel requests-panel">
 
 
-        <div class="section-header">
+        <div class="panel-header">
+
 
           <div>
 
-            <p class="eyebrow">
-              Solicitações
-            </p>
+            <span class="panel-eyebrow">
+              Acompanhamento
+            </span>
 
-            <h2>
-              Em análise
-            </h2>
+
+            <h3>
+              Solicitações em andamento
+            </h3>
 
           </div>
 
 
           <button
-            class="small-btn"
             type="button"
-            id="btnNovaSolicitacao"
+            class="secondary-button"
+            id="secondaryVacationRequestButton"
+            disabled
           >
+
+            <i class="fa-solid fa-plus"></i>
+
             Nova solicitação
+
           </button>
+
 
         </div>
 
 
 
-        <div class="table-wrap">
+        <!-- =================================================
+             TABELA
+        ================================================== -->
+
+        <div class="table-wrapper">
+
 
           <table>
+
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Período
+                </th>
+
+                <th>
+                  Dias
+                </th>
+
+                <th>
+                  Solicitação
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Observação
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+
+            <tbody id="pendingRequestsTableBody">
+
+
+              <tr>
+
+                <td
+                  colspan="5"
+                  class="empty-table"
+                >
+
+                  Carregando solicitações...
+
+                </td>
+
+              </tr>
+
+
+            </tbody>
+
+
+          </table>
+
+
+        </div>
+
+
+      </section>
+
+
+
+      <!-- =================================================
+           HISTÓRICO
+      ================================================== -->
+
+      <section class="panel history-panel">
+
+
+        <div class="panel-header">
+
+
+          <div>
+
+            <span class="panel-eyebrow">
+              Histórico
+            </span>
+
+
+            <h3>
+              Solicitações concluídas
+            </h3>
+
+          </div>
+
+
+        </div>
+
+
+
+        <div class="table-wrapper">
+
+
+          <table>
+
 
             <thead>
 
@@ -493,7 +949,11 @@
                 </th>
 
                 <th>
-                  Data da solicitação
+                  Avaliação
+                </th>
+
+                <th>
+                  Observação do Admin
                 </th>
 
               </tr>
@@ -501,137 +961,129 @@
             </thead>
 
 
-            <tbody id="tabelaSolicitacoes">
 
-              <!-- JavaScript -->
+            <tbody id="vacationHistoryTableBody">
 
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =================================================
-           HISTÓRICO
-      ================================================== -->
-
-      <section class="panel">
-
-
-        <div class="section-header">
-
-          <div>
-
-            <p class="eyebrow">
-              Histórico
-            </p>
-
-            <h2>
-              Solicitações analisadas
-            </h2>
-
-          </div>
-
-        </div>
-
-
-
-        <div class="table-wrap">
-
-          <table>
-
-            <thead>
 
               <tr>
 
-                <th>
-                  Período
-                </th>
+                <td
+                  colspan="5"
+                  class="empty-table"
+                >
 
-                <th>
-                  Quantidade
-                </th>
+                  Nenhum histórico disponível.
 
-                <th>
-                  Status
-                </th>
-
-                <th>
-                  Observação
-                </th>
+                </td>
 
               </tr>
 
-            </thead>
-
-
-            <tbody id="tabelaHistorico">
-
-              <!-- JavaScript -->
 
             </tbody>
 
+
           </table>
+
 
         </div>
 
+
       </section>
 
+
     </main>
+
 
   </div>
 
 
 
   <!-- =====================================================
-       MODAL DE SOLICITAÇÃO
+       MODAL - SOLICITAR FÉRIAS
   ====================================================== -->
 
   <div
-    class="modal-backdrop"
-    id="modalSolicitacao"
+    class="modal-overlay"
+    id="vacationRequestModal"
     aria-hidden="true"
   >
 
 
-    <div
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modalTitulo"
-    >
+    <div class="modal">
 
 
-      <!-- CABEÇALHO -->
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
+
+      <button
+        type="button"
+        class="modal-close-button"
+        id="closeVacationRequestModal"
+        aria-label="Fechar"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
 
       <div class="modal-header">
 
 
-        <div>
+        <div class="modal-icon">
 
-          <p class="eyebrow">
-            Nova solicitação
-          </p>
-
-          <h3 id="modalTitulo">
-            Solicitar férias
-          </h3>
+          <i class="fa-solid fa-calendar-plus"></i>
 
         </div>
 
 
-        <button
-          type="button"
-          class="icon-btn"
-          id="fecharModal"
-          aria-label="Fechar modal"
-        >
-          ×
-        </button>
+        <div>
+
+          <span>
+            Nova solicitação
+          </span>
+
+
+          <h3>
+            Solicitar férias
+          </h3>
+
+
+          <p>
+            Escolha o período desejado para utilização das suas férias.
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           SALDO DO MODAL
+      ================================================== -->
+
+      <div class="modal-balance">
+
+
+        <span>
+          Seu saldo disponível
+        </span>
+
+
+        <strong id="modalAvailableDays">
+
+          0 dias
+
+        </strong>
+
 
       </div>
 
@@ -641,114 +1093,128 @@
            FORMULÁRIO
       ================================================== -->
 
-      <form id="formSolicitacao">
+      <form id="vacationRequestForm">
 
 
         <div class="form-grid">
 
 
-          <!-- DATA DE INÍCIO -->
+          <!-- ===============================================
+               DATA INICIAL
+          ================================================ -->
 
-          <label>
+          <div class="form-group">
 
-            <span>
+            <label for="requestStartDate">
+
               Data de início
-            </span>
+
+            </label>
+
 
             <input
               type="date"
-              id="dataInicio"
+              id="requestStartDate"
               required
             >
 
-          </label>
+          </div>
 
 
 
-          <!-- DATA FINAL -->
+          <!-- ===============================================
+               DATA FINAL
+          ================================================ -->
 
-          <label>
+          <div class="form-group">
 
-            <span>
+            <label for="requestEndDate">
+
               Data de término
-            </span>
+
+            </label>
+
 
             <input
               type="date"
-              id="dataFim"
+              id="requestEndDate"
               required
             >
 
-          </label>
+          </div>
 
 
 
-          <!-- QUANTIDADE CALCULADA -->
+          <!-- ===============================================
+               QUANTIDADE
+          ================================================ -->
 
-          <label class="full-width">
+          <div class="form-group full-width">
 
-            <span>
+            <label for="requestDays">
+
               Quantidade de dias
-            </span>
+
+            </label>
+
 
             <input
               type="text"
-              id="quantidadeDias"
+              id="requestDays"
               value="0 dias"
               readonly
             >
 
-          </label>
+
+            <small class="field-helper">
+
+              Calculado automaticamente com base nas datas selecionadas.
+
+            </small>
+
+          </div>
 
 
 
-          <!-- OBSERVAÇÕES -->
+          <!-- ===============================================
+               OBSERVAÇÕES
+          ================================================ -->
 
-          <label class="full-width">
+          <div class="form-group full-width">
 
-            <span>
+            <label for="requestObservation">
+
               Observações
-            </span>
+            </label>
+
 
             <textarea
-              id="observacoes"
+              id="requestObservation"
               rows="4"
-              placeholder="Informe alguma observação caso necessário."
+              placeholder="Informe alguma observação caso seja necessário."
             ></textarea>
 
-          </label>
+          </div>
+
 
         </div>
 
 
 
         <!-- =================================================
-             AVISO DE SALDO
+             AVISO
         ================================================== -->
 
         <div
-          id="saldoModalInfo"
-          class="modal-balance-info"
-        >
-          Saldo disponível: 0 dias
-        </div>
-
-
-
-        <!-- =================================================
-             MENSAGEM
-        ================================================== -->
-
-        <div
-          id="formMessage"
           class="form-message"
+          id="vacationRequestMessage"
         >
         </div>
 
 
 
         <!-- =================================================
-             BOTÕES
+             AÇÕES
         ================================================== -->
 
         <div class="modal-actions">
@@ -756,26 +1222,40 @@
 
           <button
             type="button"
-            class="secondary-btn"
-            id="cancelarModal"
+            class="secondary-button"
+            id="cancelVacationRequest"
           >
+
             Cancelar
+
           </button>
 
 
           <button
             type="submit"
-            class="primary-btn"
-            id="salvarSolicitacao"
+            class="primary-button"
+            id="submitVacationRequest"
           >
-            Enviar solicitação
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            <span id="submitVacationRequestText">
+
+              Enviar solicitação
+
+            </span>
+
           </button>
+
 
         </div>
 
+
       </form>
 
+
     </div>
+
 
   </div>
 
@@ -787,6 +1267,8 @@
 
   <script src="ferias.js"></script>
 
+
 </body>
+
 
 </html>

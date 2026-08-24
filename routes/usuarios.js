@@ -2,6 +2,30 @@
 // EVOLUA+
 // ROTAS DE USUÁRIOS
 // ==========================================================
+//
+// RESPONSABILIDADES:
+//
+// GET /api/usuarios
+//
+// - validar o administrador logado;
+// - retornar SOMENTE colaboradores;
+// - retornar SOMENTE colaboradores do setor do Admin.
+//
+// POST /api/usuarios
+//
+// - validar o administrador logado;
+// - criar colaboradores;
+// - criar administradores de setor;
+// - criar usuário no Supabase Auth;
+// - criar perfil na tabela "usuario".
+//
+// ==========================================================
+
+
+
+// ==========================================================
+// IMPORTAÇÕES
+// ==========================================================
 
 const express =
   require(
@@ -13,11 +37,40 @@ const router =
   express.Router();
 
 
+
+// ==========================================================
+// SUPABASE NORMAL
+// ==========================================================
+//
+// Utilizado para:
+//
+// - validar token;
+// - consultas normais.
+//
+// ==========================================================
+
 const supabase =
   require(
     "../config/supabase"
   );
 
+
+
+// ==========================================================
+// SUPABASE ADMIN
+// ==========================================================
+//
+// Utilizado para:
+//
+// - criar usuário no Auth;
+// - excluir usuário do Auth em rollback;
+// - operações administrativas.
+//
+// IMPORTANTE:
+//
+// A chave administrativa fica somente no backend.
+//
+// ==========================================================
 
 const supabaseAdmin =
   require(
@@ -25,8 +78,9 @@ const supabaseAdmin =
   );
 
 
+
 // ==========================================================
-// SETORES
+// SETORES PERMITIDOS
 // ==========================================================
 
 const allowedSectors = [
@@ -48,8 +102,20 @@ const allowedSectors = [
 ];
 
 
+
 // ==========================================================
 // PERFIS QUE PODEM SER CRIADOS
+// ==========================================================
+//
+// Não permitimos criar outro:
+//
+// admin_principal
+//
+// pela interface.
+//
+// O Admin Principal inicial continua sendo
+// um usuário especial.
+//
 // ==========================================================
 
 const allowedCreationProfiles = [
@@ -61,8 +127,15 @@ const allowedCreationProfiles = [
 ];
 
 
+
 // ==========================================================
-// PEGAR BEARER TOKEN
+// PEGAR TOKEN BEARER
+// ==========================================================
+//
+// O frontend envia:
+//
+// Authorization: Bearer TOKEN
+//
 // ==========================================================
 
 function getBearerToken(
@@ -73,7 +146,9 @@ function getBearerToken(
     req.headers.authorization;
 
 
-  if (!authorization) {
+  if (
+    !authorization
+  ) {
 
     return null;
 
@@ -110,13 +185,32 @@ function getBearerToken(
 }
 
 
+
 // ==========================================================
 // IDENTIFICAR USUÁRIO LOGADO
+// ==========================================================
+//
+// Fluxo:
+//
+// access_token
+//      ↓
+// Supabase Auth
+//      ↓
+// UUID
+//      ↓
+// tabela usuario
+//      ↓
+// perfil / setor / ativo
+//
 // ==========================================================
 
 async function getLoggedUser(
   req
 ) {
+
+  // ========================================================  
+  // TOKEN
+  // ========================================================
 
   const token =
     getBearerToken(
@@ -124,7 +218,9 @@ async function getLoggedUser(
     );
 
 
-  if (!token) {
+  if (
+    !token
+  ) {
 
     return {
 
@@ -139,18 +235,13 @@ async function getLoggedUser(
   }
 
 
+
   // ========================================================
   // VALIDAR TOKEN
   // ========================================================
-  //
-  // Aqui usamos o cliente normal.
-  //
-  // O token enviado é o access_token que veio
-  // do login.
-  //
-  // ========================================================
 
   const {
+
     data:
       authData,
 
@@ -166,7 +257,8 @@ async function getLoggedUser(
 
 
   if (
-    authError ||
+    authError
+    ||
     !authData?.user
   ) {
 
@@ -189,15 +281,24 @@ async function getLoggedUser(
   }
 
 
+
+  // ========================================================
+  // UUID
+  // ========================================================
+
   const userId =
-    authData.user.id;
+    authData
+      .user
+      .id;
+
 
 
   // ========================================================
-  // BUSCAR DADOS PROFISSIONAIS
+  // BUSCAR PERFIL PROFISSIONAL
   // ========================================================
 
   const {
+
     data:
       profile,
 
@@ -205,7 +306,7 @@ async function getLoggedUser(
       profileError
 
   } =
-    await supabase
+    await supabaseAdmin
       .from(
         "usuario"
       )
@@ -228,12 +329,13 @@ async function getLoggedUser(
       .maybeSingle();
 
 
+
   if (
     profileError
   ) {
 
     console.error(
-      "Erro ao buscar perfil:",
+      "Erro ao buscar perfil do usuário:",
       profileError
     );
 
@@ -251,7 +353,14 @@ async function getLoggedUser(
   }
 
 
-  if (!profile) {
+
+  // ========================================================
+  // PERFIL NÃO ENCONTRADO
+  // ========================================================
+
+  if (
+    !profile
+  ) {
 
     return {
 
@@ -265,6 +374,11 @@ async function getLoggedUser(
 
   }
 
+
+
+  // ========================================================
+  // INATIVO
+  // ========================================================
 
   if (
     profile.ativo ===
@@ -284,6 +398,7 @@ async function getLoggedUser(
   }
 
 
+
   return {
 
     user:
@@ -297,8 +412,9 @@ async function getLoggedUser(
 }
 
 
+
 // ==========================================================
-// VERIFICAR ADMIN
+// VERIFICAR SE É ADMINISTRADOR
 // ==========================================================
 
 function isAdmin(
@@ -320,15 +436,81 @@ function isAdmin(
 }
 
 
+
+// ==========================================================
+// NORMALIZAR TEXTO
+// ==========================================================
+
+function normalizeText(
+  value
+) {
+
+  return String(
+    value || ""
+  ).trim();
+
+}
+
+
+
+// ==========================================================
+// NORMALIZAR E-MAIL
+// ==========================================================
+
+function normalizeEmail(
+  value
+) {
+
+  return String(
+    value || ""
+  )
+    .trim()
+    .toLowerCase();
+
+}
+
+
+
+// ==========================================================
 // ==========================================================
 // GET /api/usuarios
+// ==========================================================
+// ==========================================================
+//
+// NOVA REGRA:
+//
+// A aba "Funcionários" NÃO é uma lista
+// administrativa de todos os usuários.
+//
+// Ela representa:
+//
+// "FUNCIONÁRIOS QUE ESTE ADMIN GERENCIA"
+//
+// Portanto:
+//
+// 1. somente perfil = colaborador;
+//
+// 2. somente setor = setor do Admin.
+//
+// Essa regra vale para:
+//
+// admin_principal
+// admin_setor
+//
 // ==========================================================
 
 router.get(
   "/",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
+
+      // ====================================================
+      // IDENTIFICAR ADMIN LOGADO
+      // ====================================================
 
       const authResult =
         await getLoggedUser(
@@ -354,17 +536,19 @@ router.get(
       }
 
 
-      const loggedUser =
+
+      const loggedAdmin =
         authResult.user;
 
 
+
       // ====================================================
-      // SOMENTE ADMIN
+      // SOMENTE ADMINISTRADORES
       // ====================================================
 
       if (
         !isAdmin(
-          loggedUser
+          loggedAdmin
         )
       ) {
 
@@ -373,19 +557,60 @@ router.get(
           .json({
 
             error:
-              "Você não possui permissão para visualizar usuários."
+              "Você não possui permissão para visualizar funcionários."
 
           });
 
       }
 
 
+
       // ====================================================
-      // CONSULTA
+      // ADMIN PRECISA TER SETOR
       // ====================================================
 
-      let query =
-        supabase
+      if (
+        !loggedAdmin.setor
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "O administrador não possui um setor definido."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // BUSCAR FUNCIONÁRIOS
+      // ====================================================
+      //
+      // DUAS REGRAS IMPORTANTES:
+      //
+      // perfil = colaborador
+      //
+      // setor = setor do Admin
+      //
+      // NÃO existe mais:
+      //
+      // admin_principal vê todo mundo.
+      //
+      // ====================================================
+
+      const {
+
+        data:
+          employees,
+
+        error
+
+      } =
+        await supabaseAdmin
           .from(
             "usuario"
           )
@@ -403,44 +628,41 @@ router.get(
               created_at
             `
           )
+
+          // Somente funcionários.
+          .eq(
+            "perfil",
+            "colaborador"
+          )
+
+          // Somente setor do Admin logado.
+          .eq(
+            "setor",
+            loggedAdmin.setor
+          )
+
           .order(
             "nome",
             {
+
               ascending:
                 true
+
             }
           );
 
 
+
       // ====================================================
-      // ADMIN DE SETOR
+      // ERRO
       // ====================================================
 
       if (
-        loggedUser.perfil ===
-        "admin_setor"
+        error
       ) {
 
-        query =
-          query.eq(
-            "setor",
-            loggedUser.setor
-          );
-
-      }
-
-
-      const {
-        data,
-        error
-      } =
-        await query;
-
-
-      if (error) {
-
         console.error(
-          "Erro ao buscar usuários:",
+          "Erro Supabase ao buscar funcionários:",
           error
         );
 
@@ -450,7 +672,7 @@ router.get(
           .json({
 
             error:
-              "Não foi possível buscar os usuários.",
+              "Não foi possível buscar os funcionários.",
 
             details:
               error.message
@@ -460,15 +682,22 @@ router.get(
       }
 
 
+
+      // ====================================================
+      // RETORNAR FUNCIONÁRIOS DO SETOR
+      // ====================================================
+
       return res.json(
-        data || []
+        employees || []
       );
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
-        "Erro inesperado ao buscar usuários:",
+        "Erro inesperado ao buscar funcionários:",
         error
       );
 
@@ -478,7 +707,7 @@ router.get(
         .json({
 
           error:
-            "Erro interno ao buscar usuários."
+            "Erro interno ao buscar funcionários."
 
         });
 
@@ -488,18 +717,58 @@ router.get(
 );
 
 
+
+// ==========================================================
 // ==========================================================
 // POST /api/usuarios
+// ==========================================================
+// ==========================================================
+//
+// O Admin pode criar:
+//
+// 1. COLABORADOR
+//
+//    obrigatoriamente no próprio setor.
+//
+//
+// 2. ADMINISTRADOR DE SETOR
+//
+//    pode ser criado para qualquer setor.
+//
+//
+// Exemplos:
+//
+// Admin Tecnologia
+//
+// criar colaborador Financeiro
+// ❌ NÃO
+//
+// criar colaborador Tecnologia
+// ✅ SIM
+//
+// criar Admin Financeiro
+// ✅ SIM
+//
+// criar Admin RH
+// ✅ SIM
+//
 // ==========================================================
 
 router.post(
   "/",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
+    let createdAuthUserId =
+      null;
+
 
     try {
 
       // ====================================================
-      // IDENTIFICAR QUEM ESTÁ CRIANDO
+      // IDENTIFICAR ADMINISTRADOR LOGADO
       // ====================================================
 
       const authResult =
@@ -526,12 +795,14 @@ router.post(
       }
 
 
+
       const creatorAdmin =
         authResult.user;
 
 
+
       // ====================================================
-      // SOMENTE ADMIN
+      // SOMENTE ADMINS
       // ====================================================
 
       if (
@@ -552,11 +823,12 @@ router.post(
       }
 
 
+
       // ====================================================
-      // DADOS
+      // DADOS RECEBIDOS
       // ====================================================
 
-      const {
+      let {
 
         nome,
 
@@ -574,6 +846,54 @@ router.post(
 
       } =
         req.body;
+
+
+
+      // ====================================================
+      // NORMALIZAÇÃO
+      // ====================================================
+
+      nome =
+        normalizeText(
+          nome
+        );
+
+
+      matricula =
+        normalizeText(
+          matricula
+        );
+
+
+      email =
+        normalizeEmail(
+          email
+        );
+
+
+      senha =
+        String(
+          senha || ""
+        );
+
+
+      cargo =
+        normalizeText(
+          cargo
+        );
+
+
+      setor =
+        normalizeText(
+          setor
+        );
+
+
+      perfil =
+        normalizeText(
+          perfil
+        );
+
 
 
       // ====================================================
@@ -602,37 +922,13 @@ router.post(
       }
 
 
-      // ====================================================
-      // NORMALIZAÇÃO
-      // ====================================================
-
-      const normalizedEmail =
-        String(email)
-          .trim()
-          .toLowerCase();
-
-
-      const normalizedName =
-        String(nome)
-          .trim();
-
-
-      const normalizedRegistration =
-        String(matricula)
-          .trim();
-
-
-      const normalizedRole =
-        String(cargo)
-          .trim();
-
 
       // ====================================================
       // SENHA
       // ====================================================
 
       if (
-        String(senha).length < 6
+        senha.length < 6
       ) {
 
         return res
@@ -646,27 +942,6 @@ router.post(
 
       }
 
-
-      // ====================================================
-      // SETOR
-      // ====================================================
-
-      if (
-        !allowedSectors.includes(
-          setor
-        )
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Setor inválido."
-
-          });
-
-      }
 
 
       // ====================================================
@@ -691,59 +966,117 @@ router.post(
       }
 
 
+
       // ====================================================
-      // ADMIN DE SETOR NÃO CRIA ADMIN
+      // REGRA PARA COLABORADOR
+      // ====================================================
+      //
+      // TODO Admin só cria colaboradores
+      // no próprio setor.
+      //
+      // Não confiamos no setor enviado pelo frontend.
+      //
+      // Forçamos:
+      //
+      // setor = creatorAdmin.setor
+      //
       // ====================================================
 
       if (
-        creatorAdmin.perfil ===
-          "admin_setor"
-        &&
         perfil ===
-          "admin_setor"
+        "colaborador"
       ) {
 
-        return res
-          .status(403)
-          .json({
+        if (
+          !creatorAdmin.setor
+        ) {
 
-            error:
-              "Somente o Administrador Principal pode criar administradores."
+          return res
+            .status(400)
+            .json({
 
-          });
+              error:
+                "O administrador não possui um setor definido."
+
+            });
+
+        }
+
+
+        setor =
+          creatorAdmin.setor;
 
       }
 
 
+
       // ====================================================
-      // ADMIN DE SETOR SÓ CRIA NO PRÓPRIO SETOR
+      // REGRA PARA ADMIN DE SETOR
+      // ====================================================
+      //
+      // Qualquer administrador pode criar
+      // outro admin_setor.
+      //
+      // Nesse caso o setor selecionado no formulário
+      // será respeitado.
+      //
       // ====================================================
 
       if (
-        creatorAdmin.perfil ===
-          "admin_setor"
-        &&
-        creatorAdmin.setor !==
+        perfil ===
+        "admin_setor"
+      ) {
+
+        if (
+          !allowedSectors.includes(
+            setor
+          )
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                "Setor do administrador inválido."
+
+            });
+
+        }
+
+      }
+
+
+
+      // ====================================================
+      // VALIDAR SETOR FINAL
+      // ====================================================
+
+      if (
+        !allowedSectors.includes(
           setor
+        )
       ) {
 
         return res
-          .status(403)
+          .status(400)
           .json({
 
             error:
-              "Você só pode criar usuários do seu próprio setor."
+              "Setor inválido."
 
           });
 
       }
 
 
+
       // ====================================================
-      // E-MAIL DUPLICADO
+      // VERIFICAR E-MAIL DUPLICADO
       // ====================================================
 
       const {
+
         data:
           existingEmail,
 
@@ -751,7 +1084,7 @@ router.post(
           emailCheckError
 
       } =
-        await supabase
+        await supabaseAdmin
           .from(
             "usuario"
           )
@@ -760,14 +1093,21 @@ router.post(
           )
           .eq(
             "email",
-            normalizedEmail
+            email
           )
           .maybeSingle();
+
 
 
       if (
         emailCheckError
       ) {
+
+        console.error(
+          "Erro ao verificar e-mail:",
+          emailCheckError
+        );
+
 
         return res
           .status(500)
@@ -784,6 +1124,7 @@ router.post(
       }
 
 
+
       if (
         existingEmail
       ) {
@@ -793,18 +1134,20 @@ router.post(
           .json({
 
             error:
-              "Já existe um usuário com este e-mail."
+              "Já existe um usuário cadastrado com este e-mail."
 
           });
 
       }
 
 
+
       // ====================================================
-      // MATRÍCULA DUPLICADA
+      // VERIFICAR MATRÍCULA DUPLICADA
       // ====================================================
 
       const {
+
         data:
           existingRegistration,
 
@@ -812,7 +1155,7 @@ router.post(
           registrationCheckError
 
       } =
-        await supabase
+        await supabaseAdmin
           .from(
             "usuario"
           )
@@ -821,14 +1164,21 @@ router.post(
           )
           .eq(
             "matricula",
-            normalizedRegistration
+            matricula
           )
           .maybeSingle();
+
 
 
       if (
         registrationCheckError
       ) {
+
+        console.error(
+          "Erro ao verificar matrícula:",
+          registrationCheckError
+        );
+
 
         return res
           .status(500)
@@ -845,6 +1195,7 @@ router.post(
       }
 
 
+
       if (
         existingRegistration
       ) {
@@ -854,18 +1205,20 @@ router.post(
           .json({
 
             error:
-              "Já existe um usuário com esta matrícula."
+              "Já existe um usuário cadastrado com esta matrícula."
 
           });
 
       }
 
 
+
       // ====================================================
-      // CRIAR USUÁRIO NO AUTH
+      // CRIAR USUÁRIO NO SUPABASE AUTH
       // ====================================================
 
       const {
+
         data:
           authData,
 
@@ -879,7 +1232,7 @@ router.post(
           .createUser({
 
             email:
-              normalizedEmail,
+              email,
 
             password:
               senha,
@@ -887,16 +1240,21 @@ router.post(
             email_confirm:
               true,
 
+
+            // ==================================================
+            // METADADOS
+            // ==================================================
+
             user_metadata: {
 
               nome:
-                normalizedName,
+                nome,
 
               matricula:
-                normalizedRegistration,
+                matricula,
 
               cargo:
-                normalizedRole,
+                cargo,
 
               setor:
                 setor,
@@ -909,12 +1267,17 @@ router.post(
           });
 
 
+
+      // ====================================================
+      // ERRO NO AUTH
+      // ====================================================
+
       if (
         authError
       ) {
 
         console.error(
-          "Erro no Auth:",
+          "Erro ao criar usuário no Supabase Auth:",
           authError
         );
 
@@ -934,13 +1297,21 @@ router.post(
       }
 
 
-      const userId =
+
+      // ====================================================
+      // UUID GERADO PELO AUTH
+      // ====================================================
+
+      createdAuthUserId =
         authData
           ?.user
           ?.id;
 
 
-      if (!userId) {
+
+      if (
+        !createdAuthUserId
+      ) {
 
         return res
           .status(500)
@@ -954,11 +1325,13 @@ router.post(
       }
 
 
+
       // ====================================================
-      // SALVAR NA TABELA usuario
+      // CRIAR PERFIL NA TABELA usuario
       // ====================================================
 
       const {
+
         data:
           profileData,
 
@@ -966,26 +1339,26 @@ router.post(
           profileError
 
       } =
-        await supabase
+        await supabaseAdmin
           .from(
             "usuario"
           )
           .insert({
 
             id:
-              userId,
+              createdAuthUserId,
 
             nome:
-              normalizedName,
+              nome,
 
             email:
-              normalizedEmail,
+              email,
 
             matricula:
-              normalizedRegistration,
+              matricula,
 
             cargo:
-              normalizedRole,
+              cargo,
 
             setor:
               setor,
@@ -1004,8 +1377,16 @@ router.post(
           .single();
 
 
+
       // ====================================================
-      // ROLLBACK
+      // ERRO AO CRIAR PERFIL
+      // ====================================================
+      //
+      // O usuário já existe no Auth.
+      //
+      // Se o INSERT falhar, apagamos o usuário
+      // do Auth para não deixar registros incompletos.
+      //
       // ====================================================
 
       if (
@@ -1018,12 +1399,33 @@ router.post(
         );
 
 
-        await supabaseAdmin
-          .auth
-          .admin
-          .deleteUser(
-            userId
+
+        const {
+
+          error:
+            rollbackError
+
+        } =
+          await supabaseAdmin
+            .auth
+            .admin
+            .deleteUser(
+              createdAuthUserId
+            );
+
+
+
+        if (
+          rollbackError
+        ) {
+
+          console.error(
+            "Erro ao desfazer criação no Auth:",
+            rollbackError
           );
+
+        }
+
 
 
         return res
@@ -1031,7 +1433,7 @@ router.post(
           .json({
 
             error:
-              "Não foi possível salvar os dados profissionais.",
+              "Não foi possível salvar os dados profissionais do usuário.",
 
             details:
               profileError.message
@@ -1039,6 +1441,7 @@ router.post(
           });
 
       }
+
 
 
       // ====================================================
@@ -1050,12 +1453,14 @@ router.post(
         .json({
 
           message:
+
             perfil ===
-              "admin_setor"
+            "admin_setor"
 
               ? "Administrador criado com sucesso."
 
               : "Funcionário criado com sucesso.",
+
 
           usuario:
             profileData
@@ -1063,12 +1468,53 @@ router.post(
         });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
         "Erro inesperado ao criar usuário:",
         error
       );
+
+
+
+      // ====================================================
+      // ROLLBACK EXTRA
+      // ====================================================
+      //
+      // Caso aconteça um erro inesperado DEPOIS
+      // da criação no Auth, tentamos remover
+      // o usuário criado.
+      //
+      // ====================================================
+
+      if (
+        createdAuthUserId
+      ) {
+
+        try {
+
+          await supabaseAdmin
+            .auth
+            .admin
+            .deleteUser(
+              createdAuthUserId
+            );
+
+        } catch (
+          rollbackError
+        ) {
+
+          console.error(
+            "Erro no rollback do Auth:",
+            rollbackError
+          );
+
+        }
+
+      }
+
 
 
       return res
@@ -1086,8 +1532,9 @@ router.post(
 );
 
 
+
 // ==========================================================
-// EXPORTAR
+// EXPORTAR ROUTER
 // ==========================================================
 
 module.exports =

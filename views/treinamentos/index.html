@@ -3,30 +3,39 @@
 
 <head>
 
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
   <title>
-    Portal de Carreiras - Treinamentos
+    Evolua+ | Treinamentos
   </title>
 
-  <!-- CSS principal -->
+
+  <!-- =====================================================
+       CSS
+  ====================================================== -->
+
   <link
     rel="stylesheet"
     href="style.css"
-  />
+  >
 
-  <!-- Font Awesome -->
+
+  <!-- =====================================================
+       FONT AWESOME
+  ====================================================== -->
+
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
+  >
 
 </head>
+
 
 
 <body>
@@ -39,9 +48,12 @@
   <aside class="sidebar">
 
 
-    <!-- LOGO -->
+    <!-- ===================================================
+         LOGO
+    ==================================================== -->
 
     <div class="logo">
+
 
       <div class="logo-icon">
 
@@ -53,22 +65,31 @@
       <div>
 
         <h2>
-          Portal
+          Evolua+
         </h2>
 
+
         <span>
-          de Carreiras
+          Portal de Gestão de Carreira
         </span>
 
       </div>
 
+
     </div>
 
 
-    <!-- MENU -->
+
+    <!-- ===================================================
+         MENU
+    ==================================================== -->
 
     <nav class="menu">
 
+
+      <!-- =================================================
+           DASHBOARD
+      ================================================== -->
 
       <a
         href="#"
@@ -84,22 +105,29 @@
       </a>
 
 
-    <!-- ===================================================
-     FÉRIAS
-==================================================== -->
 
-<a
-  href="/ferias/index.html"
-  class="menu-item"
->
+      <!-- =================================================
+           FÉRIAS
+      ================================================== -->
 
-  <i class="fa-solid fa-calendar-days"></i>
+      <a
+        href="/ferias/"
+        class="menu-item"
+      >
 
-  <span>
-    Férias
-  </span>
+        <i class="fa-solid fa-calendar-days"></i>
 
-</a>
+        <span>
+          Férias
+        </span>
+
+      </a>
+
+
+
+      <!-- =================================================
+           PONTO
+      ================================================== -->
 
       <a
         href="#"
@@ -115,8 +143,13 @@
       </a>
 
 
+
+      <!-- =================================================
+           TREINAMENTOS
+      ================================================== -->
+
       <a
-        href="#"
+        href="/treinamentos/"
         class="menu-item active"
       >
 
@@ -128,6 +161,11 @@
 
       </a>
 
+
+
+      <!-- =================================================
+           CARREIRA
+      ================================================== -->
 
       <a
         href="#"
@@ -143,6 +181,11 @@
       </a>
 
 
+
+      <!-- =================================================
+           FEEDBACKS
+      ================================================== -->
+
       <a
         href="#"
         class="menu-item"
@@ -156,36 +199,79 @@
 
       </a>
 
+
     </nav>
 
 
-    <!-- =================================================
-         USUÁRIO TEMPORÁRIO
-    ================================================== -->
+
+    <!-- ===================================================
+         USUÁRIO LOGADO
+    ==================================================== -->
+    <!--
+      Os dados abaixo NÃO são mais mockados.
+
+      O app.js preencherá:
+
+      sidebarUserAvatar
+      sidebarUserName
+      sidebarUserSector
+
+      usando:
+
+      localStorage.usuario_logado
+    -->
 
     <div class="sidebar-user">
 
+
+      <!-- AVATAR -->
+
       <div
         class="avatar"
-        id="userAvatar"
+        id="sidebarUserAvatar"
       >
-        MS
+        --
       </div>
 
+
+      <!-- INFORMAÇÕES -->
 
       <div class="user-info">
 
-        <strong id="userName">
-          Maycon Santos
+
+        <strong id="sidebarUserName">
+
+          Carregando...
+
         </strong>
 
-        <span id="userRole">
-          Desenvolvedor Júnior
+
+        <span id="sidebarUserSector">
+
+          Carregando setor...
+
         </span>
+
 
       </div>
 
+
+      <!-- LOGOUT -->
+
+      <button
+        type="button"
+        class="logout-button"
+        id="logoutButton"
+        title="Sair"
+      >
+
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+      </button>
+
+
     </div>
+
 
   </aside>
 
@@ -198,9 +284,9 @@
   <main class="main-content">
 
 
-    <!-- =================================================
+    <!-- ===================================================
          CABEÇALHO
-    ================================================== -->
+    ==================================================== -->
 
     <header class="topbar">
 
@@ -211,11 +297,13 @@
           Treinamentos
         </h1>
 
+
         <p>
           Desenvolva suas habilidades e acompanhe seu aprendizado.
         </p>
 
       </div>
+
 
     </header>
 
@@ -228,9 +316,12 @@
     <section class="summary-grid">
 
 
-      <!-- OBRIGATÓRIOS -->
+      <!-- =================================================
+           OBRIGATÓRIOS
+      ================================================== -->
 
       <div class="summary-card">
+
 
         <div class="summary-icon purple">
 
@@ -245,9 +336,11 @@
             Obrigatórios
           </span>
 
+
           <strong id="mandatoryCount">
             0
           </strong>
+
 
           <small>
             Para o seu setor
@@ -255,12 +348,17 @@
 
         </div>
 
+
       </div>
 
 
-      <!-- EM ANDAMENTO -->
+
+      <!-- =================================================
+           EM ANDAMENTO
+      ================================================== -->
 
       <div class="summary-card">
+
 
         <div class="summary-icon blue">
 
@@ -275,9 +373,11 @@
             Em andamento
           </span>
 
+
           <strong id="inProgressCount">
             0
           </strong>
+
 
           <small>
             Treinamentos
@@ -285,12 +385,17 @@
 
         </div>
 
+
       </div>
 
 
-      <!-- CONCLUÍDOS -->
+
+      <!-- =================================================
+           CONCLUÍDOS
+      ================================================== -->
 
       <div class="summary-card">
+
 
         <div class="summary-icon green">
 
@@ -305,9 +410,11 @@
             Concluídos
           </span>
 
+
           <strong id="completedCount">
             0
           </strong>
+
 
           <small>
             Treinamentos
@@ -315,12 +422,17 @@
 
         </div>
 
+
       </div>
 
 
-      <!-- CARGA HORÁRIA -->
+
+      <!-- =================================================
+           CARGA HORÁRIA
+      ================================================== -->
 
       <div class="summary-card">
+
 
         <div class="summary-icon orange">
 
@@ -335,9 +447,11 @@
             Carga horária
           </span>
 
+
           <strong id="totalHours">
             0h
           </strong>
+
 
           <small>
             Concluídas
@@ -345,7 +459,9 @@
 
         </div>
 
+
       </div>
+
 
     </section>
 
@@ -360,27 +476,31 @@
 
       <div class="section-header">
 
+
         <h2>
           Seus treinamentos
         </h2>
+
 
         <p>
           Cursos obrigatórios e recomendados para o seu setor.
         </p>
 
+
       </div>
 
 
       <!--
-        IMPORTANTE:
+        Este container será preenchido pelo app.js.
 
-        Os cards NÃO ficam mais escritos no HTML.
+        A regra final será:
 
-        O JavaScript vai buscar:
+        setor_destino do curso
+        =
+        setor do colaborador
 
-        GET /api/cursos
-
-        e inserir os cursos neste container.
+        Os obrigatórios e recomendados do setor
+        aparecem aqui.
       -->
 
       <div
@@ -388,7 +508,6 @@
         id="userTrainingGrid"
       >
 
-        <!-- Loading inicial -->
 
         <div class="loading-state">
 
@@ -400,7 +519,9 @@
 
         </div>
 
+
       </div>
+
 
     </section>
 
@@ -415,13 +536,16 @@
 
       <div class="section-header">
 
+
         <h2>
           Todos os treinamentos
         </h2>
 
+
         <p>
           Explore todos os cursos disponibilizados pela empresa.
         </p>
+
 
       </div>
 
@@ -434,32 +558,34 @@
       <div class="filters">
 
 
-        <!-- PESQUISA -->
+        <!-- ===============================================
+             PESQUISA
+        ================================================ -->
 
         <div class="search-box">
 
           <i class="fa-solid fa-magnifying-glass"></i>
 
+
           <input
             type="text"
             id="searchInput"
             placeholder="Buscar treinamento..."
-          />
+          >
 
         </div>
 
 
-        <!-- FILTROS -->
+
+        <!-- ===============================================
+             FILTROS
+        ================================================ -->
 
         <div
           class="filter-buttons"
           id="filterButtons"
         >
 
-          <!--
-            Os filtros serão criados dinamicamente
-            conforme as áreas cadastradas pelo Admin.
-          -->
 
           <button
             type="button"
@@ -469,20 +595,32 @@
             Todos
           </button>
 
+
         </div>
+
 
       </div>
 
 
 
       <!-- =================================================
-           CATÁLOGO
+           CATÁLOGO COMPLETO
       ================================================== -->
+      <!--
+        Diferente da seção anterior:
+
+        esta área mostrará TODOS os cursos ativos.
+
+        Portanto um colaborador de Tecnologia poderá,
+        por exemplo, acessar um curso criado pelo Financeiro
+        caso queira realizá-lo voluntariamente.
+      -->
 
       <div
         class="catalog-grid"
         id="courseCatalog"
       >
+
 
         <div class="loading-state">
 
@@ -494,9 +632,12 @@
 
         </div>
 
+
       </div>
 
+
     </section>
+
 
   </main>
 
@@ -532,7 +673,7 @@
 
 
       <!-- =================================================
-           CABEÇALHO
+           CABEÇALHO DO CURSO
       ================================================== -->
 
       <div class="course-modal-header">
@@ -540,15 +681,18 @@
 
         <div class="course-modal-icon">
 
+
           <i
             class="fa-solid fa-graduation-cap"
             id="modalCourseIcon"
           ></i>
 
+
         </div>
 
 
         <div>
+
 
           <span
             class="modal-badge"
@@ -567,7 +711,9 @@
             Área
           </p>
 
+
         </div>
+
 
       </div>
 
@@ -580,17 +726,22 @@
       <div class="course-information">
 
 
-        <!-- CARGA HORÁRIA -->
+        <!-- ===============================================
+             CARGA HORÁRIA
+        ================================================ -->
 
         <div>
+
 
           <span>
             Carga horária
           </span>
 
+
           <strong>
 
             <i class="fa-regular fa-clock"></i>
+
 
             <span id="modalCourseHours">
               0 horas
@@ -598,20 +749,27 @@
 
           </strong>
 
+
         </div>
 
 
-        <!-- NÍVEL -->
+
+        <!-- ===============================================
+             NÍVEL
+        ================================================ -->
 
         <div>
+
 
           <span>
             Nível
           </span>
 
+
           <strong>
 
             <i class="fa-solid fa-signal"></i>
+
 
             <span id="modalCourseLevel">
               Básico
@@ -619,20 +777,27 @@
 
           </strong>
 
+
         </div>
 
 
-        <!-- SETOR RESPONSÁVEL -->
+
+        <!-- ===============================================
+             SETOR RESPONSÁVEL
+        ================================================ -->
 
         <div>
+
 
           <span>
             Setor responsável
           </span>
 
+
           <strong>
 
             <i class="fa-solid fa-building"></i>
+
 
             <span id="modalCourseSector">
               -
@@ -640,7 +805,9 @@
 
           </strong>
 
+
         </div>
+
 
       </div>
 
@@ -651,6 +818,7 @@
       ================================================== -->
 
       <div class="course-description">
+
 
         <h3>
           Sobre o treinamento
@@ -663,11 +831,11 @@
 
         <p class="course-instruction-text">
 
-          As atividades devem ser realizadas fora do Portal.
-          Quando houver uma atividade para comprovação,
-          anexe o arquivo solicitado.
+          Realize as atividades conforme as instruções
+          e envie os arquivos solicitados para avaliação.
 
         </p>
+
 
       </div>
 
@@ -682,7 +850,9 @@
         id="externalCourseBox"
       >
 
+
         <div class="external-course-info">
+
 
           <div class="external-course-icon">
 
@@ -693,15 +863,19 @@
 
           <div>
 
+
             <strong>
               Curso realizado em plataforma externa
             </strong>
+
 
             <span>
               Utilize o botão abaixo para acessar o treinamento.
             </span>
 
+
           </div>
+
 
         </div>
 
@@ -720,6 +894,7 @@
 
         </a>
 
+
       </div>
 
 
@@ -736,33 +911,43 @@
 
           <div>
 
+
             <h3>
               Seu progresso
             </h3>
 
 
             <span id="courseProgressText">
+
               0 de 0 atividades concluídas
+
             </span>
+
 
           </div>
 
 
           <strong id="courseProgressPercentage">
+
             0%
+
           </strong>
+
 
         </div>
 
 
         <div class="course-progress-bar">
 
+
           <div
             id="courseProgressFill"
             class="course-progress-fill"
           ></div>
 
+
         </div>
+
 
       </div>
 
@@ -777,26 +962,31 @@
 
         <div class="activities-title">
 
+
           <div>
+
 
             <h3>
               Atividades do treinamento
             </h3>
 
+
             <p>
               Realize as atividades e envie os arquivos solicitados.
             </p>
 
+
           </div>
+
 
         </div>
 
 
         <!--
-          As atividades agora serão criadas
-          dinamicamente pelo JavaScript.
+          As atividades são criadas dinamicamente
+          pelo JavaScript.
 
-          Elas vêm da tabela:
+          Origem:
 
           atividades_curso
         -->
@@ -804,12 +994,13 @@
         <div id="courseActivities">
         </div>
 
+
       </div>
 
 
 
       <!-- =================================================
-           CURSO CONCLUÍDO NO FRONTEND
+           CURSO CONCLUÍDO
       ================================================== -->
 
       <div
@@ -817,25 +1008,31 @@
         id="courseCompletedMessage"
       >
 
+
         <i class="fa-solid fa-circle-check"></i>
 
 
         <div>
 
+
           <strong>
             Todas as atividades foram concluídas!
           </strong>
 
+
           <span>
-            Quando implementarmos os usuários,
-            este treinamento será enviado para avaliação.
+            Envie o treinamento para avaliação do setor responsável.
           </span>
+
 
         </div>
 
+
       </div>
 
+
     </div>
+
 
   </div>
 

@@ -14,10 +14,20 @@
     Evolua+ | Administração
   </title>
 
+
+  <!-- =====================================================
+       CSS
+  ====================================================== -->
+
   <link
     rel="stylesheet"
     href="style.css"
   >
+
+
+  <!-- =====================================================
+       FONT AWESOME
+  ====================================================== -->
 
   <link
     rel="stylesheet"
@@ -25,6 +35,7 @@
   >
 
 </head>
+
 
 
 <body>
@@ -37,9 +48,12 @@
   <aside class="sidebar">
 
 
-    <!-- LOGO -->
+    <!-- ===================================================
+         LOGO
+    ==================================================== -->
 
     <div class="logo">
+
 
       <div class="logo-icon">
 
@@ -60,15 +74,17 @@
 
       </div>
 
+
     </div>
 
 
 
-    <!-- =================================================
-         IDENTIFICAÇÃO ADMIN
-    ================================================== -->
+    <!-- ===================================================
+         IDENTIFICAÇÃO DO ADMIN
+    ==================================================== -->
 
     <div class="admin-badge">
+
 
       <i class="fa-solid fa-shield-halved"></i>
 
@@ -85,20 +101,24 @@
 
       </div>
 
+
     </div>
 
 
 
-    <!-- =================================================
+    <!-- ===================================================
          MENU
-    ================================================== -->
+    ==================================================== -->
 
     <nav class="menu">
 
 
-      <!-- VISÃO GERAL -->
+      <!-- =================================================
+           VISÃO GERAL
+      ================================================== -->
 
       <button
+        type="button"
         class="menu-item active"
         data-page="dashboard"
       >
@@ -113,9 +133,12 @@
 
 
 
-      <!-- FUNCIONÁRIOS -->
+      <!-- =================================================
+           FUNCIONÁRIOS
+      ================================================== -->
 
       <button
+        type="button"
         class="menu-item"
         data-page="employees"
       >
@@ -130,9 +153,12 @@
 
 
 
-      <!-- TREINAMENTOS -->
+      <!-- =================================================
+           TREINAMENTOS
+      ================================================== -->
 
       <button
+        type="button"
         class="menu-item"
         data-page="trainings"
       >
@@ -147,9 +173,12 @@
 
 
 
-      <!-- AVALIAÇÕES -->
+      <!-- =================================================
+           AVALIAÇÕES
+      ================================================== -->
 
       <button
+        type="button"
         class="menu-item"
         data-page="evaluations"
       >
@@ -173,7 +202,7 @@
 
 
       <!-- =================================================
-           FUNÇÕES FUTURAS
+           GESTÃO
       ================================================== -->
 
       <div class="menu-divider">
@@ -181,9 +210,26 @@
       </div>
 
 
-      <button
-        class="menu-item disabled"
+
+      <!-- =================================================
+           FÉRIAS
+      ================================================== -->
+      <!--
+        ALTERAÇÃO IMPORTANTE:
+
+        Antes este botão estava:
+
         disabled
+
+        Agora ele abre a página:
+
+        vacationsPage
+      -->
+
+      <button
+        type="button"
+        class="menu-item"
+        data-page="vacations"
       >
 
         <i class="fa-solid fa-umbrella-beach"></i>
@@ -192,10 +238,30 @@
           Férias
         </span>
 
+
+        <!--
+          Quantidade de solicitações pendentes.
+
+          O app.js preencherá este número.
+        -->
+
+        <span
+          class="menu-counter"
+          id="vacationMenuCounter"
+        >
+          0
+        </span>
+
       </button>
 
 
+
+      <!-- =================================================
+           PONTO
+      ================================================== -->
+
       <button
+        type="button"
         class="menu-item disabled"
         disabled
       >
@@ -209,7 +275,13 @@
       </button>
 
 
+
+      <!-- =================================================
+           DESEMPENHO
+      ================================================== -->
+
       <button
+        type="button"
         class="menu-item disabled"
         disabled
       >
@@ -223,7 +295,13 @@
       </button>
 
 
+
+      <!-- =================================================
+           CARREIRA
+      ================================================== -->
+
       <button
+        type="button"
         class="menu-item disabled"
         disabled
       >
@@ -236,16 +314,19 @@
 
       </button>
 
+
     </nav>
 
 
 
-    <!-- =================================================
+    <!-- ===================================================
          ADMIN LOGADO
-    ================================================== -->
+    ==================================================== -->
 
     <div class="sidebar-user">
 
+
+      <!-- AVATAR -->
 
       <div
         class="avatar"
@@ -254,6 +335,8 @@
         AP
       </div>
 
+
+      <!-- INFORMAÇÕES -->
 
       <div class="user-info">
 
@@ -268,7 +351,10 @@
       </div>
 
 
+      <!-- LOGOUT -->
+
       <button
+        type="button"
         class="logout-button"
         title="Sair"
       >
@@ -277,7 +363,9 @@
 
       </button>
 
+
     </div>
+
 
   </aside>
 
@@ -290,11 +378,12 @@
   <main class="main-content">
 
 
-    <!-- =================================================
+    <!-- ===================================================
          TOPO
-    ================================================== -->
+    ==================================================== -->
 
     <header class="topbar">
+
 
       <div>
 
@@ -307,6 +396,7 @@
         </p>
 
       </div>
+
 
     </header>
 
@@ -329,9 +419,12 @@
       <div class="summary-grid">
 
 
-        <!-- FUNCIONÁRIOS -->
+        <!-- =================================================
+             FUNCIONÁRIOS
+        ================================================== -->
 
         <article class="summary-card">
+
 
           <div class="summary-icon purple">
 
@@ -356,13 +449,17 @@
 
           </div>
 
+
         </article>
 
 
 
-        <!-- TREINAMENTOS -->
+        <!-- =================================================
+             TREINAMENTOS
+        ================================================== -->
 
         <article class="summary-card">
+
 
           <div class="summary-icon blue">
 
@@ -387,13 +484,17 @@
 
           </div>
 
+
         </article>
 
 
 
-        <!-- AVALIAÇÕES -->
+        <!-- =================================================
+             AVALIAÇÕES
+        ================================================== -->
 
         <article class="summary-card">
+
 
           <div class="summary-icon orange">
 
@@ -418,13 +519,17 @@
 
           </div>
 
+
         </article>
 
 
 
-        <!-- APROVADOS -->
+        <!-- =================================================
+             APROVADOS
+        ================================================== -->
 
         <article class="summary-card">
+
 
           <div class="summary-icon green">
 
@@ -449,24 +554,30 @@
 
           </div>
 
+
         </article>
+
 
       </div>
 
 
 
       <!-- =================================================
-           CONTEÚDO PRINCIPAL DO DASHBOARD
+           CONTEÚDO DO DASHBOARD
       ================================================== -->
 
       <div class="dashboard-grid">
 
 
-        <!-- AVALIAÇÕES PENDENTES -->
+        <!-- =================================================
+             AVALIAÇÕES PENDENTES
+        ================================================== -->
 
         <section class="panel">
 
+
           <div class="panel-header">
+
 
             <div>
 
@@ -482,13 +593,16 @@
 
 
             <button
+              type="button"
               class="link-button"
               onclick="changePage('evaluations')"
             >
               Ver todas
             </button>
 
+
           </div>
+
 
 
           <div
@@ -496,6 +610,7 @@
             id="dashboardEvaluationList"
           >
           </div>
+
 
         </section>
 
@@ -507,7 +622,9 @@
 
         <section class="panel">
 
+
           <div class="panel-header">
+
 
             <div>
 
@@ -521,18 +638,24 @@
 
             </div>
 
+
           </div>
+
 
 
           <div class="quick-actions">
 
 
-            <!-- NOVO FUNCIONÁRIO -->
+            <!-- =============================================
+                 NOVO FUNCIONÁRIO
+            ============================================== -->
 
             <button
+              type="button"
               class="quick-action"
               onclick="openEmployeeModal()"
             >
+
 
               <div class="quick-icon purple">
 
@@ -553,17 +676,22 @@
 
               </div>
 
+
             </button>
 
 
 
-            <!-- NOVO ADMINISTRADOR -->
+            <!-- =============================================
+                 NOVO ADMINISTRADOR
+            ============================================== -->
 
             <button
+              type="button"
               class="quick-action"
               id="newAdminButton"
               onclick="openAdminModal()"
             >
+
 
               <div class="quick-icon green">
 
@@ -584,16 +712,21 @@
 
               </div>
 
+
             </button>
 
 
 
-            <!-- NOVO TREINAMENTO -->
+            <!-- =============================================
+                 NOVO TREINAMENTO
+            ============================================== -->
 
             <button
+              type="button"
               class="quick-action"
               onclick="openCourseModal()"
             >
+
 
               <div class="quick-icon blue">
 
@@ -614,16 +747,21 @@
 
               </div>
 
+
             </button>
 
 
 
-            <!-- AVALIAR TREINAMENTOS -->
+            <!-- =============================================
+                 AVALIAR TREINAMENTOS
+            ============================================== -->
 
             <button
+              type="button"
               class="quick-action"
               onclick="changePage('evaluations')"
             >
+
 
               <div class="quick-icon orange">
 
@@ -644,11 +782,53 @@
 
               </div>
 
+
             </button>
+
+
+
+            <!-- =============================================
+                 SOLICITAÇÕES DE FÉRIAS
+            ============================================== -->
+            <!--
+              Já deixaremos também um atalho no Dashboard.
+            -->
+
+            <button
+              type="button"
+              class="quick-action"
+              onclick="changePage('vacations')"
+            >
+
+
+              <div class="quick-icon purple">
+
+                <i class="fa-solid fa-umbrella-beach"></i>
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  Solicitações de férias
+                </strong>
+
+                <span>
+                  Analisar pedidos dos colaboradores
+                </span>
+
+              </div>
+
+
+            </button>
+
 
           </div>
 
+
         </section>
+
 
       </div>
 
@@ -660,7 +840,9 @@
 
       <section class="panel dashboard-training-panel">
 
+
         <div class="panel-header">
+
 
           <div>
 
@@ -676,13 +858,16 @@
 
 
           <button
+            type="button"
             class="link-button"
             onclick="changePage('trainings')"
           >
             Gerenciar treinamentos
           </button>
 
+
         </div>
+
 
 
         <div
@@ -691,7 +876,9 @@
         >
         </div>
 
+
       </section>
+
 
     </section>
 
@@ -707,10 +894,16 @@
     >
 
 
+      <!-- =================================================
+           TOOLBAR
+      ================================================== -->
+
       <div class="section-toolbar">
 
 
-        <!-- PESQUISA -->
+        <!-- =================================================
+             PESQUISA
+        ================================================== -->
 
         <div class="search-box">
 
@@ -726,12 +919,15 @@
 
 
 
-        <!-- BOTÕES -->
+        <!-- =================================================
+             BOTÕES
+        ================================================== -->
 
         <div class="toolbar-user-actions">
 
 
           <button
+            type="button"
             class="outline-button toolbar-button"
             id="newAdminToolbarButton"
             onclick="openAdminModal()"
@@ -745,6 +941,7 @@
 
 
           <button
+            type="button"
             class="primary-button toolbar-button"
             onclick="openEmployeeModal()"
           >
@@ -755,19 +952,23 @@
 
           </button>
 
+
         </div>
+
 
       </div>
 
 
 
       <!-- =================================================
-           TABELA
+           TABELA DE USUÁRIOS
       ================================================== -->
 
       <section class="panel">
 
+
         <div class="panel-header">
+
 
           <div>
 
@@ -781,15 +982,19 @@
 
           </div>
 
+
         </div>
 
 
 
         <div class="table-wrapper">
 
+
           <table>
 
+
             <thead>
+
 
               <tr>
 
@@ -827,17 +1032,23 @@
 
               </tr>
 
+
             </thead>
+
 
 
             <tbody id="employeesTableBody">
             </tbody>
 
+
           </table>
+
 
         </div>
 
+
       </section>
+
 
     </section>
 
@@ -850,14 +1061,18 @@
       id="trainingsPage"
     >
 
+
+      <!-- =================================================
+           TOOLBAR
+      ================================================== -->
+
       <div class="section-toolbar">
 
-
-        <!-- PESQUISA -->
 
         <div class="search-box">
 
           <i class="fa-solid fa-magnifying-glass"></i>
+
 
           <input
             type="text"
@@ -868,68 +1083,73 @@
         </div>
 
 
+        <button
+          type="button"
+          class="primary-button toolbar-button"
+          onclick="openCourseModal()"
+        >
 
-        <div class="toolbar-right">
+          <i class="fa-solid fa-plus"></i>
+
+          Novo treinamento
+
+        </button>
 
 
-          <!-- FILTRO POR ÁREA -->
-
-          <select id="trainingAreaFilter">
-
-            <option value="">
-              Todas as áreas
-            </option>
-
-            <option value="Tecnologia">
-              Tecnologia
-            </option>
-
-            <option value="Desenvolvimento">
-              Desenvolvimento
-            </option>
-
-            <option value="Comunicação">
-              Comunicação
-            </option>
-
-            <option value="Liderança">
-              Liderança
-            </option>
-
-            <option value="Compliance">
-              Compliance
-            </option>
-
-          </select>
+      </div>
 
 
 
-          <!-- NOVO TREINAMENTO -->
+      <!-- =================================================
+           LISTA DE TREINAMENTOS
+      ================================================== -->
 
-          <button
-            class="primary-button toolbar-button"
-            onclick="openCourseModal()"
-          >
+      <section class="panel">
 
-            <i class="fa-solid fa-plus"></i>
 
-            Novo treinamento
+        <div class="panel-header">
 
-          </button>
+
+          <div>
+
+            <h2>
+              Treinamentos cadastrados
+            </h2>
+
+
+            <p>
+              Gerencie os cursos disponibilizados na plataforma.
+            </p>
+
+          </div>
+
 
         </div>
 
-      </div>
 
 
+        <div
+          class="training-admin-grid"
+          id="trainingAdminGrid"
+        >
 
-      <!-- CARDS DE TREINAMENTO -->
 
-      <div
-        class="admin-training-grid"
-        id="adminTrainingGrid"
-      >
-      </div>
+          <div class="empty-state">
+
+            <i class="fa-solid fa-spinner fa-spin"></i>
+
+            <strong>
+              Carregando treinamentos...
+            </strong>
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
 
     </section>
 
@@ -945,77 +1165,260 @@
     >
 
 
-      <!-- ABAS -->
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
 
-      <div class="evaluation-tabs">
-
-
-        <button
-          class="evaluation-tab active"
-          data-evaluation-status="pending"
-        >
-          Aguardando avaliação
-        </button>
+      <div class="section-toolbar">
 
 
-        <button
-          class="evaluation-tab"
-          data-evaluation-status="approved"
-        >
-          Aprovados
-        </button>
+        <div>
+
+          <h2>
+            Avaliações pendentes
+          </h2>
 
 
-        <button
-          class="evaluation-tab"
-          data-evaluation-status="rejected"
-        >
-          Reprovados
-        </button>
+          <p>
+            Analise as atividades enviadas pelos colaboradores.
+          </p>
+
+        </div>
+
+
+        <div class="vacation-summary-pill">
+
+          <i class="fa-solid fa-clipboard-check"></i>
+
+          <span>
+            Pendentes
+          </span>
+
+          <strong id="evaluationPendingCount">
+            0
+          </strong>
+
+        </div>
+
 
       </div>
 
 
 
-      <!-- LISTA -->
+      <!-- =================================================
+           BUSCA
+      ================================================== -->
+
+      <div class="vacation-admin-filters">
+
+
+        <div class="search-box">
+
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+
+          <input
+            type="text"
+            id="evaluationSearch"
+            placeholder="Buscar colaborador ou treinamento..."
+          >
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           LISTA
+      ================================================== -->
 
       <div
         class="evaluation-list"
         id="evaluationList"
       >
+
+
+        <div class="empty-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <strong>
+            Carregando avaliações...
+          </strong>
+
+        </div>
+
+
       </div>
 
+
     </section>
+
+
+
+    <!-- =====================================================
+         FÉRIAS
+    ====================================================== -->
+    <!--
+      Esta é a nova página administrativa de férias.
+
+      REGRA:
+
+      admin_setor:
+      vê somente solicitações dos colaboradores
+      pertencentes ao seu setor.
+
+      admin_principal:
+      poderá ter acesso geral conforme a regra
+      definida no backend.
+
+      Quando uma solicitação for respondida,
+      ela deixará de aparecer nesta fila.
+    -->
+
+    <section
+      class="page-section"
+      id="vacationsPage"
+    >
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
+      <div class="section-toolbar">
+
+
+        <div>
+
+          <h2>
+            Solicitações de férias
+          </h2>
+
+
+          <p>
+            Analise as solicitações enviadas pelos colaboradores do seu setor.
+          </p>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             CONTADOR
+        ================================================ -->
+
+        <div class="vacation-summary-pill">
+
+
+          <i class="fa-solid fa-clock"></i>
+
+
+          <span>
+            Pendentes
+          </span>
+
+
+          <strong id="vacationPendingCount">
+            0
+          </strong>
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           BUSCA
+      ================================================== -->
+
+      <div class="vacation-admin-filters">
+
+
+        <div class="search-box">
+
+
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+
+          <input
+            type="text"
+            id="vacationSearch"
+            placeholder="Buscar colaborador..."
+          >
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           LISTA DAS SOLICITAÇÕES
+      ================================================== -->
+
+      <div
+        class="vacation-request-list"
+        id="vacationRequestList"
+      >
+
+
+        <div class="empty-state">
+
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+
+          <strong>
+            Carregando solicitações...
+          </strong>
+
+
+          <span>
+            Aguarde enquanto buscamos as solicitações do seu setor.
+          </span>
+
+
+        </div>
+
+
+      </div>
+
+
+    </section>
+
 
   </main>
 
 
 
   <!-- =====================================================
-       MODAL - CRIAR USUÁRIO
+       MODAL - NOVO FUNCIONÁRIO
   ====================================================== -->
-  <!--
-    O MESMO MODAL SERÁ UTILIZADO PARA:
-
-    1. criar colaborador
-    2. criar administrador de setor
-
-    O JavaScript decide qual perfil será criado.
-  -->
 
   <div
     class="modal-overlay"
     id="employeeModal"
   >
 
-    <div class="modal standard-modal">
+
+    <div class="standard-modal">
 
 
-      <!-- FECHAR -->
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
 
       <button
         type="button"
-        class="close-modal"
+        class="modal-close"
         onclick="closeModal('employeeModal')"
       >
 
@@ -1041,15 +1444,16 @@
 
         <div>
 
-          <h2 id="employeeModalTitle">
+          <h2>
             Novo funcionário
           </h2>
 
-          <p id="employeeModalDescription">
-            Crie o acesso de um colaborador.
+          <p>
+            Cadastre um novo colaborador na plataforma.
           </p>
 
         </div>
+
 
       </div>
 
@@ -1059,186 +1463,195 @@
            FORMULÁRIO
       ================================================== -->
 
-      <form
-        id="employeeForm"
-        onsubmit="createEmployee(event)"
-      >
-
-        <div class="form-grid">
+      <form id="employeeForm">
 
 
-          <!-- =================================================
-               NOME
-          ================================================== -->
+        <!-- ===============================================
+             NOME
+        ================================================ -->
 
-          <div class="form-group full">
+        <div class="form-group">
 
-            <label for="employeeName">
-              Nome completo
-            </label>
-
-
-            <input
-              type="text"
-              id="employeeName"
-              placeholder="Ex.: João da Silva"
-              required
-            >
-
-          </div>
+          <label for="employeeName">
+            Nome completo
+          </label>
 
 
-
-          <!-- =================================================
-               MATRÍCULA
-          ================================================== -->
-
-          <div class="form-group">
-
-            <label for="employeeRegistration">
-              Matrícula
-            </label>
-
-
-            <input
-              type="text"
-              id="employeeRegistration"
-              placeholder="Ex.: 20260001"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- =================================================
-               E-MAIL
-          ================================================== -->
-
-          <div class="form-group">
-
-            <label for="employeeEmail">
-              E-mail
-            </label>
-
-
-            <input
-              type="email"
-              id="employeeEmail"
-              placeholder="joao.silva@empresa.com"
-              autocomplete="email"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- =================================================
-               CARGO
-          ================================================== -->
-
-          <div class="form-group">
-
-            <label for="employeeRole">
-              Cargo
-            </label>
-
-
-            <input
-              type="text"
-              id="employeeRole"
-              placeholder="Ex.: Desenvolvedor Júnior"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- =================================================
-               SETOR
-          ================================================== -->
-
-          <div class="form-group">
-
-            <label for="employeeSector">
-              Setor
-            </label>
-
-
-            <!--
-              O JavaScript preencherá automaticamente
-              as opções deste select.
-
-              ADMIN PRINCIPAL:
-              poderá escolher qualquer setor.
-
-              ADMIN DE SETOR:
-              ficará preso ao próprio setor.
-            -->
-
-            <select
-              id="employeeSector"
-              required
-            >
-            </select>
-
-          </div>
-
-
-
-          <!-- =================================================
-               SENHA
-          ================================================== -->
-
-          <div class="form-group full">
-
-            <label for="employeePassword">
-              Senha inicial
-            </label>
-
-
-            <input
-              type="password"
-              id="employeePassword"
-              placeholder="Digite uma senha com pelo menos 6 caracteres"
-              minlength="6"
-              autocomplete="new-password"
-              required
-            >
-
-          </div>
+          <input
+            type="text"
+            id="employeeName"
+            placeholder="Digite o nome completo"
+            required
+          >
 
         </div>
 
 
 
-        <!-- =================================================
-             INFORMAÇÃO
-        ================================================== -->
+        <!-- ===============================================
+             MATRÍCULA
+        ================================================ -->
 
-        <div class="form-information">
+        <div class="form-group">
 
-          <i class="fa-solid fa-circle-info"></i>
+          <label for="employeeRegistration">
+            Matrícula
+          </label>
 
 
-          <p>
-
-            O e-mail será utilizado para realizar o login no Evolua+.
-
-            A matrícula será utilizada como identificação interna
-            do colaborador.
-
-          </p>
+          <input
+            type="text"
+            id="employeeRegistration"
+            placeholder="Ex.: 000123"
+          >
 
         </div>
 
 
 
-        <!-- =================================================
-             AÇÕES
-        ================================================== -->
+        <!-- ===============================================
+             E-MAIL
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="employeeEmail">
+            E-mail
+          </label>
+
+
+          <input
+            type="email"
+            id="employeeEmail"
+            placeholder="colaborador@empresa.com"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             CARGO
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="employeeRole">
+            Cargo
+          </label>
+
+
+          <input
+            type="text"
+            id="employeeRole"
+            placeholder="Ex.: Analista de Sistemas"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             SETOR
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="employeeSector">
+            Setor
+          </label>
+
+
+          <select
+            id="employeeSector"
+            required
+          >
+
+            <option value="">
+              Selecione
+            </option>
+
+            <option value="Tecnologia">
+              Tecnologia
+            </option>
+
+            <option value="Financeiro">
+              Financeiro
+            </option>
+
+            <option value="Recursos Humanos">
+              Recursos Humanos
+            </option>
+
+            <option value="Comercial">
+              Comercial
+            </option>
+
+            <option value="Marketing">
+              Marketing
+            </option>
+
+            <option value="Administrativo">
+              Administrativo
+            </option>
+
+            <option value="Logística">
+              Logística
+            </option>
+
+            <option value="Produção">
+              Produção
+            </option>
+
+            <option value="Qualidade">
+              Qualidade
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             SENHA INICIAL
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="employeePassword">
+            Senha inicial
+          </label>
+
+
+          <input
+            type="password"
+            id="employeePassword"
+            placeholder="Digite a senha inicial"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             MENSAGEM
+        ================================================ -->
+
+        <div
+          class="form-message"
+          id="employeeFormMessage"
+        >
+        </div>
+
+
+
+        <!-- ===============================================
+             BOTÕES
+        ================================================ -->
 
         <div class="modal-actions">
 
@@ -1252,27 +1665,317 @@
           </button>
 
 
-
           <button
             type="submit"
             class="primary-button"
-            id="employeeSubmitButton"
           >
 
             <i class="fa-solid fa-user-plus"></i>
 
-
-            <span id="employeeSubmitText">
-              Criar funcionário
-            </span>
+            Criar funcionário
 
           </button>
 
+
         </div>
+
 
       </form>
 
+
     </div>
+
+
+  </div>
+
+
+
+  <!-- =====================================================
+       MODAL - NOVO ADMINISTRADOR
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="adminModal"
+  >
+
+
+    <div class="standard-modal">
+
+
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
+
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeModal('adminModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
+      <div class="modal-header">
+
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-user-shield"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Novo administrador
+          </h2>
+
+          <p>
+            Cadastre um administrador responsável por um setor.
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           FORMULÁRIO
+      ================================================== -->
+
+      <form id="adminForm">
+
+
+        <!-- ===============================================
+             NOME
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="adminUserName">
+            Nome completo
+          </label>
+
+
+          <input
+            type="text"
+            id="adminUserName"
+            placeholder="Digite o nome completo"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             MATRÍCULA
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="adminRegistration">
+            Matrícula
+          </label>
+
+
+          <input
+            type="text"
+            id="adminRegistration"
+            placeholder="Ex.: ADM001"
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             E-MAIL
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="adminEmail">
+            E-mail
+          </label>
+
+
+          <input
+            type="email"
+            id="adminEmail"
+            placeholder="administrador@empresa.com"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             CARGO
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="adminUserRole">
+            Cargo
+          </label>
+
+
+          <input
+            type="text"
+            id="adminUserRole"
+            placeholder="Ex.: Gestor de Tecnologia"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             SETOR
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="adminUserSector">
+            Setor
+          </label>
+
+
+          <select
+            id="adminUserSector"
+            required
+          >
+
+            <option value="">
+              Selecione
+            </option>
+
+            <option value="Tecnologia">
+              Tecnologia
+            </option>
+
+            <option value="Financeiro">
+              Financeiro
+            </option>
+
+            <option value="Recursos Humanos">
+              Recursos Humanos
+            </option>
+
+            <option value="Comercial">
+              Comercial
+            </option>
+
+            <option value="Marketing">
+              Marketing
+            </option>
+
+            <option value="Administrativo">
+              Administrativo
+            </option>
+
+            <option value="Logística">
+              Logística
+            </option>
+
+            <option value="Produção">
+              Produção
+            </option>
+
+            <option value="Qualidade">
+              Qualidade
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             SENHA
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="adminPassword">
+            Senha inicial
+          </label>
+
+
+          <input
+            type="password"
+            id="adminPassword"
+            placeholder="Digite a senha inicial"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- ===============================================
+             MENSAGEM
+        ================================================ -->
+
+        <div
+          class="form-message"
+          id="adminFormMessage"
+        >
+        </div>
+
+
+
+        <!-- ===============================================
+             BOTÕES
+        ================================================ -->
+
+        <div class="modal-actions">
+
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="closeModal('adminModal')"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+          >
+
+            <i class="fa-solid fa-user-shield"></i>
+
+            Criar administrador
+
+          </button>
+
+
+        </div>
+
+
+      </form>
+
+
+    </div>
+
 
   </div>
 
@@ -1287,14 +1990,17 @@
     id="courseModal"
   >
 
-    <div class="modal large-modal">
+
+    <div class="standard-modal course-admin-modal">
 
 
-      <!-- FECHAR -->
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
 
       <button
         type="button"
-        class="close-modal"
+        class="modal-close"
         onclick="closeModal('courseModal')"
       >
 
@@ -1321,14 +2027,16 @@
         <div>
 
           <h2>
-            Criar treinamento
+            Novo treinamento
           </h2>
 
+
           <p>
-            Cadastre o curso, público e atividades.
+            Cadastre um treinamento para disponibilizar na plataforma.
           </p>
 
         </div>
+
 
       </div>
 
@@ -1338,460 +2046,379 @@
            FORMULÁRIO
       ================================================== -->
 
-      <form
-        id="courseForm"
-        onsubmit="createCourse(event)"
-      >
+      <form id="courseForm">
 
 
-        <!-- =================================================
-             SEÇÃO 1
-             INFORMAÇÕES GERAIS
-        ================================================== -->
+        <!-- ===============================================
+             TÍTULO
+        ================================================ -->
 
-        <div class="form-section">
+        <div class="form-group">
 
-
-          <div class="form-section-title">
-
-
-            <span>
-              1
-            </span>
+          <label for="courseTitle">
+            Título
+          </label>
 
 
-            <div>
+          <input
+            type="text"
+            id="courseTitle"
+            placeholder="Ex.: Excel Avançado"
+            required
+          >
 
-              <h3>
-                Informações do treinamento
-              </h3>
+        </div>
 
-              <p>
-                Dados principais que aparecerão para os colaboradores.
-              </p>
 
-            </div>
+
+        <!-- ===============================================
+             DESCRIÇÃO
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="courseDescription">
+            Descrição
+          </label>
+
+
+          <textarea
+            id="courseDescription"
+            rows="4"
+            placeholder="Descreva o objetivo do treinamento..."
+            required
+          ></textarea>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             LINHA COM HORAS E ÁREA
+        ================================================ -->
+
+        <div class="form-row">
+
+
+          <div class="form-group">
+
+            <label for="courseHours">
+              Carga horária
+            </label>
+
+
+            <input
+              type="number"
+              id="courseHours"
+              min="1"
+              placeholder="Ex.: 8"
+              required
+            >
 
           </div>
 
 
 
-          <div class="form-grid">
+          <div class="form-group">
 
+            <label for="courseArea">
+              Área
+            </label>
 
-            <!-- TÍTULO -->
 
-            <div class="form-group full">
+            <input
+              type="text"
+              id="courseArea"
+              placeholder="Ex.: Tecnologia"
+              required
+            >
 
-              <label for="courseTitle">
-                Título do treinamento
-              </label>
+          </div>
 
 
-              <input
-                id="courseTitle"
-                type="text"
-                placeholder="Ex.: Excel Avançado"
-                required
-              >
+        </div>
 
-            </div>
 
 
+        <!-- ===============================================
+             LINHA COM NÍVEL E CLASSIFICAÇÃO
+        ================================================ -->
 
-            <!-- DESCRIÇÃO -->
+        <div class="form-row">
 
-            <div class="form-group full">
 
-              <label for="courseDescription">
-                Descrição
-              </label>
+          <div class="form-group">
 
+            <label for="courseLevel">
+              Nível
+            </label>
 
-              <textarea
-                id="courseDescription"
-                rows="4"
-                placeholder="Descreva o objetivo do treinamento..."
-                required
-              ></textarea>
 
-            </div>
+            <select
+              id="courseLevel"
+              required
+            >
 
+              <option value="">
+                Selecione
+              </option>
 
+              <option value="Básico">
+                Básico
+              </option>
 
-            <!-- CARGA HORÁRIA -->
+              <option value="Intermediário">
+                Intermediário
+              </option>
 
-            <div class="form-group">
+              <option value="Avançado">
+                Avançado
+              </option>
 
-              <label for="courseHours">
-                Carga horária
-              </label>
-
-
-              <div class="input-with-suffix">
-
-                <input
-                  id="courseHours"
-                  type="number"
-                  min="1"
-                  placeholder="8"
-                  required
-                >
-
-                <span>
-                  horas
-                </span>
-
-              </div>
-
-            </div>
-
-
-
-            <!-- ÁREA -->
-
-            <div class="form-group">
-
-              <label for="courseArea">
-                Área
-              </label>
-
-
-              <select
-                id="courseArea"
-                required
-              >
-
-                <option value="">
-                  Selecione
-                </option>
-
-                <option value="Tecnologia">
-                  Tecnologia
-                </option>
-
-                <option value="Desenvolvimento">
-                  Desenvolvimento
-                </option>
-
-                <option value="Comunicação">
-                  Comunicação
-                </option>
-
-                <option value="Liderança">
-                  Liderança
-                </option>
-
-                <option value="Compliance">
-                  Compliance
-                </option>
-
-              </select>
-
-            </div>
-
-
-
-            <!-- NÍVEL -->
-
-            <div class="form-group">
-
-              <label for="courseLevel">
-                Nível
-              </label>
-
-
-              <select
-                id="courseLevel"
-                required
-              >
-
-                <option value="Básico">
-                  Básico
-                </option>
-
-                <option value="Intermediário">
-                  Intermediário
-                </option>
-
-                <option value="Avançado">
-                  Avançado
-                </option>
-
-              </select>
-
-            </div>
-
-
-
-            <!-- =================================================
-                 SETOR RESPONSÁVEL
-            ================================================== -->
-
-            <div class="form-group">
-
-              <label for="courseResponsibleSector">
-                Setor responsável
-              </label>
-
-
-              <select
-                id="courseResponsibleSector"
-                required
-              >
-
-                <option value="Operacional">
-                  Operacional
-                </option>
-
-                <option value="Logística">
-                  Logística
-                </option>
-
-                <option value="Administrativo">
-                  Administrativo
-                </option>
-
-                <option value="Tecnologia">
-                  Tecnologia
-                </option>
-
-                <option value="RH">
-                  RH
-                </option>
-
-                <option value="Financeiro">
-                  Financeiro
-                </option>
-
-                <option value="Marketing">
-                  Marketing
-                </option>
-
-              </select>
-
-            </div>
+            </select>
 
           </div>
 
 
 
-          <!-- =================================================
-               CURSO EXTERNO
-          ================================================== -->
+          <div class="form-group">
 
-          <label class="toggle-card">
+            <label for="courseRequirement">
+              Classificação
+            </label>
+
+
+            <select
+              id="courseRequirement"
+              required
+            >
+
+              <option value="">
+                Selecione
+              </option>
+
+              <option value="Obrigatório">
+                Obrigatório
+              </option>
+
+              <option value="Recomendado">
+                Recomendado
+              </option>
+
+            </select>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ===============================================
+             SETOR RESPONSÁVEL
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="courseResponsibleSector">
+            Setor responsável
+          </label>
+
+
+          <select
+            id="courseResponsibleSector"
+            required
+          >
+
+            <option value="">
+              Selecione
+            </option>
+
+            <option value="Tecnologia">
+              Tecnologia
+            </option>
+
+            <option value="Financeiro">
+              Financeiro
+            </option>
+
+            <option value="Recursos Humanos">
+              Recursos Humanos
+            </option>
+
+            <option value="Comercial">
+              Comercial
+            </option>
+
+            <option value="Marketing">
+              Marketing
+            </option>
+
+            <option value="Administrativo">
+              Administrativo
+            </option>
+
+            <option value="Logística">
+              Logística
+            </option>
+
+            <option value="Produção">
+              Produção
+            </option>
+
+            <option value="Qualidade">
+              Qualidade
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             SETOR DESTINO
+        ================================================ -->
+
+        <div class="form-group">
+
+          <label for="courseTargetSector">
+            Setor de destino
+          </label>
+
+
+          <select
+            id="courseTargetSector"
+            required
+          >
+
+            <option value="">
+              Selecione
+            </option>
+
+            <option value="Tecnologia">
+              Tecnologia
+            </option>
+
+            <option value="Financeiro">
+              Financeiro
+            </option>
+
+            <option value="Recursos Humanos">
+              Recursos Humanos
+            </option>
+
+            <option value="Comercial">
+              Comercial
+            </option>
+
+            <option value="Marketing">
+              Marketing
+            </option>
+
+            <option value="Administrativo">
+              Administrativo
+            </option>
+
+            <option value="Logística">
+              Logística
+            </option>
+
+            <option value="Produção">
+              Produção
+            </option>
+
+            <option value="Qualidade">
+              Qualidade
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             CURSO EXTERNO
+        ================================================ -->
+
+        <div class="form-group checkbox-group">
+
+
+          <label class="checkbox-label">
 
 
             <input
               type="checkbox"
               id="externalCourse"
-              onchange="toggleExternalCourse()"
             >
 
 
-            <span class="toggle-switch">
+            <span>
+              Este treinamento é realizado em uma plataforma externa
             </span>
 
 
-            <div>
-
-              <strong>
-                Curso externo
-              </strong>
-
-              <span>
-                O treinamento será realizado em outra plataforma.
-              </span>
-
-            </div>
-
           </label>
 
-
-
-          <!-- =================================================
-               LINK EXTERNO
-          ================================================== -->
-
-          <div
-            class="external-link-area"
-            id="externalLinkArea"
-          >
-
-            <div class="form-group">
-
-              <label for="externalCourseLink">
-                Link do curso externo
-              </label>
-
-
-              <input
-                type="url"
-                id="externalCourseLink"
-                placeholder="https://..."
-              >
-
-            </div>
-
-          </div>
 
         </div>
 
 
 
-        <!-- =================================================
-             SEÇÃO 2
-             PÚBLICO
-        ================================================== -->
+        <!-- ===============================================
+             LINK EXTERNO
+        ================================================ -->
 
-        <div class="form-section">
+        <div
+          class="form-group"
+          id="externalLinkArea"
+          style="display: none;"
+        >
 
 
-          <div class="form-section-title">
+          <label for="externalCourseLinkInput">
+            Link do treinamento externo
+          </label>
 
 
-            <span>
-              2
-            </span>
+          <input
+            type="url"
+            id="externalCourseLinkInput"
+            placeholder="https://..."
+          >
+
+
+        </div>
+
+
+
+        <!-- ===============================================
+             ATIVIDADES
+        ================================================ -->
+
+        <div class="course-activities-builder">
+
+
+          <div class="builder-header">
 
 
             <div>
 
               <h3>
-                Público do treinamento
+                Atividades
               </h3>
 
               <p>
-                Defina para qual setor o curso será disponibilizado.
+                Adicione as atividades que o colaborador deverá realizar.
               </p>
 
             </div>
 
-          </div>
-
-
-
-          <div class="form-grid">
-
-
-            <!-- SETOR DESTINO -->
-
-            <div class="form-group">
-
-              <label for="courseTargetSector">
-                Setor
-              </label>
-
-
-              <select
-                id="courseTargetSector"
-                required
-              >
-
-                <option value="Operacional">
-                  Operacional
-                </option>
-
-                <option value="Logística">
-                  Logística
-                </option>
-
-                <option value="Administrativo">
-                  Administrativo
-                </option>
-
-                <option value="Tecnologia">
-                  Tecnologia
-                </option>
-
-                <option value="RH">
-                  RH
-                </option>
-
-                <option value="Financeiro">
-                  Financeiro
-                </option>
-
-                <option value="Marketing">
-                  Marketing
-                </option>
-
-              </select>
-
-            </div>
-
-
-
-            <!-- CLASSIFICAÇÃO -->
-
-            <div class="form-group">
-
-              <label for="courseRequirement">
-                Classificação
-              </label>
-
-
-              <select
-                id="courseRequirement"
-                required
-              >
-
-                <option value="Obrigatório">
-                  Obrigatório
-                </option>
-
-                <option value="Recomendado">
-                  Recomendado
-                </option>
-
-              </select>
-
-            </div>
-
-          </div>
-
-        </div>
-
-                <!-- =================================================
-             SEÇÃO 3
-             ATIVIDADES DO TREINAMENTO
-        ================================================== -->
-
-        <div class="form-section">
-
-
-          <div class="form-section-title activity-section-heading">
-
-
-            <div class="number-title">
-
-              <span>
-                3
-              </span>
-
-
-              <div>
-
-                <h3>
-                  Atividades
-                </h3>
-
-                <p>
-                  Crie as etapas que o funcionário deverá concluir.
-                </p>
-
-              </div>
-
-            </div>
-
-
-
-            <!-- ADICIONAR ATIVIDADE -->
 
             <button
               type="button"
-              class="outline-button"
+              class="secondary-button"
               onclick="addActivity()"
             >
 
@@ -1801,49 +2428,38 @@
 
             </button>
 
-          </div>
-
-
-
-          <!-- =================================================
-               LISTA DINÂMICA DE ATIVIDADES
-
-               O JavaScript adicionará aqui:
-               - atividade de texto
-               - arquivo
-               - link
-          ================================================== -->
-
-          <div
-            class="activity-builder-list"
-            id="activityBuilderList"
-          >
-
-            <div class="empty-activities">
-
-              <i class="fa-regular fa-clipboard"></i>
-
-
-              <strong>
-                Nenhuma atividade adicionada
-              </strong>
-
-
-              <span>
-                Clique em "Adicionar atividade" para começar.
-              </span>
-
-            </div>
 
           </div>
+
+
+
+          <!-- =============================================
+               CONTAINER DAS ATIVIDADES
+          ============================================== -->
+
+          <div id="activityBuilder">
+          </div>
+
 
         </div>
 
 
 
-        <!-- =================================================
-             BOTÕES DO FORMULÁRIO DE TREINAMENTO
-        ================================================== -->
+        <!-- ===============================================
+             MENSAGEM
+        ================================================ -->
+
+        <div
+          class="form-message"
+          id="courseFormMessage"
+        >
+        </div>
+
+
+
+        <!-- ===============================================
+             BOTÕES
+        ================================================ -->
 
         <div class="modal-actions">
 
@@ -1853,11 +2469,8 @@
             class="secondary-button"
             onclick="closeModal('courseModal')"
           >
-
             Cancelar
-
           </button>
-
 
 
           <button
@@ -1865,103 +2478,44 @@
             class="primary-button"
           >
 
-            <i class="fa-solid fa-paper-plane"></i>
+            <i class="fa-solid fa-floppy-disk"></i>
 
-            Publicar treinamento
+            Salvar treinamento
 
           </button>
 
+
         </div>
+
 
       </form>
 
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       MODAL
-       AVALIAR TREINAMENTO
-  ====================================================== -->
-  <!--
-    O conteúdo desse modal será criado
-    dinamicamente pelo JavaScript.
-
-    Quando o administrador clicar em "Avaliar",
-    a função openEvaluation() preencherá
-    evaluationModalContent.
-  -->
-
-  <div
-    class="modal-overlay"
-    id="evaluationModal"
-  >
-
-    <div class="modal large-modal">
-
-
-      <!-- FECHAR -->
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('evaluationModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <!--
-        Conteúdo gerado pelo app.js
-      -->
-
-      <div id="evaluationModalContent">
-      </div>
 
     </div>
 
+
   </div>
 
-
-
-  <!-- =====================================================
-       MODAL
-       DETALHES DO CURSO
+    <!-- =====================================================
+       MODAL - DETALHES DO CURSO
   ====================================================== -->
-  <!--
-    Utilizado quando o administrador clicar
-    no botão "Visualizar" de um treinamento.
-
-    O JavaScript colocará aqui:
-
-    - título
-    - descrição
-    - carga horária
-    - nível
-    - setor
-    - classificação
-    - atividades
-    - link externo, se existir
-  -->
 
   <div
     class="modal-overlay"
     id="courseDetailsModal"
   >
 
-    <div class="modal standard-modal">
+
+    <div class="standard-modal course-details-modal">
 
 
-      <!-- FECHAR -->
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
 
       <button
         type="button"
-        class="close-modal"
+        class="modal-close"
         onclick="closeModal('courseDetailsModal')"
       >
 
@@ -1971,51 +2525,50 @@
 
 
 
-      <!--
-        Conteúdo criado dinamicamente
-        pelo JavaScript.
-      -->
+      <!-- =================================================
+           CONTEÚDO
+      ================================================== -->
 
       <div id="courseDetailsContent">
+
+        <div class="empty-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <strong>
+            Carregando treinamento...
+          </strong>
+
+        </div>
+
       </div>
 
+
     </div>
+
 
   </div>
 
 
 
   <!-- =====================================================
-       MODAL
-       CONFIRMAÇÃO DE EXCLUSÃO DO CURSO
+       MODAL - CONFIRMAR EXCLUSÃO DO CURSO
   ====================================================== -->
-  <!--
-    Nós não apagaremos definitivamente o histórico
-    de um treinamento.
-
-    A ideia é utilizar um "soft delete":
-
-    ativo = false
-
-    Assim:
-
-    - o curso deixa de aparecer;
-    - o histórico continua existindo;
-    - as horas já conquistadas pelo funcionário
-      não serão perdidas.
-  -->
 
   <div
     class="modal-overlay"
     id="confirmationModal"
   >
 
-    <div class="modal confirmation-modal">
+
+    <div class="standard-modal confirmation-modal">
 
 
-      <!-- ÍCONE -->
+      <!-- =================================================
+           ÍCONE
+      ================================================== -->
 
-      <div class="confirmation-icon danger-icon">
+      <div class="confirmation-icon danger">
 
         <i class="fa-solid fa-trash"></i>
 
@@ -2023,29 +2576,24 @@
 
 
 
-      <!-- TÍTULO -->
+      <!-- =================================================
+           TEXTO
+      ================================================== -->
 
       <h2>
         Remover treinamento?
       </h2>
 
 
-
-      <!-- EXPLICAÇÃO -->
-
       <p>
-
-        O treinamento deixará de aparecer
-        para os colaboradores.
-
-        O histórico de cursos já concluídos
-        continuará preservado.
-
+        O treinamento deixará de aparecer na plataforma para os colaboradores.
       </p>
 
 
 
-      <!-- BOTÕES -->
+      <!-- =================================================
+           AÇÕES
+      ================================================== -->
 
       <div class="modal-actions">
 
@@ -2055,11 +2603,8 @@
           class="secondary-button"
           onclick="closeModal('confirmationModal')"
         >
-
           Cancelar
-
         </button>
-
 
 
         <button
@@ -2074,211 +2619,298 @@
 
         </button>
 
+
       </div>
 
+
     </div>
+
 
   </div>
 
-<!-- =====================================================
-     MODAL - CONFIGURAR FÉRIAS DO COLABORADOR
-====================================================== -->
-
-<div
-  class="modal-overlay"
-  id="vacationPeriodModal"
->
-
-  <div class="modal standard-modal">
 
 
-    <!-- =================================================
-         FECHAR
-    ================================================== -->
+  <!-- =====================================================
+       MODAL - AVALIAÇÃO DE TREINAMENTO
+  ====================================================== -->
 
-    <button
-      type="button"
-      class="close-modal"
-      onclick="closeModal('vacationPeriodModal')"
-    >
-
-      <i class="fa-solid fa-xmark"></i>
-
-    </button>
+  <div
+    class="modal-overlay"
+    id="evaluationModal"
+  >
 
 
-
-    <!-- =================================================
-         CABEÇALHO
-    ================================================== -->
-
-    <div class="modal-header">
+    <div class="standard-modal evaluation-modal">
 
 
-      <div class="modal-title-icon">
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
 
-        <i class="fa-solid fa-umbrella-beach"></i>
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeModal('evaluationModal')"
+      >
 
-      </div>
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
 
 
-      <div>
 
-        <h2>
-          Configurar férias
-        </h2>
+      <!-- =================================================
+           CONTEÚDO DINÂMICO
+      ================================================== -->
 
-        <p>
-          Informe o período inicial de férias do colaborador.
-        </p>
+      <div id="evaluationModalContent">
+
+        <div class="empty-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <strong>
+            Carregando avaliação...
+          </strong>
+
+        </div>
 
       </div>
+
 
     </div>
 
 
-
-    <!-- =================================================
-         COLABORADOR
-    ================================================== -->
-
-    <div class="vacation-employee-preview">
+  </div>
 
 
-      <div
-        class="table-avatar"
-        id="vacationEmployeeAvatar"
+
+  <!-- =====================================================
+       MODAL - CONFIGURAR PERÍODO DE FÉRIAS
+  ====================================================== -->
+  <!--
+    Este modal continua sendo usado na página
+    Funcionários.
+
+    O Admin seleciona um colaborador e informa:
+
+    - início do período aquisitivo;
+    - fim do período aquisitivo;
+    - dias utilizados;
+    - vencimento.
+
+    Os 30 dias de direito são definidos
+    automaticamente pelo backend.
+  -->
+
+  <div
+    class="modal-overlay"
+    id="vacationPeriodModal"
+  >
+
+
+    <div class="standard-modal vacation-period-modal">
+
+
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
+
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeModal('vacationPeriodModal')"
       >
-        --
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
+      <div class="modal-header">
+
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-umbrella-beach"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Configurar férias
+          </h2>
+
+
+          <p>
+            Cadastre ou atualize o período aquisitivo do colaborador.
+          </p>
+
+        </div>
+
+
       </div>
 
 
-      <div>
 
-        <strong id="vacationEmployeeName">
-          Colaborador
-        </strong>
+      <!-- =================================================
+           COLABORADOR
+      ================================================== -->
 
-        <span id="vacationEmployeeDetails">
-          Cargo • Setor
-        </span>
+      <div class="vacation-employee-card">
+
+
+        <div
+          class="list-avatar"
+          id="vacationEmployeeAvatar"
+        >
+          --
+        </div>
+
+
+        <div>
+
+          <strong id="vacationEmployeeName">
+            Colaborador
+          </strong>
+
+
+          <span id="vacationEmployeeDetails">
+            Cargo • Setor
+          </span>
+
+        </div>
+
 
       </div>
 
-    </div>
 
 
+      <!-- =================================================
+           FORMULÁRIO
+      ================================================== -->
 
-    <!-- =================================================
-         FORMULÁRIO
-    ================================================== -->
-
-    <form
-      id="vacationPeriodForm"
-      onsubmit="saveVacationPeriod(event)"
-    >
+      <form id="vacationPeriodForm">
 
 
-      <!-- ID DO USUÁRIO -->
+        <!-- ID DO FUNCIONÁRIO -->
 
-      <input
-        type="hidden"
-        id="vacationEmployeeId"
-      >
+        <input
+          type="hidden"
+          id="vacationEmployeeId"
+        >
 
-
-
-      <div class="form-grid">
 
 
         <!-- =================================================
-             INÍCIO
+             PERÍODO
         ================================================== -->
 
-        <div class="form-group">
+        <div class="form-row">
 
-          <label for="vacationPeriodStart">
-            Início do período aquisitivo
-          </label>
 
-          <input
-            type="date"
-            id="vacationPeriodStart"
-            required
-          >
+          <!-- INÍCIO -->
+
+          <div class="form-group">
+
+            <label for="vacationPeriodStart">
+              Início do período aquisitivo
+            </label>
+
+
+            <input
+              type="date"
+              id="vacationPeriodStart"
+              required
+            >
+
+          </div>
+
+
+
+          <!-- FIM -->
+
+          <div class="form-group">
+
+            <label for="vacationPeriodEnd">
+              Fim do período aquisitivo
+            </label>
+
+
+            <input
+              type="date"
+              id="vacationPeriodEnd"
+              required
+            >
+
+          </div>
+
 
         </div>
 
 
 
         <!-- =================================================
-             FIM
+             DIAS
         ================================================== -->
 
-        <div class="form-group">
-
-          <label for="vacationPeriodEnd">
-            Fim do período aquisitivo
-          </label>
-
-          <input
-            type="date"
-            id="vacationPeriodEnd"
-            required
-          >
-
-        </div>
+        <div class="form-row">
 
 
+          <!-- DIAS DE DIREITO -->
 
-        <!-- =================================================
-             DIAS DE DIREITO
-        ================================================== -->
+          <div class="form-group">
 
-        <div class="form-group">
+            <label for="vacationEntitledDays">
+              Dias de direito
+            </label>
 
-          <label for="vacationEntitledDays">
-            Dias de direito
-          </label>
 
-          <input
-            type="number"
-            id="vacationEntitledDays"
-            min="1"
-            max="60"
-            value="30"
-            required
-          >
+            <input
+              type="number"
+              id="vacationEntitledDays"
+              value="30"
+              readonly
+            >
 
-          <small class="field-helper">
-            Quantidade total de dias disponíveis no período.
-          </small>
 
-        </div>
+            <small class="field-helper">
+
+              O sistema libera automaticamente 30 dias após a conclusão do período aquisitivo.
+
+            </small>
+
+          </div>
 
 
 
-        <!-- =================================================
-             DIAS JÁ UTILIZADOS
-        ================================================== -->
+          <!-- DIAS UTILIZADOS -->
 
-        <div class="form-group">
+          <div class="form-group">
 
-          <label for="vacationUsedDays">
-            Dias já utilizados
-          </label>
+            <label for="vacationUsedDays">
+              Dias já utilizados
+            </label>
 
-          <input
-            type="number"
-            id="vacationUsedDays"
-            min="0"
-            value="0"
-            required
-          >
 
-          <small class="field-helper">
-            Informe os dias utilizados antes da entrada no sistema.
-          </small>
+            <input
+              type="number"
+              id="vacationUsedDays"
+              value="0"
+              min="0"
+              max="30"
+              required
+            >
+
+          </div>
+
 
         </div>
 
@@ -2288,11 +2920,12 @@
              VENCIMENTO
         ================================================== -->
 
-        <div class="form-group full">
+        <div class="form-group">
 
           <label for="vacationExpirationDate">
             Data de vencimento
           </label>
+
 
           <input
             type="date"
@@ -2303,29 +2936,329 @@
         </div>
 
 
-      </div>
 
+        <!-- =================================================
+             SALDO VISUAL
+        ================================================== -->
 
+        <div class="vacation-balance-preview">
 
-      <!-- =================================================
-           SALDO CALCULADO
-      ================================================== -->
-
-      <div class="vacation-balance-preview">
-
-        <div>
 
           <span>
-            Saldo que ficará disponível
+            Saldo previsto
           </span>
+
 
           <strong id="vacationBalancePreview">
             30 dias
           </strong>
 
+
         </div>
 
-        <i class="fa-solid fa-calculator"></i>
+
+
+        <!-- =================================================
+             MENSAGEM
+        ================================================== -->
+
+        <div
+          class="form-message"
+          id="vacationFormMessage"
+        >
+        </div>
+
+
+
+        <!-- =================================================
+             AÇÕES
+        ================================================== -->
+
+        <div class="modal-actions">
+
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="closeModal('vacationPeriodModal')"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+            id="vacationSaveButton"
+          >
+
+            <i class="fa-solid fa-floppy-disk"></i>
+
+            <span id="vacationSaveText">
+              Cadastrar período
+            </span>
+
+          </button>
+
+
+        </div>
+
+
+      </form>
+
+
+    </div>
+
+
+  </div>
+
+
+
+  <!-- =====================================================
+       MODAL - ANALISAR SOLICITAÇÃO DE FÉRIAS
+  ====================================================== -->
+  <!--
+    NOVA FUNCIONALIDADE.
+
+    O Admin abrirá este modal a partir
+    da página Férias.
+
+    Opções:
+
+    - aprovada;
+    - aprovada_com_ressalvas;
+    - recusada.
+
+    Depois que uma dessas decisões for salva,
+    a solicitação deixa de ser "pendente"
+    e desaparece da fila do Admin.
+  -->
+
+  <div
+    class="modal-overlay"
+    id="vacationRequestAdminModal"
+  >
+
+
+    <div class="standard-modal vacation-review-modal">
+
+
+      <!-- =================================================
+           FECHAR
+      ================================================== -->
+
+      <button
+        type="button"
+        class="modal-close"
+        onclick="closeModal('vacationRequestAdminModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <!-- =================================================
+           CABEÇALHO
+      ================================================== -->
+
+      <div class="modal-header">
+
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-umbrella-beach"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Analisar solicitação
+          </h2>
+
+
+          <p>
+            Confira o período solicitado pelo colaborador antes de tomar uma decisão.
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           ID DA SOLICITAÇÃO
+      ================================================== -->
+
+      <input
+        type="hidden"
+        id="vacationReviewRequestId"
+      >
+
+
+
+      <!-- =================================================
+           COLABORADOR
+      ================================================== -->
+
+      <div class="vacation-review-user">
+
+
+        <div
+          class="list-avatar"
+          id="vacationReviewAvatar"
+        >
+          --
+        </div>
+
+
+        <div>
+
+          <strong id="vacationReviewName">
+            Colaborador
+          </strong>
+
+
+          <span id="vacationReviewEmployeeDetails">
+            Cargo • Setor
+          </span>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           DADOS DA SOLICITAÇÃO
+      ================================================== -->
+
+      <div class="vacation-review-grid">
+
+
+        <!-- INÍCIO -->
+
+        <div class="vacation-review-item">
+
+          <span>
+            Data de início
+          </span>
+
+
+          <strong id="vacationReviewStart">
+            --
+          </strong>
+
+        </div>
+
+
+
+        <!-- FIM -->
+
+        <div class="vacation-review-item">
+
+          <span>
+            Data de término
+          </span>
+
+
+          <strong id="vacationReviewEnd">
+            --
+          </strong>
+
+        </div>
+
+
+
+        <!-- DIAS -->
+
+        <div class="vacation-review-item">
+
+          <span>
+            Quantidade
+          </span>
+
+
+          <strong id="vacationReviewDays">
+            0 dias
+          </strong>
+
+        </div>
+
+
+
+        <!-- DATA DA SOLICITAÇÃO -->
+
+        <div class="vacation-review-item">
+
+          <span>
+            Solicitação
+          </span>
+
+
+          <strong id="vacationReviewCreatedAt">
+            --
+          </strong>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           OBSERVAÇÃO DO COLABORADOR
+      ================================================== -->
+
+      <div class="vacation-review-observation">
+
+
+        <span>
+          Observação do colaborador
+        </span>
+
+
+        <p id="vacationReviewEmployeeObservation">
+
+          Nenhuma observação informada.
+
+        </p>
+
+
+      </div>
+
+
+
+      <!-- =================================================
+           OBSERVAÇÃO DO ADMIN
+      ================================================== -->
+
+      <div class="form-group">
+
+        <label for="vacationAdminObservation">
+          Observação do administrador
+        </label>
+
+
+        <textarea
+          id="vacationAdminObservation"
+          rows="4"
+          placeholder="Obrigatório para recusa ou aprovação com ressalvas."
+        ></textarea>
+
+
+        <small class="field-helper">
+
+          Para aprovação simples este campo é opcional.
+
+        </small>
 
       </div>
 
@@ -2337,7 +3270,7 @@
 
       <div
         class="form-message"
-        id="vacationFormMessage"
+        id="vacationAdminMessage"
       >
       </div>
 
@@ -2347,40 +3280,68 @@
            AÇÕES
       ================================================== -->
 
-      <div class="modal-actions">
+      <div class="vacation-review-actions">
 
+
+        <!-- RECUSAR -->
+
+        <button
+          type="button"
+          class="danger-button"
+          id="rejectVacationButton"
+          onclick="answerVacationRequest('recusada')"
+        >
+
+          <i class="fa-solid fa-xmark"></i>
+
+          Recusar
+
+        </button>
+
+
+
+        <!-- APROVAR COM RESSALVAS -->
 
         <button
           type="button"
           class="secondary-button"
-          onclick="closeModal('vacationPeriodModal')"
+          id="approveVacationWithConditionsButton"
+          onclick="answerVacationRequest('aprovada_com_ressalvas')"
         >
-          Cancelar
+
+          <i class="fa-solid fa-triangle-exclamation"></i>
+
+          Aprovar com ressalvas
+
         </button>
 
+
+
+        <!-- APROVAR -->
 
         <button
-          type="submit"
+          type="button"
           class="primary-button"
-          id="vacationSaveButton"
+          id="approveVacationButton"
+          onclick="answerVacationRequest('aprovada')"
         >
 
-          <i class="fa-solid fa-floppy-disk"></i>
+          <i class="fa-solid fa-check"></i>
 
-          <span id="vacationSaveText">
-            Salvar período
-          </span>
+          Aprovar
 
         </button>
+
 
       </div>
 
 
-    </form>
+    </div>
+
 
   </div>
 
-</div>
+
 
   <!-- =====================================================
        JAVASCRIPT

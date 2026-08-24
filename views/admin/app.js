@@ -3,43 +3,28 @@
 // ADMIN - APP.JS
 // ==========================================================
 //
-// SITUAÇÃO ATUAL:
+// RESPONSABILIDADES:
 //
-// USUÁRIOS:
-// - vêm do Supabase através do backend;
-// - exigem usuário autenticado;
-//
-// TREINAMENTOS:
-// - vêm do Supabase através do backend;
-//
-// ATIVIDADES:
-// - vêm do Supabase;
-//
-// AVALIAÇÕES:
-// - ainda estão simuladas;
-//
-// LOGIN:
-// - já utiliza Supabase Auth;
-// - usuário e token ficam no localStorage.
+// - validar sessão do administrador;
+// - mostrar administrador logado;
+// - navegar pelas páginas do painel;
+// - cadastrar colaboradores;
+// - cadastrar administradores;
+// - listar usuários;
+// - configurar período de férias;
+// - cadastrar treinamentos;
+// - listar treinamentos;
+// - controlar avaliações;
+// - receber solicitações de férias;
+// - aprovar / recusar solicitações de férias;
+// - realizar logout.
 //
 // ==========================================================
 
 
 
 // ==========================================================
-// DADOS DA SESSÃO
-// ==========================================================
-//
-// Após o login salvamos:
-//
-// access_token
-// usuario_logado
-//
-// Agora a tela Admin utiliza esses dados.
-//
-// NÃO precisamos mais deixar UUID do admin
-// escrito manualmente no JavaScript.
-//
+// SESSÃO
 // ==========================================================
 
 const accessToken =
@@ -52,7 +37,11 @@ let currentAdmin =
   null;
 
 
-// Tentamos recuperar o usuário logado.
+
+// ==========================================================
+// RECUPERAR USUÁRIO LOGADO
+// ==========================================================
+
 try {
 
   const storedUser =
@@ -73,79 +62,9 @@ try {
 } catch (error) {
 
   console.error(
-    "Erro ao recuperar usuário logado:",
+    "Erro ao recuperar administrador:",
     error
   );
-
-}
-
-
-
-// ==========================================================
-// VERIFICAR SESSÃO
-// ==========================================================
-//
-// Se alguém tentar abrir:
-//
-// /admin/
-//
-// diretamente sem login,
-// voltamos para:
-//
-// /login/
-//
-// ==========================================================
-
-function validateAdminSession() {
-
-  // Sem token ou usuário.
-  if (
-    !accessToken ||
-    !currentAdmin
-  ) {
-
-    window.location.href =
-      "/login/";
-
-    return false;
-
-  }
-
-
-  // Somente administradores podem entrar nesta tela.
-  if (
-    currentAdmin.perfil !==
-      "admin_principal"
-    &&
-    currentAdmin.perfil !==
-      "admin_setor"
-  ) {
-
-    window.location.href =
-      "/treinamentos/";
-
-    return false;
-
-  }
-
-
-  // Usuário precisa estar ativo.
-  if (
-    currentAdmin.ativo ===
-    false
-  ) {
-
-    clearSession();
-
-    window.location.href =
-      "/login/";
-
-    return false;
-
-  }
-
-
-  return true;
 
 }
 
@@ -171,19 +90,86 @@ function clearSession() {
 
 
 // ==========================================================
-// HEADERS AUTENTICADOS
+// VALIDAR SESSÃO
 // ==========================================================
-//
-// Utilizaremos esta função nas chamadas protegidas.
-//
-// Exemplo:
-//
-// Authorization:
-// Bearer eyJhbGci...
-//
-// O backend utiliza esse token para descobrir
-// quem realmente está fazendo a solicitação.
-//
+
+function validateAdminSession() {
+
+  // ========================================================
+  // TOKEN OU USUÁRIO AUSENTE
+  // ========================================================
+
+  if (
+    !accessToken ||
+    !currentAdmin
+  ) {
+
+    window.location.href =
+      "/login/";
+
+
+    return false;
+
+  }
+
+
+
+  // ========================================================
+  // PRECISA SER ADMIN
+  // ========================================================
+
+  const isAdmin =
+
+    currentAdmin.perfil ===
+      "admin_principal"
+
+    ||
+
+    currentAdmin.perfil ===
+      "admin_setor";
+
+
+  if (!isAdmin) {
+
+    window.location.href =
+      "/treinamentos/";
+
+
+    return false;
+
+  }
+
+
+
+  // ========================================================
+  // ADMIN INATIVO
+  // ========================================================
+
+  if (
+    currentAdmin.ativo ===
+    false
+  ) {
+
+    clearSession();
+
+
+    window.location.href =
+      "/login/";
+
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+
+// ==========================================================
+// HEADERS AUTENTICADOS
 // ==========================================================
 
 function getAuthHeaders(
@@ -200,7 +186,9 @@ function getAuthHeaders(
 
   if (includeJson) {
 
-    headers["Content-Type"] =
+    headers[
+      "Content-Type"
+    ] =
       "application/json";
 
   }
@@ -213,7 +201,7 @@ function getAuthHeaders(
 
 
 // ==========================================================
-// TRATAR SESSÃO EXPIRADA
+// TRATAR TOKEN EXPIRADO
 // ==========================================================
 
 function handleUnauthorized(
@@ -221,7 +209,8 @@ function handleUnauthorized(
 ) {
 
   if (
-    response.status === 401
+    response.status ===
+    401
   ) {
 
     clearSession();
@@ -248,61 +237,31 @@ function handleUnauthorized(
 
 
 // ==========================================================
-// SETORES OFICIAIS
-// ==========================================================
-
-const sectors = [
-
-  "Operacional",
-
-  "Logística",
-
-  "Administrativo",
-
-  "Tecnologia",
-
-  "RH",
-
-  "Financeiro",
-
-  "Marketing"
-
-];
-
-
-
-// ==========================================================
-// USUÁRIOS
+// DADOS
 // ==========================================================
 
 let employees =
   [];
 
 
-
-// ==========================================================
-// TIPO DE USUÁRIO SENDO CRIADO
-// ==========================================================
-//
-// colaborador
-//
-// ou:
-//
-// admin_setor
-//
-// ==========================================================
-
-let currentUserCreationProfile =
-  "colaborador";
-
-
-
-// ==========================================================
-// CURSOS
-// ==========================================================
-
 let courses =
   [];
+
+
+let temporaryActivities =
+  [];
+
+
+let courseToDelete =
+  null;
+
+
+let vacationRequests =
+  [];
+
+
+let currentVacationRequestId =
+  null;
 
 
 
@@ -310,7 +269,10 @@ let courses =
 // AVALIAÇÕES
 // ==========================================================
 //
-// Esta parte ainda é temporária.
+// TEMPORÁRIO.
+//
+// Posteriormente será substituído pelos dados reais
+// enviados pelos colaboradores.
 //
 // ==========================================================
 
@@ -357,117 +319,13 @@ let evaluations = [
 
       },
 
-
       {
 
         title:
-          "Crie uma planilha de controle financeiro",
+          "Crie uma planilha financeira",
 
         file:
           "planilha-financeira.xlsx"
-
-      },
-
-
-      {
-
-        title:
-          "Crie uma tabela dinâmica",
-
-        file:
-          "tabela-dinamica.xlsx"
-
-      }
-
-    ]
-
-  },
-
-
-  {
-
-    id:
-      2,
-
-    employee:
-      "Amanda Ribeiro",
-
-    initials:
-      "AR",
-
-    sector:
-      "Tecnologia",
-
-    course:
-      "Segurança da Informação",
-
-    hours:
-      2,
-
-    submittedAt:
-      "14/08/2026",
-
-    status:
-      "pending",
-
-    internalCourse:
-      true,
-
-    activities: [
-
-      {
-
-        title:
-          "Leia o material de segurança",
-
-        file:
-          "atividade-seguranca.pdf"
-
-      }
-
-    ]
-
-  },
-
-
-  {
-
-    id:
-      3,
-
-    employee:
-      "João Lima",
-
-    initials:
-      "JL",
-
-    sector:
-      "Tecnologia",
-
-    course:
-      "LGPD nas Empresas",
-
-    hours:
-      3,
-
-    submittedAt:
-      "13/08/2026",
-
-    status:
-      "pending",
-
-    internalCourse:
-      false,
-
-    activities: [
-
-      {
-
-        title:
-          "Enviar certificado externo",
-
-        file:
-          "certificado-lgpd.pdf"
 
       }
 
@@ -480,34 +338,7 @@ let evaluations = [
 
 
 // ==========================================================
-// ATIVIDADES TEMPORÁRIAS
-// ==========================================================
-
-let temporaryActivities =
-  [];
-
-
-
-// ==========================================================
-// STATUS DAS AVALIAÇÕES
-// ==========================================================
-
-let currentEvaluationStatus =
-  "pending";
-
-
-
-// ==========================================================
-// CURSO QUE SERÁ REMOVIDO
-// ==========================================================
-
-let courseToDelete =
-  null;
-
-
-
-// ==========================================================
-// INFORMAÇÕES DAS PÁGINAS
+// PÁGINAS
 // ==========================================================
 
 const pageData = {
@@ -553,6 +384,17 @@ const pageData = {
     subtitle:
       "Analise as atividades enviadas pelos colaboradores."
 
+  },
+
+
+  vacations: {
+
+    title:
+      "Férias",
+
+    subtitle:
+      "Analise as solicitações de férias dos colaboradores do seu setor."
+
   }
 
 };
@@ -563,7 +405,9 @@ const pageData = {
 // ESCAPAR HTML
 // ==========================================================
 
-function escapeHTML(value) {
+function escapeHTML(
+  value
+) {
 
   if (
     value === null ||
@@ -575,7 +419,9 @@ function escapeHTML(value) {
   }
 
 
-  return String(value)
+  return String(
+    value
+  )
 
     .replaceAll(
       "&",
@@ -607,160 +453,104 @@ function escapeHTML(value) {
 
 
 // ==========================================================
-// ALTERAR PÁGINA
+// FORMATAR DATA
 // ==========================================================
 
-function changePage(
-  pageName
+function formatDate(
+  value
 ) {
 
-  // Esconder páginas.
-  document
-    .querySelectorAll(
-      ".page-section"
-    )
-    .forEach(
-      page => {
+  if (!value) {
 
-        page.classList.remove(
-          "active-page"
-        );
-
-      }
-    );
-
-
-  // Remover destaque do menu.
-  document
-    .querySelectorAll(
-      ".menu-item"
-    )
-    .forEach(
-      item => {
-
-        item.classList.remove(
-          "active"
-        );
-
-      }
-    );
-
-
-  // Mostrar página.
-  const page =
-    document.getElementById(
-      `${pageName}Page`
-    );
-
-
-  if (page) {
-
-    page.classList.add(
-      "active-page"
-    );
+    return "--";
 
   }
 
 
-  // Destacar menu.
-  const menuItem =
-    document.querySelector(
-      `[data-page="${pageName}"]`
+  const dateOnly =
+    String(value)
+      .substring(
+        0,
+        10
+      );
+
+
+  const parts =
+    dateOnly.split(
+      "-"
     );
 
 
-  if (menuItem) {
-
-    menuItem.classList.add(
-      "active"
-    );
-
-  }
-
-
-  // Alterar título.
   if (
-    pageData[pageName]
+    parts.length !==
+    3
   ) {
 
-    const title =
-      document.getElementById(
-        "pageTitle"
-      );
-
-
-    const subtitle =
-      document.getElementById(
-        "pageSubtitle"
-      );
-
-
-    if (title) {
-
-      title.textContent =
-        pageData[pageName]
-          .title;
-
-    }
-
-
-    if (subtitle) {
-
-      subtitle.textContent =
-        pageData[pageName]
-          .subtitle;
-
-    }
+    return value;
 
   }
+
+
+  const [
+    year,
+    month,
+    day
+  ] =
+    parts;
+
+
+  return `${day}/${month}/${year}`;
 
 }
 
 
 
 // ==========================================================
-// CLIQUES NO MENU
+// FORMATAR DIAS
 // ==========================================================
 
-document
-  .querySelectorAll(
-    ".menu-item[data-page]"
-  )
-  .forEach(
-    button => {
+function formatDays(
+  value
+) {
 
-      button.addEventListener(
-        "click",
-        () => {
+  const days =
+    Number(
+      value || 0
+    );
 
-          changePage(
-            button.dataset.page
-          );
 
-        }
-      );
+  return `${days} ${
+    days === 1
+      ? "dia"
+      : "dias"
+  }`;
 
-    }
-  );
+}
 
 
 
 // ==========================================================
-// GERAR INICIAIS
+// INICIAIS
 // ==========================================================
 
-function getInitials(name) {
+function getInitials(
+  name
+) {
 
   if (!name) {
 
-    return "";
+    return "--";
 
   }
 
 
   return name
 
-    .split(" ")
+    .trim()
+
+    .split(
+      " "
+    )
 
     .filter(
       word =>
@@ -777,7 +567,9 @@ function getInitials(name) {
         word[0]
     )
 
-    .join("")
+    .join(
+      ""
+    )
 
     .toUpperCase();
 
@@ -789,7 +581,9 @@ function getInitials(name) {
 // ABRIR MODAL
 // ==========================================================
 
-function openModal(id) {
+function openModal(
+  id
+) {
 
   const modal =
     document.getElementById(
@@ -800,8 +594,9 @@ function openModal(id) {
   if (!modal) {
 
     console.warn(
-      `Modal "${id}" não encontrado.`
+      `Modal não encontrado: ${id}`
     );
+
 
     return;
 
@@ -824,7 +619,9 @@ function openModal(id) {
 // FECHAR MODAL
 // ==========================================================
 
-function closeModal(id) {
+function closeModal(
+  id
+) {
 
   const modal =
     document.getElementById(
@@ -852,18 +649,187 @@ function closeModal(id) {
 
 
 // ==========================================================
-// RENDERIZAR ADMIN LOGADO
+// TROCAR PÁGINA
 // ==========================================================
-//
-// Agora os dados vêm do usuário realmente autenticado.
-//
-// Banco:
-//
-// nome
-// setor
-// cargo
-// perfil
-//
+
+function changePage(
+  pageName
+) {
+
+  // ========================================================
+  // ESCONDER PÁGINAS
+  // ========================================================
+
+  document
+    .querySelectorAll(
+      ".page-section"
+    )
+    .forEach(
+      page => {
+
+        page.classList.remove(
+          "active-page"
+        );
+
+      }
+    );
+
+
+
+  // ========================================================
+  // MENU
+  // ========================================================
+
+  document
+    .querySelectorAll(
+      ".menu-item[data-page]"
+    )
+    .forEach(
+      item => {
+
+        item.classList.remove(
+          "active"
+        );
+
+      }
+    );
+
+
+
+  // ========================================================
+  // ABRIR PÁGINA
+  // ========================================================
+
+  const page =
+    document.getElementById(
+      `${pageName}Page`
+    );
+
+
+  if (page) {
+
+    page.classList.add(
+      "active-page"
+    );
+
+  }
+
+
+
+  // ========================================================
+  // MENU ATIVO
+  // ========================================================
+
+  const menu =
+    document.querySelector(
+      `.menu-item[data-page="${pageName}"]`
+    );
+
+
+  if (menu) {
+
+    menu.classList.add(
+      "active"
+    );
+
+  }
+
+
+
+  // ========================================================
+  // TÍTULO
+  // ========================================================
+
+  const information =
+    pageData[
+      pageName
+    ];
+
+
+  if (information) {
+
+    const title =
+      document.getElementById(
+        "pageTitle"
+      );
+
+
+    const subtitle =
+      document.getElementById(
+        "pageSubtitle"
+      );
+
+
+    if (title) {
+
+      title.textContent =
+        information.title;
+
+    }
+
+
+    if (subtitle) {
+
+      subtitle.textContent =
+        information.subtitle;
+
+    }
+
+  }
+
+
+
+  // ========================================================
+  // FÉRIAS
+  // ========================================================
+  //
+  // Sempre que o Admin abrir a página,
+  // atualizamos as solicitações.
+  //
+  // ========================================================
+
+  if (
+    pageName ===
+    "vacations"
+  ) {
+
+    loadVacationRequests();
+
+  }
+
+}
+
+
+
+// ==========================================================
+// EVENTOS DO MENU
+// ==========================================================
+
+document
+  .querySelectorAll(
+    ".menu-item[data-page]"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          changePage(
+            button.dataset.page
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+
+// ==========================================================
+// ADMIN LOGADO
 // ==========================================================
 
 function renderCurrentAdmin() {
@@ -875,49 +841,46 @@ function renderCurrentAdmin() {
   }
 
 
+
   // ========================================================
   // SETOR
   // ========================================================
 
-  const adminSector =
+  const sector =
     document.getElementById(
       "adminSector"
     );
 
 
-  if (adminSector) {
+  if (sector) {
 
-    if (
+    sector.textContent =
+
       currentAdmin.perfil ===
       "admin_principal"
-    ) {
 
-      adminSector.textContent =
-        "Acesso geral";
+        ? "Acesso geral"
 
-    } else {
-
-      adminSector.textContent =
-        currentAdmin.setor;
-
-    }
+        : currentAdmin.setor ||
+          "Setor não informado";
 
   }
+
 
 
   // ========================================================
   // AVATAR
   // ========================================================
 
-  const adminAvatar =
+  const avatar =
     document.getElementById(
       "adminAvatar"
     );
 
 
-  if (adminAvatar) {
+  if (avatar) {
 
-    adminAvatar.textContent =
+    avatar.textContent =
       getInitials(
         currentAdmin.nome
       );
@@ -925,366 +888,49 @@ function renderCurrentAdmin() {
   }
 
 
+
   // ========================================================
   // NOME
   // ========================================================
 
-  const adminName =
+  const name =
     document.getElementById(
       "adminName"
     );
 
 
-  if (adminName) {
+  if (name) {
 
-    adminName.textContent =
-      currentAdmin.nome;
+    name.textContent =
+      currentAdmin.nome ||
+      "Administrador";
 
   }
 
 
+
   // ========================================================
-  // FUNÇÃO
+  // PERFIL
   // ========================================================
 
-  const adminRole =
+  const role =
     document.getElementById(
       "adminRole"
     );
 
 
-  if (adminRole) {
+  if (role) {
 
-    if (
-      currentAdmin.perfil ===
-      "admin_principal"
-    ) {
-
-      adminRole.textContent =
-        "Administrador Principal";
-
-    } else {
-
-      adminRole.textContent =
-        `Administrador • ${currentAdmin.setor}`;
-
-    }
-
-  }
-
-
-  // ========================================================
-  // BOTÃO NOVO ADMIN DO DASHBOARD
-  // ========================================================
-
-  const newAdminButton =
-    document.getElementById(
-      "newAdminButton"
-    );
-
-
-  if (newAdminButton) {
-
-    newAdminButton.style.display =
+    role.textContent =
 
       currentAdmin.perfil ===
       "admin_principal"
 
-        ? "inline-flex"
+        ? "Administrador Principal"
 
-        : "none";
-
-  }
-
-
-  // ========================================================
-  // BOTÃO NOVO ADMIN DA PÁGINA FUNCIONÁRIOS
-  // ========================================================
-
-  const newAdminToolbarButton =
-    document.getElementById(
-      "newAdminToolbarButton"
-    );
-
-
-  if (
-    newAdminToolbarButton
-  ) {
-
-    newAdminToolbarButton.style.display =
-
-      currentAdmin.perfil ===
-      "admin_principal"
-
-        ? "inline-flex"
-
-        : "none";
+        : `Administrador • ${currentAdmin.setor}`;
 
   }
-
-}
-
-
-
-// ==========================================================
-// PREENCHER SETORES
-// ==========================================================
-
-function populateSectorSelect() {
-
-  const select =
-    document.getElementById(
-      "employeeSector"
-    );
-
-
-  if (
-    !select ||
-    !currentAdmin
-  ) {
-
-    return;
-
-  }
-
-
-  select.innerHTML =
-    "";
-
-
-  // ========================================================
-  // ADMIN DE SETOR
-  // ========================================================
-  //
-  // Não pode escolher outro setor.
-  //
-
-  if (
-    currentAdmin.perfil ===
-    "admin_setor"
-  ) {
-
-    const option =
-      document.createElement(
-        "option"
-      );
-
-
-    option.value =
-      currentAdmin.setor;
-
-
-    option.textContent =
-      currentAdmin.setor;
-
-
-    select.appendChild(
-      option
-    );
-
-
-    select.disabled =
-      true;
-
-
-    return;
-
-  }
-
-
-  // ========================================================
-  // ADMIN PRINCIPAL
-  // ========================================================
-
-  select.disabled =
-    false;
-
-
-  sectors.forEach(
-    sector => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        sector;
-
-
-      option.textContent =
-        sector;
-
-
-      select.appendChild(
-        option
-      );
-
-    }
-  );
-
-}
-
-
-
-// ==========================================================
-// ABRIR NOVO FUNCIONÁRIO
-// ==========================================================
-
-function openEmployeeModal() {
-
-  currentUserCreationProfile =
-    "colaborador";
-
-
-  prepareUserModal();
-
-}
-
-
-
-// ==========================================================
-// ABRIR NOVO ADMINISTRADOR
-// ==========================================================
-
-function openAdminModal() {
-
-  if (
-    !currentAdmin ||
-    currentAdmin.perfil !==
-      "admin_principal"
-  ) {
-
-    alert(
-      "Somente o Administrador Principal pode criar administradores."
-    );
-
-    return;
-
-  }
-
-
-  currentUserCreationProfile =
-    "admin_setor";
-
-
-  prepareUserModal();
-
-}
-
-
-
-// ==========================================================
-// PREPARAR MODAL
-// ==========================================================
-
-function prepareUserModal() {
-
-  const form =
-    document.getElementById(
-      "employeeForm"
-    );
-
-
-  if (form) {
-
-    form.reset();
-
-  }
-
-
-  populateSectorSelect();
-
-
-  const modalTitle =
-    document.getElementById(
-      "employeeModalTitle"
-    );
-
-
-  const modalDescription =
-    document.getElementById(
-      "employeeModalDescription"
-    );
-
-
-  const submitText =
-    document.getElementById(
-      "employeeSubmitText"
-    );
-
-
-  // ========================================================
-  // ADMINISTRADOR
-  // ========================================================
-
-  if (
-    currentUserCreationProfile ===
-    "admin_setor"
-  ) {
-
-    if (modalTitle) {
-
-      modalTitle.textContent =
-        "Novo administrador";
-
-    }
-
-
-    if (modalDescription) {
-
-      modalDescription.textContent =
-        "Crie um administrador responsável por um setor.";
-
-    }
-
-
-    if (submitText) {
-
-      submitText.textContent =
-        "Criar administrador";
-
-    }
-
-  }
-
-
-  // ========================================================
-  // COLABORADOR
-  // ========================================================
-
-  else {
-
-    if (modalTitle) {
-
-      modalTitle.textContent =
-        "Novo funcionário";
-
-    }
-
-
-    if (modalDescription) {
-
-      modalDescription.textContent =
-        "Crie o acesso de um colaborador.";
-
-    }
-
-
-    if (submitText) {
-
-      submitText.textContent =
-        "Criar funcionário";
-
-    }
-
-  }
-
-
-  openModal(
-    "employeeModal"
-  );
 
 }
 
@@ -1295,34 +941,34 @@ function prepareUserModal() {
 // ==========================================================
 
 function mapApiUser(
-  apiUser
+  user
 ) {
 
   return {
 
     id:
-      apiUser.id,
+      user.id,
 
     name:
-      apiUser.nome,
+      user.nome,
 
     registration:
-      apiUser.matricula,
+      user.matricula,
 
     email:
-      apiUser.email,
+      user.email,
 
     role:
-      apiUser.cargo,
+      user.cargo,
 
     sector:
-      apiUser.setor,
+      user.setor,
 
     profile:
-      apiUser.perfil,
+      user.perfil,
 
     status:
-      apiUser.ativo
+      user.ativo
         ? "Ativo"
         : "Inativo"
 
@@ -1333,28 +979,12 @@ function mapApiUser(
 
 
 // ==========================================================
-// CARREGAR USUÁRIOS DA API
-// ==========================================================
-//
-// ALTERAÇÃO IMPORTANTE:
-//
-// Agora enviamos:
-//
-// Authorization: Bearer TOKEN
-//
-// Não precisamos mais dizer ao backend
-// manualmente quem é o administrador.
-//
+// CARREGAR USUÁRIOS
 // ==========================================================
 
 async function loadUsersFromApi() {
 
   try {
-
-    console.log(
-      "Buscando usuários..."
-    );
-
 
     const response =
       await fetch(
@@ -1371,7 +1001,6 @@ async function loadUsersFromApi() {
       );
 
 
-    // Sessão expirada.
     if (
       handleUnauthorized(
         response
@@ -1390,24 +1019,29 @@ async function loadUsersFromApi() {
     if (!response.ok) {
 
       throw new Error(
+
         result.error ||
         "Não foi possível carregar os usuários."
+
       );
 
     }
 
 
-    const apiUsers =
+    const users =
 
-      Array.isArray(result)
+      Array.isArray(
+        result
+      )
 
         ? result
 
-        : result.usuarios || [];
+        : result.usuarios ||
+          [];
 
 
     employees =
-      apiUsers.map(
+      users.map(
         mapApiUser
       );
 
@@ -1418,10 +1052,6 @@ async function loadUsersFromApi() {
     updateDashboardCounters();
 
 
-    console.log(
-      `${employees.length} usuário(s) carregado(s).`
-    );
-
   } catch (error) {
 
     console.error(
@@ -1429,16 +1059,6 @@ async function loadUsersFromApi() {
       error
     );
 
-
-    employees =
-      [];
-
-
-    renderEmployees();
-
-
-    updateDashboardCounters();
-
   }
 
 }
@@ -1446,370 +1066,7 @@ async function loadUsersFromApi() {
 
 
 // ==========================================================
-// CRIAR USUÁRIO
-// ==========================================================
-//
-// NOVO FLUXO:
-//
-// Admin logado
-//      ↓
-// token
-//      ↓
-// POST /api/usuarios
-//      ↓
-// Node.js
-//      ↓
-// valida token
-//      ↓
-// identifica admin
-//      ↓
-// verifica perfil/setor
-//      ↓
-// Supabase Auth
-//      +
-// tabela usuario
-//
-// ==========================================================
-
-async function createEmployee(
-  event
-) {
-
-  event.preventDefault();
-
-
-  // ========================================================
-  // CAMPOS
-  // ========================================================
-
-  const name =
-    document
-      .getElementById(
-        "employeeName"
-      )
-      .value
-      .trim();
-
-
-  const registration =
-    document
-      .getElementById(
-        "employeeRegistration"
-      )
-      .value
-      .trim();
-
-
-  const email =
-    document
-      .getElementById(
-        "employeeEmail"
-      )
-      .value
-      .trim()
-      .toLowerCase();
-
-
-  const password =
-    document
-      .getElementById(
-        "employeePassword"
-      )
-      .value;
-
-
-  const role =
-    document
-      .getElementById(
-        "employeeRole"
-      )
-      .value
-      .trim();
-
-
-  const sectorSelect =
-    document.getElementById(
-      "employeeSector"
-    );
-
-
-  // ========================================================
-  // DEFINIR SETOR
-  // ========================================================
-
-  const sector =
-
-    currentAdmin.perfil ===
-    "admin_setor"
-
-      ? currentAdmin.setor
-
-      : sectorSelect.value;
-
-
-
-  // ========================================================
-  // VALIDAÇÕES
-  // ========================================================
-
-  if (
-    !name ||
-    !registration ||
-    !email ||
-    !password ||
-    !role ||
-    !sector
-  ) {
-
-    alert(
-      "Preencha todos os campos."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    password.length < 6
-  ) {
-
-    alert(
-      "A senha inicial deve possuir pelo menos 6 caracteres."
-    );
-
-    return;
-
-  }
-
-
-  // ========================================================
-  // VALIDAÇÃO DE ADMIN
-  // ========================================================
-
-  if (
-    currentUserCreationProfile ===
-      "admin_setor"
-    &&
-    currentAdmin.perfil !==
-      "admin_principal"
-  ) {
-
-    alert(
-      "Você não possui permissão para criar administradores."
-    );
-
-    return;
-
-  }
-
-
-
-  // ========================================================
-  // DADOS DO NOVO USUÁRIO
-  // ========================================================
-  //
-  // IMPORTANTE:
-  //
-  // admin_id FOI REMOVIDO.
-  //
-  // Quem cria o usuário será identificado
-  // automaticamente através do token.
-  //
-  // ========================================================
-
-  const userData = {
-
-    nome:
-      name,
-
-    matricula:
-      registration,
-
-    email:
-      email,
-
-    senha:
-      password,
-
-    cargo:
-      role,
-
-    setor:
-      sector,
-
-    perfil:
-      currentUserCreationProfile
-
-  };
-
-
-
-  // ========================================================
-  // BOTÃO
-  // ========================================================
-
-  const submitButton =
-    document.getElementById(
-      "employeeSubmitButton"
-    );
-
-
-  const submitText =
-    document.getElementById(
-      "employeeSubmitText"
-    );
-
-
-  const originalText =
-    submitText
-      ? submitText.textContent
-      : "";
-
-
-  try {
-
-    if (submitButton) {
-
-      submitButton.disabled =
-        true;
-
-    }
-
-
-    if (submitText) {
-
-      submitText.textContent =
-        "Criando...";
-
-    }
-
-
-
-    // ======================================================
-    // POST /api/usuarios
-    // ======================================================
-
-    const response =
-      await fetch(
-        "/api/usuarios",
-        {
-
-          method:
-            "POST",
-
-          headers:
-            getAuthHeaders(
-              true
-            ),
-
-          body:
-            JSON.stringify(
-              userData
-            )
-
-        }
-      );
-
-
-    if (
-      handleUnauthorized(
-        response
-      )
-    ) {
-
-      return;
-
-    }
-
-
-    const result =
-      await response.json();
-
-
-
-    // ======================================================
-    // ERRO
-    // ======================================================
-
-    if (!response.ok) {
-
-      throw new Error(
-        result.error ||
-        result.details ||
-        "Não foi possível criar o usuário."
-      );
-
-    }
-
-
-
-    // ======================================================
-    // SUCESSO
-    // ======================================================
-
-    closeModal(
-      "employeeModal"
-    );
-
-
-    await loadUsersFromApi();
-
-
-    if (
-      currentUserCreationProfile ===
-      "admin_setor"
-    ) {
-
-      alert(
-        "Administrador criado com sucesso!"
-      );
-
-    } else {
-
-      alert(
-        "Funcionário criado com sucesso!"
-      );
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "Erro ao criar usuário:",
-      error
-    );
-
-
-    alert(
-      error.message
-    );
-
-
-  } finally {
-
-    if (submitButton) {
-
-      submitButton.disabled =
-        false;
-
-    }
-
-
-    if (submitText) {
-
-      submitText.textContent =
-        originalText;
-
-    }
-
-  }
-
-}
-
-// ==========================================================
-// RENDERIZAR FUNCIONÁRIOS
+// RENDERIZAR USUÁRIOS
 // ==========================================================
 
 function renderEmployees() {
@@ -1834,85 +1091,41 @@ function renderEmployees() {
 
 
   const search =
-
-    searchInput
-
-      ? searchInput
-          .value
-          .trim()
-          .toLowerCase()
-
-      : "";
+    String(
+      searchInput?.value || ""
+    )
+      .trim()
+      .toLowerCase();
 
 
-  // ========================================================
-  // FILTRAR
-  // ========================================================
 
   const filtered =
     employees.filter(
       employee => {
 
-        const name =
-          String(
-            employee.name || ""
-          ).toLowerCase();
+        const text = [
 
+          employee.name,
 
-        const registration =
-          String(
-            employee.registration || ""
-          ).toLowerCase();
+          employee.registration,
 
+          employee.email,
 
-        const email =
-          String(
-            employee.email || ""
-          ).toLowerCase();
+          employee.role,
 
+          employee.sector
 
-        const role =
-          String(
-            employee.role || ""
-          ).toLowerCase();
+        ]
 
-
-        const sector =
-          String(
-            employee.sector || ""
-          ).toLowerCase();
-
-
-        return (
-
-          name.includes(
-            search
+          .join(
+            " "
           )
 
-          ||
+          .toLowerCase();
 
-          registration.includes(
-            search
-          )
 
-          ||
-
-          email.includes(
-            search
-          )
-
-          ||
-
-          role.includes(
-            search
-          )
-
-          ||
-
-          sector.includes(
-            search
-          )
-
+        return text.includes(
+          search
         );
 
       }
@@ -1923,41 +1136,33 @@ function renderEmployees() {
     "";
 
 
+
   // ========================================================
-  // SEM USUÁRIOS
+  // VAZIO
   // ========================================================
 
   if (
-    filtered.length === 0
+    filtered.length ===
+    0
   ) {
 
-    const row =
-      document.createElement(
-        "tr"
-      );
+    tbody.innerHTML = `
 
+      <tr>
 
-    row.innerHTML = `
+        <td
+          colspan="8"
+          style="
+            padding: 30px;
+            text-align: center;
+          "
+        >
+          Nenhum usuário encontrado.
+        </td>
 
-      <td
-        colspan="8"
-        style="
-          text-align: center;
-          padding: 30px;
-          color: var(--text-muted);
-        "
-      >
-
-        Nenhum usuário encontrado.
-
-      </td>
+      </tr>
 
     `;
-
-
-    tbody.appendChild(
-      row
-    );
 
 
     return;
@@ -1967,7 +1172,7 @@ function renderEmployees() {
 
 
   // ========================================================
-  // USUÁRIOS
+  // LINHAS
   // ========================================================
 
   filtered.forEach(
@@ -1979,7 +1184,7 @@ function renderEmployees() {
         );
 
 
-      let profileText =
+      let profile =
         "Colaborador";
 
 
@@ -1988,7 +1193,7 @@ function renderEmployees() {
         "admin_setor"
       ) {
 
-        profileText =
+        profile =
           "Admin. do setor";
 
       }
@@ -1999,7 +1204,7 @@ function renderEmployees() {
         "admin_principal"
       ) {
 
-        profileText =
+        profile =
           "Admin. principal";
 
       }
@@ -2007,13 +1212,7 @@ function renderEmployees() {
 
 
       // ====================================================
-      // BOTÃO DE FÉRIAS
-      // ====================================================
-      //
-      // Apenas colaboradores possuem período de férias.
-      //
-      // Administradores não recebem este botão.
-      //
+      // CONFIGURAR FÉRIAS
       // ====================================================
 
       const vacationButton =
@@ -2025,10 +1224,7 @@ function renderEmployees() {
 
             <button
               type="button"
-              class="
-                table-action
-                vacation-action
-              "
+              class="table-action vacation-action"
               title="Configurar férias"
               onclick="
                 openVacationPeriodModal(
@@ -2037,12 +1233,7 @@ function renderEmployees() {
               "
             >
 
-              <i
-                class="
-                  fa-solid
-                  fa-umbrella-beach
-                "
-              ></i>
+              <i class="fa-solid fa-umbrella-beach"></i>
 
             </button>
 
@@ -2051,10 +1242,6 @@ function renderEmployees() {
           : "";
 
 
-
-      // ====================================================
-      // CONSTRUIR LINHA
-      // ====================================================
 
       row.innerHTML = `
 
@@ -2069,7 +1256,6 @@ function renderEmployees() {
               )}
 
             </div>
-
 
             <strong>
 
@@ -2122,15 +1308,10 @@ function renderEmployees() {
 
         <td>
 
-          <span
-            class="
-              status-badge
-              purple-status
-            "
-          >
+          <span class="status-badge purple-status">
 
             ${escapeHTML(
-              profileText
+              profile
             )}
 
           </span>
@@ -2143,7 +1324,6 @@ function renderEmployees() {
           <span
             class="
               status-badge
-
               ${
                 employee.status ===
                 "Ativo"
@@ -2168,29 +1348,7 @@ function renderEmployees() {
 
           <div class="employee-actions">
 
-
-            <!-- BOTÃO VISUALIZAR -->
-
-            <button
-              type="button"
-              class="table-action"
-              title="Visualizar"
-            >
-
-              <i
-                class="
-                  fa-regular
-                  fa-eye
-                "
-              ></i>
-
-            </button>
-
-
-            <!-- BOTÃO FÉRIAS -->
-
             ${vacationButton}
-
 
           </div>
 
@@ -2211,24 +1369,568 @@ function renderEmployees() {
 
 
 // ==========================================================
-// PESQUISAR FUNCIONÁRIOS
+// PESQUISA DE FUNCIONÁRIO
 // ==========================================================
 
-const employeeSearchInput =
+const employeeSearch =
   document.getElementById(
     "employeeSearch"
   );
 
 
-if (
-  employeeSearchInput
+if (employeeSearch) {
+
+  employeeSearch.addEventListener(
+    "input",
+    renderEmployees
+  );
+
+}
+
+
+
+// ==========================================================
+// ABRIR MODAL DE FUNCIONÁRIO
+// ==========================================================
+
+function openEmployeeModal() {
+
+  const form =
+    document.getElementById(
+      "employeeForm"
+    );
+
+
+  if (form) {
+
+    form.reset();
+
+  }
+
+
+  // ========================================================
+  // ADMIN DE SETOR
+  // ========================================================
+  //
+  // Colaborador só pode ser criado
+  // no próprio setor do Admin.
+  //
+  // ========================================================
+
+  const sector =
+    document.getElementById(
+      "employeeSector"
+    );
+
+
+  if (
+    sector &&
+    currentAdmin?.perfil ===
+      "admin_setor"
+  ) {
+
+    sector.value =
+      currentAdmin.setor;
+
+
+    sector.disabled =
+      true;
+
+  }
+
+
+  openModal(
+    "employeeModal"
+  );
+
+}
+
+
+
+// ==========================================================
+// CRIAR FUNCIONÁRIO
+// ==========================================================
+
+async function createEmployee(
+  event
 ) {
 
-  employeeSearchInput
-    .addEventListener(
-      "input",
-      renderEmployees
+  event.preventDefault();
+
+
+  const name =
+    document
+      .getElementById(
+        "employeeName"
+      )
+      .value
+      .trim();
+
+
+  const registration =
+    document
+      .getElementById(
+        "employeeRegistration"
+      )
+      .value
+      .trim();
+
+
+  const email =
+    document
+      .getElementById(
+        "employeeEmail"
+      )
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    document
+      .getElementById(
+        "employeePassword"
+      )
+      .value;
+
+
+  const role =
+    document
+      .getElementById(
+        "employeeRole"
+      )
+      .value
+      .trim();
+
+
+  const sectorInput =
+    document.getElementById(
+      "employeeSector"
     );
+
+
+  const sector =
+
+    currentAdmin.perfil ===
+    "admin_setor"
+
+      ? currentAdmin.setor
+
+      : sectorInput.value;
+
+
+
+  if (
+    !name ||
+    !registration ||
+    !email ||
+    !password ||
+    !role ||
+    !sector
+  ) {
+
+    alert(
+      "Preencha todos os campos."
+    );
+
+
+    return;
+
+  }
+
+
+
+  if (
+    password.length < 6
+  ) {
+
+    alert(
+      "A senha deve possuir pelo menos 6 caracteres."
+    );
+
+
+    return;
+
+  }
+
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/usuarios",
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders(
+              true
+            ),
+
+          body:
+            JSON.stringify({
+
+              nome:
+                name,
+
+              matricula:
+                registration,
+
+              email,
+
+              senha:
+                password,
+
+              cargo:
+                role,
+
+              setor:
+                sector,
+
+              perfil:
+                "colaborador"
+
+            })
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.error ||
+        result.details ||
+        "Não foi possível criar o funcionário."
+
+      );
+
+    }
+
+
+    closeModal(
+      "employeeModal"
+    );
+
+
+    await loadUsersFromApi();
+
+
+    alert(
+      "Funcionário criado com sucesso!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    alert(
+      error.message
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// EVENTO DO FORMULÁRIO DO FUNCIONÁRIO
+// ==========================================================
+
+const employeeForm =
+  document.getElementById(
+    "employeeForm"
+  );
+
+
+if (employeeForm) {
+
+  employeeForm.addEventListener(
+    "submit",
+    createEmployee
+  );
+
+}
+
+
+
+// ==========================================================
+// ABRIR MODAL DO ADMIN
+// ==========================================================
+
+function openAdminModal() {
+
+  const form =
+    document.getElementById(
+      "adminForm"
+    );
+
+
+  if (form) {
+
+    form.reset();
+
+  }
+
+
+  openModal(
+    "adminModal"
+  );
+
+}
+
+
+
+// ==========================================================
+// CRIAR ADMINISTRADOR
+// ==========================================================
+//
+// REGRA:
+//
+// qualquer Admin pode criar outro Admin,
+// escolhendo o setor dele.
+//
+// ==========================================================
+
+async function createAdmin(
+  event
+) {
+
+  event.preventDefault();
+
+
+  const name =
+    document
+      .getElementById(
+        "adminUserName"
+      )
+      .value
+      .trim();
+
+
+  const registration =
+    document
+      .getElementById(
+        "adminRegistration"
+      )
+      .value
+      .trim();
+
+
+  const email =
+    document
+      .getElementById(
+        "adminEmail"
+      )
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    document
+      .getElementById(
+        "adminPassword"
+      )
+      .value;
+
+
+  const role =
+    document
+      .getElementById(
+        "adminUserRole"
+      )
+      .value
+      .trim();
+
+
+  const sector =
+    document
+      .getElementById(
+        "adminUserSector"
+      )
+      .value;
+
+
+
+  if (
+    !name ||
+    !registration ||
+    !email ||
+    !password ||
+    !role ||
+    !sector
+  ) {
+
+    alert(
+      "Preencha todos os campos."
+    );
+
+
+    return;
+
+  }
+
+
+
+  if (
+    password.length < 6
+  ) {
+
+    alert(
+      "A senha deve possuir pelo menos 6 caracteres."
+    );
+
+
+    return;
+
+  }
+
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/usuarios",
+        {
+
+          method:
+            "POST",
+
+          headers:
+            getAuthHeaders(
+              true
+            ),
+
+          body:
+            JSON.stringify({
+
+              nome:
+                name,
+
+              matricula:
+                registration,
+
+              email,
+
+              senha:
+                password,
+
+              cargo:
+                role,
+
+              setor:
+                sector,
+
+              perfil:
+                "admin_setor"
+
+            })
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.error ||
+        result.details ||
+        "Não foi possível criar o administrador."
+
+      );
+
+    }
+
+
+    closeModal(
+      "adminModal"
+    );
+
+
+    await loadUsersFromApi();
+
+
+    alert(
+      "Administrador criado com sucesso!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao criar administrador:",
+      error
+    );
+
+
+    alert(
+      error.message
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// FORMULÁRIO ADMIN
+// ==========================================================
+
+const adminForm =
+  document.getElementById(
+    "adminForm"
+  );
+
+
+if (adminForm) {
+
+  adminForm.addEventListener(
+    "submit",
+    createAdmin
+  );
 
 }
 
@@ -2236,56 +1938,28 @@ if (
 
 // ==========================================================
 // ==========================================================
-// FÉRIAS
-// CONFIGURAÇÃO INICIAL DO COLABORADOR
+// CONFIGURAÇÃO DO PERÍODO DE FÉRIAS
 // ==========================================================
 // ==========================================================
-//
-// FLUXO:
-//
-// Admin
-//   ↓
-// Funcionários
-//   ↓
-// botão Férias
-//   ↓
-// GET /api/ferias/admin/periodos/:usuarioId
-//   ↓
-// carrega período existente
-//
-// Se ainda não houver:
-//
-// Admin preenche os dados
-//   ↓
-// PUT /api/ferias/admin/periodos/:usuarioId
-//   ↓
-// Supabase
-//   ↓
-// periodos_ferias
-//
-// ==========================================================
+
+const VACATION_DEFAULT_DAYS =
+  30;
 
 
 
 // ==========================================================
-// ABRIR MODAL DE FÉRIAS
+// ABRIR CONFIGURAÇÃO DE FÉRIAS
 // ==========================================================
 
 async function openVacationPeriodModal(
   employeeId
 ) {
 
-  // ========================================================
-  // LOCALIZAR COLABORADOR
-  // ========================================================
-
   const employee =
     employees.find(
-
       item =>
         String(item.id) ===
         String(employeeId)
-
     );
 
 
@@ -2295,15 +1969,12 @@ async function openVacationPeriodModal(
       "Funcionário não encontrado."
     );
 
+
     return;
 
   }
 
 
-
-  // ========================================================
-  // SOMENTE COLABORADOR
-  // ========================================================
 
   if (
     employee.profile !==
@@ -2313,6 +1984,7 @@ async function openVacationPeriodModal(
     alert(
       "Férias só podem ser configuradas para colaboradores."
     );
+
 
     return;
 
@@ -2330,41 +2002,6 @@ async function openVacationPeriodModal(
     );
 
 
-  const employeeIdInput =
-    document.getElementById(
-      "vacationEmployeeId"
-    );
-
-
-  const avatar =
-    document.getElementById(
-      "vacationEmployeeAvatar"
-    );
-
-
-  const name =
-    document.getElementById(
-      "vacationEmployeeName"
-    );
-
-
-  const details =
-    document.getElementById(
-      "vacationEmployeeDetails"
-    );
-
-
-  const saveText =
-    document.getElementById(
-      "vacationSaveText"
-    );
-
-
-
-  // ========================================================
-  // LIMPAR FORMULÁRIO
-  // ========================================================
-
   if (form) {
 
     form.reset();
@@ -2372,96 +2009,63 @@ async function openVacationPeriodModal(
   }
 
 
+
+  document.getElementById(
+    "vacationEmployeeId"
+  ).value =
+    employee.id;
+
+
+
+  document.getElementById(
+    "vacationEmployeeAvatar"
+  ).textContent =
+    getInitials(
+      employee.name
+    );
+
+
+
+  document.getElementById(
+    "vacationEmployeeName"
+  ).textContent =
+    employee.name;
+
+
+
+  document.getElementById(
+    "vacationEmployeeDetails"
+  ).textContent =
+    `${employee.role} • ${employee.sector}`;
+
+
+
+  document.getElementById(
+    "vacationEntitledDays"
+  ).value =
+    VACATION_DEFAULT_DAYS;
+
+
+
+  document.getElementById(
+    "vacationUsedDays"
+  ).value =
+    0;
+
+
+
+  document.getElementById(
+    "vacationSaveText"
+  ).textContent =
+    "Cadastrar período";
+
+
+
   clearVacationMessage();
-
-
-
-  // ========================================================
-  // IDENTIFICAÇÃO DO FUNCIONÁRIO
-  // ========================================================
-
-  if (employeeIdInput) {
-
-    employeeIdInput.value =
-      employee.id;
-
-  }
-
-
-  if (avatar) {
-
-    avatar.textContent =
-      getInitials(
-        employee.name
-      );
-
-  }
-
-
-  if (name) {
-
-    name.textContent =
-      employee.name;
-
-  }
-
-
-  if (details) {
-
-    details.textContent =
-      `${employee.role} • ${employee.sector}`;
-
-  }
-
-
-
-  // ========================================================
-  // VALORES PADRÃO
-  // ========================================================
-
-  const entitledDaysInput =
-    document.getElementById(
-      "vacationEntitledDays"
-    );
-
-
-  const usedDaysInput =
-    document.getElementById(
-      "vacationUsedDays"
-    );
-
-
-  if (entitledDaysInput) {
-
-    entitledDaysInput.value =
-      30;
-
-  }
-
-
-  if (usedDaysInput) {
-
-    usedDaysInput.value =
-      0;
-
-  }
-
-
-  if (saveText) {
-
-    saveText.textContent =
-      "Cadastrar período";
-
-  }
 
 
   updateVacationBalancePreview();
 
-
-
-  // ========================================================
-  // ABRIR MODAL
-  // ========================================================
 
   openModal(
     "vacationPeriodModal"
@@ -2478,7 +2082,7 @@ async function openVacationPeriodModal(
     const response =
       await fetch(
 
-        `/api/ferias/admin/periodos/${employee.id}`,
+        `/api/ferias/admin/periodos/${employeeId}`,
 
         {
 
@@ -2493,11 +2097,6 @@ async function openVacationPeriodModal(
       );
 
 
-
-    // ======================================================
-    // SESSÃO EXPIRADA
-    // ======================================================
-
     if (
       handleUnauthorized(
         response
@@ -2509,10 +2108,8 @@ async function openVacationPeriodModal(
     }
 
 
-
     const result =
       await response.json();
-
 
 
     if (!response.ok) {
@@ -2520,7 +2117,7 @@ async function openVacationPeriodModal(
       throw new Error(
 
         result.error ||
-        "Não foi possível carregar as férias."
+        "Não foi possível carregar o período de férias."
 
       );
 
@@ -2528,22 +2125,7 @@ async function openVacationPeriodModal(
 
 
 
-    // ======================================================
-    // NÃO EXISTE PERÍODO
-    // ======================================================
-
     if (!result.periodo) {
-
-      if (saveText) {
-
-        saveText.textContent =
-          "Cadastrar período";
-
-      }
-
-
-      updateVacationBalancePreview();
-
 
       return;
 
@@ -2551,101 +2133,75 @@ async function openVacationPeriodModal(
 
 
 
-    // ======================================================
-    // PERÍODO EXISTENTE
-    // ======================================================
-
     const periodo =
       result.periodo;
 
 
 
-    const periodStart =
-      document.getElementById(
-        "vacationPeriodStart"
+    document.getElementById(
+      "vacationPeriodStart"
+    ).value =
+
+      periodo.periodo_inicio
+
+        ? String(
+            periodo.periodo_inicio
+          ).substring(
+            0,
+            10
+          )
+
+        : "";
+
+
+
+    document.getElementById(
+      "vacationPeriodEnd"
+    ).value =
+
+      periodo.periodo_fim
+
+        ? String(
+            periodo.periodo_fim
+          ).substring(
+            0,
+            10
+          )
+
+        : "";
+
+
+
+    document.getElementById(
+      "vacationUsedDays"
+    ).value =
+      Number(
+        periodo.dias_usados || 0
       );
 
 
-    const periodEnd =
-      document.getElementById(
-        "vacationPeriodEnd"
-      );
+
+    document.getElementById(
+      "vacationExpirationDate"
+    ).value =
+
+      periodo.data_vencimento
+
+        ? String(
+            periodo.data_vencimento
+          ).substring(
+            0,
+            10
+          )
+
+        : "";
 
 
-    const expirationDate =
-      document.getElementById(
-        "vacationExpirationDate"
-      );
 
-
-
-    if (periodStart) {
-
-      periodStart.value =
-        periodo.periodo_inicio
-          ? String(
-              periodo.periodo_inicio
-            ).substring(
-              0,
-              10
-            )
-          : "";
-
-    }
-
-
-    if (periodEnd) {
-
-      periodEnd.value =
-        periodo.periodo_fim
-          ? String(
-              periodo.periodo_fim
-            ).substring(
-              0,
-              10
-            )
-          : "";
-
-    }
-
-
-    if (entitledDaysInput) {
-
-      entitledDaysInput.value =
-        periodo.dias_direito ?? 30;
-
-    }
-
-
-    if (usedDaysInput) {
-
-      usedDaysInput.value =
-        periodo.dias_usados ?? 0;
-
-    }
-
-
-    if (expirationDate) {
-
-      expirationDate.value =
-        periodo.data_vencimento
-          ? String(
-              periodo.data_vencimento
-            ).substring(
-              0,
-              10
-            )
-          : "";
-
-    }
-
-
-    if (saveText) {
-
-      saveText.textContent =
-        "Atualizar período";
-
-    }
+    document.getElementById(
+      "vacationSaveText"
+    ).textContent =
+      "Atualizar período";
 
 
     updateVacationBalancePreview();
@@ -2654,7 +2210,7 @@ async function openVacationPeriodModal(
   } catch (error) {
 
     console.error(
-      "Erro ao carregar período de férias:",
+      "Erro ao carregar férias:",
       error
     );
 
@@ -2671,29 +2227,10 @@ async function openVacationPeriodModal(
 
 
 // ==========================================================
-// CALCULAR SALDO DE FÉRIAS
-// ==========================================================
-//
-// O saldo não fica armazenado.
-//
-// Exemplo:
-//
-// direito = 30
-// usados = 10
-//
-// saldo = 30 - 10
-//
-// resultado = 20
-//
+// PREVIEW DO SALDO
 // ==========================================================
 
 function updateVacationBalancePreview() {
-
-  const entitledInput =
-    document.getElementById(
-      "vacationEntitledDays"
-    );
-
 
   const usedInput =
     document.getElementById(
@@ -2707,49 +2244,41 @@ function updateVacationBalancePreview() {
     );
 
 
-  if (
-    !entitledInput ||
-    !usedInput ||
-    !preview
-  ) {
+  if (!preview) {
 
     return;
 
   }
 
 
-  const entitled =
-    Number(
-      entitledInput.value || 0
-    );
-
-
   const used =
     Number(
-      usedInput.value || 0
+      usedInput?.value || 0
     );
 
 
   const balance =
     Math.max(
-      entitled - used,
+
+      VACATION_DEFAULT_DAYS -
+      used,
+
       0
+
     );
 
 
   preview.textContent =
-    `${balance} ${
-      balance === 1
-        ? "dia"
-        : "dias"
-    }`;
+    formatDays(
+      balance
+    );
 
 }
 
 
 
 // ==========================================================
-// SALVAR PERÍODO DE FÉRIAS
+// SALVAR PERÍODO
 // ==========================================================
 
 async function saveVacationPeriod(
@@ -2759,99 +2288,41 @@ async function saveVacationPeriod(
   event.preventDefault();
 
 
-
-  // ========================================================
-  // ELEMENTOS
-  // ========================================================
-
-  const employeeIdInput =
+  const employeeId =
     document.getElementById(
       "vacationEmployeeId"
-    );
-
-
-  const periodStartInput =
-    document.getElementById(
-      "vacationPeriodStart"
-    );
-
-
-  const periodEndInput =
-    document.getElementById(
-      "vacationPeriodEnd"
-    );
-
-
-  const entitledDaysInput =
-    document.getElementById(
-      "vacationEntitledDays"
-    );
-
-
-  const usedDaysInput =
-    document.getElementById(
-      "vacationUsedDays"
-    );
-
-
-  const expirationDateInput =
-    document.getElementById(
-      "vacationExpirationDate"
-    );
-
-
-
-  // ========================================================
-  // VALORES
-  // ========================================================
-
-  const employeeId =
-    employeeIdInput
-      ? employeeIdInput.value
-      : "";
+    ).value;
 
 
   const periodStart =
-    periodStartInput
-      ? periodStartInput.value
-      : "";
+    document.getElementById(
+      "vacationPeriodStart"
+    ).value;
 
 
   const periodEnd =
-    periodEndInput
-      ? periodEndInput.value
-      : "";
-
-
-  const entitledDays =
-    Number(
-
-      entitledDaysInput
-        ? entitledDaysInput.value
-        : 0
-
-    );
+    document.getElementById(
+      "vacationPeriodEnd"
+    ).value;
 
 
   const usedDays =
     Number(
-
-      usedDaysInput
-        ? usedDaysInput.value
-        : 0
-
+      document.getElementById(
+        "vacationUsedDays"
+      ).value
     );
 
 
   const expirationDate =
-    expirationDateInput
-      ? expirationDateInput.value
-      : "";
+    document.getElementById(
+      "vacationExpirationDate"
+    ).value;
 
 
 
   // ========================================================
-  // VALIDAÇÃO DOS CAMPOS
+  // VALIDAÇÃO
   // ========================================================
 
   if (
@@ -2866,38 +2337,12 @@ async function saveVacationPeriod(
       "error"
     );
 
-    return;
-
-  }
-
-
-
-  // ========================================================
-  // DIAS DE DIREITO
-  // ========================================================
-
-  if (
-    !Number.isInteger(
-      entitledDays
-    )
-    ||
-    entitledDays <= 0
-  ) {
-
-    showVacationMessage(
-      "Os dias de direito precisam ser maiores que zero.",
-      "error"
-    );
 
     return;
 
   }
 
 
-
-  // ========================================================
-  // DIAS UTILIZADOS
-  // ========================================================
 
   if (
     !Number.isInteger(
@@ -2905,42 +2350,22 @@ async function saveVacationPeriod(
     )
     ||
     usedDays < 0
-  ) {
-
-    showVacationMessage(
-      "Os dias utilizados não podem ser negativos.",
-      "error"
-    );
-
-    return;
-
-  }
-
-
-
-  // ========================================================
-  // USADOS NÃO PODEM SER MAIORES QUE O DIREITO
-  // ========================================================
-
-  if (
+    ||
     usedDays >
-    entitledDays
+      VACATION_DEFAULT_DAYS
   ) {
 
     showVacationMessage(
-      "Os dias utilizados não podem ser maiores que os dias de direito.",
+      "Os dias utilizados devem estar entre 0 e 30.",
       "error"
     );
+
 
     return;
 
   }
 
 
-
-  // ========================================================
-  // PERÍODO
-  // ========================================================
 
   if (
     periodEnd <
@@ -2952,15 +2377,12 @@ async function saveVacationPeriod(
       "error"
     );
 
+
     return;
 
   }
 
 
-
-  // ========================================================
-  // DATA DE VENCIMENTO
-  // ========================================================
 
   if (
     expirationDate <
@@ -2972,48 +2394,44 @@ async function saveVacationPeriod(
       "error"
     );
 
+
     return;
 
   }
 
 
 
-  // ========================================================
-  // BOTÃO
-  // ========================================================
-
-  const saveButton =
+  const button =
     document.getElementById(
       "vacationSaveButton"
     );
 
 
-  const saveText =
+  const text =
     document.getElementById(
       "vacationSaveText"
     );
 
 
   const originalText =
-    saveText
-      ? saveText.textContent
-      : "Salvar período";
+    text?.textContent ||
+    "Salvar período";
 
 
 
   try {
 
-    if (saveButton) {
+    if (button) {
 
-      saveButton.disabled =
+      button.disabled =
         true;
 
     }
 
 
-    if (saveText) {
+    if (text) {
 
-      saveText.textContent =
+      text.textContent =
         "Salvando...";
 
     }
@@ -3021,7 +2439,16 @@ async function saveVacationPeriod(
 
 
     // ======================================================
-    // ENVIAR PARA O BACKEND
+    // BACKEND
+    // ======================================================
+    //
+    // dias_direito NÃO é enviado.
+    //
+    // Backend decide automaticamente:
+    //
+    // período incompleto → 0
+    // período concluído → 30
+    //
     // ======================================================
 
     const response =
@@ -3048,9 +2475,6 @@ async function saveVacationPeriod(
               periodo_fim:
                 periodEnd,
 
-              dias_direito:
-                entitledDays,
-
               dias_usados:
                 usedDays,
 
@@ -3064,11 +2488,6 @@ async function saveVacationPeriod(
       );
 
 
-
-    // ======================================================
-    // SESSÃO EXPIRADA
-    // ======================================================
-
     if (
       handleUnauthorized(
         response
@@ -3080,15 +2499,9 @@ async function saveVacationPeriod(
     }
 
 
-
     const result =
       await response.json();
 
-
-
-    // ======================================================
-    // ERRO
-    // ======================================================
 
     if (!response.ok) {
 
@@ -3104,24 +2517,16 @@ async function saveVacationPeriod(
 
 
 
-    // ======================================================
-    // SUCESSO
-    // ======================================================
-
-    updateVacationBalancePreview();
-
-
     showVacationMessage(
 
       result.message ||
-      "Período de férias salvo com sucesso.",
+      "Período salvo com sucesso.",
 
       "success"
 
     );
 
 
-    // Mantemos a mensagem visível por alguns instantes.
     setTimeout(
       () => {
 
@@ -3130,7 +2535,7 @@ async function saveVacationPeriod(
         );
 
       },
-      900
+      700
     );
 
 
@@ -3150,17 +2555,17 @@ async function saveVacationPeriod(
 
   } finally {
 
-    if (saveButton) {
+    if (button) {
 
-      saveButton.disabled =
+      button.disabled =
         false;
 
     }
 
 
-    if (saveText) {
+    if (text) {
 
-      saveText.textContent =
+      text.textContent =
         originalText;
 
     }
@@ -3172,7 +2577,7 @@ async function saveVacationPeriod(
 
 
 // ==========================================================
-// MOSTRAR MENSAGEM DO FORMULÁRIO DE FÉRIAS
+// MENSAGEM DE FÉRIAS
 // ==========================================================
 
 function showVacationMessage(
@@ -3205,7 +2610,7 @@ function showVacationMessage(
 
 
 // ==========================================================
-// LIMPAR MENSAGEM DE FÉRIAS
+// LIMPAR MENSAGEM
 // ==========================================================
 
 function clearVacationMessage() {
@@ -3235,80 +2640,55 @@ function clearVacationMessage() {
 
 
 // ==========================================================
-// EVENTOS DOS CAMPOS DE FÉRIAS
-// ==========================================================
-//
-// Quando o Admin alterar:
-//
-// - dias de direito;
-// - dias utilizados;
-//
-// atualizamos automaticamente:
-//
-// saldo disponível.
-//
+// FORMULÁRIO DE FÉRIAS
 // ==========================================================
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    const entitledInput =
-      document.getElementById(
-        "vacationEntitledDays"
-      );
+const vacationPeriodForm =
+  document.getElementById(
+    "vacationPeriodForm"
+  );
 
 
-    const usedInput =
-      document.getElementById(
-        "vacationUsedDays"
-      );
+if (vacationPeriodForm) {
 
+  vacationPeriodForm.addEventListener(
+    "submit",
+    saveVacationPeriod
+  );
 
-    if (entitledInput) {
-
-      entitledInput.addEventListener(
-        "input",
-        updateVacationBalancePreview
-      );
-
-    }
-
-
-    if (usedInput) {
-
-      usedInput.addEventListener(
-        "input",
-        updateVacationBalancePreview
-      );
-
-    }
-
-  }
-);
+}
 
 
 
 // ==========================================================
-// CONVERTER CURSO DA API PARA O FORMATO DO FRONTEND
+// PREVIEW AUTOMÁTICO
 // ==========================================================
-//
-// A API retorna nomes em português.
-//
-// Exemplo:
-//
-// titulo
-// descricao
-// carga_horaria
-// setor_responsavel
-//
-// A interface utiliza:
-//
-// title
-// description
-// hours
-// responsibleSector
-//
+
+const vacationUsedDaysInput =
+  document.getElementById(
+    "vacationUsedDays"
+  );
+
+
+if (vacationUsedDaysInput) {
+
+  vacationUsedDaysInput.addEventListener(
+    "input",
+    updateVacationBalancePreview
+  );
+
+}
+
+// ==========================================================
+// ==========================================================
+// TREINAMENTOS
+// ==========================================================
+// ==========================================================
+
+
+
+// ==========================================================
+// CONVERTER CURSO DA API
 // ==========================================================
 
 function mapApiCourse(
@@ -3316,17 +2696,28 @@ function mapApiCourse(
 ) {
 
   const apiActivities =
-    apiCourse.atividades_curso || [];
+    apiCourse.atividades_curso ||
+    [];
 
 
-  // Ordenamos as atividades.
   apiActivities.sort(
-    (a, b) => {
+    (
+      activityA,
+      activityB
+    ) => {
 
       return (
-        Number(a.ordem || 0)
+
+        Number(
+          activityA.ordem || 0
+        )
+
         -
-        Number(b.ordem || 0)
+
+        Number(
+          activityB.ordem || 0
+        )
+
       );
 
     }
@@ -3338,54 +2729,44 @@ function mapApiCourse(
     id:
       apiCourse.id,
 
-
     title:
       apiCourse.titulo,
-
 
     description:
       apiCourse.descricao,
 
-
     hours:
       apiCourse.carga_horaria,
-
 
     area:
       apiCourse.area,
 
-
     level:
       apiCourse.nivel,
-
 
     responsibleSector:
       apiCourse.setor_responsavel,
 
-
     targetSector:
       apiCourse.setor_destino,
-
 
     requirement:
       apiCourse.classificacao,
 
-
     external:
-      apiCourse.curso_externo,
-
+      Boolean(
+        apiCourse.curso_externo
+      ),
 
     externalLink:
-      apiCourse.link_externo || "",
-
+      apiCourse.link_externo ||
+      "",
 
     active:
       apiCourse.ativo,
 
-
     createdAt:
       apiCourse.created_at,
-
 
     activities:
       apiActivities.map(
@@ -3396,26 +2777,22 @@ function mapApiCourse(
             id:
               activity.id,
 
-
             courseId:
               activity.curso_id,
-
 
             title:
               activity.titulo,
 
-
             description:
-              activity.descricao || "",
-
+              activity.descricao ||
+              "",
 
             type:
               activity.tipo,
 
-
             resource:
-              activity.recurso || "",
-
+              activity.recurso ||
+              "",
 
             order:
               activity.ordem
@@ -3432,14 +2809,14 @@ function mapApiCourse(
 
 
 // ==========================================================
-// CARREGAR CURSOS DA API
+// CARREGAR CURSOS
 // ==========================================================
 
 async function loadCoursesFromApi() {
 
   const container =
     document.getElementById(
-      "adminTrainingGrid"
+      "trainingAdminGrid"
     );
 
 
@@ -3449,13 +2826,7 @@ async function loadCoursesFromApi() {
 
       <div class="empty-state">
 
-        <i
-          class="
-            fa-solid
-            fa-spinner
-            fa-spin
-          "
-        ></i>
+        <i class="fa-solid fa-spinner fa-spin"></i>
 
         <strong>
           Carregando treinamentos...
@@ -3472,6 +2843,7 @@ async function loadCoursesFromApi() {
   }
 
 
+
   try {
 
     const response =
@@ -3486,38 +2858,45 @@ async function loadCoursesFromApi() {
       );
 
 
-    const data =
+    const result =
       await response.json();
 
 
     if (!response.ok) {
 
       throw new Error(
-        data.erro ||
-        "Não foi possível carregar os cursos."
+
+        result.erro ||
+        result.error ||
+        "Não foi possível carregar os treinamentos."
+
       );
 
     }
 
 
     courses =
-      (data || []).map(
-        course =>
-          mapApiCourse(course)
-      );
+      (
+        result || []
+      )
+
+        .map(
+          mapApiCourse
+        )
+
+        .filter(
+          course =>
+            course.active !== false
+        );
 
 
     renderCourses();
 
+
     renderDashboardCourses();
 
+
     updateDashboardCounters();
-
-
-    console.log(
-      "Cursos carregados:",
-      courses
-    );
 
 
   } catch (error) {
@@ -3538,21 +2917,18 @@ async function loadCoursesFromApi() {
 
         <div class="empty-state">
 
-          <i
-            class="
-              fa-solid
-              fa-triangle-exclamation
-            "
-          ></i>
+          <i class="fa-solid fa-triangle-exclamation"></i>
 
           <strong>
             Não foi possível carregar os treinamentos
           </strong>
 
           <span>
+
             ${escapeHTML(
               error.message
             )}
+
           </span>
 
         </div>
@@ -3571,970 +2947,6 @@ async function loadCoursesFromApi() {
 
 
 // ==========================================================
-// ABRIR MODAL DE NOVO CURSO
-// ==========================================================
-
-function openCourseModal() {
-
-  temporaryActivities =
-    [];
-
-
-  const form =
-    document.getElementById(
-      "courseForm"
-    );
-
-
-  if (form) {
-
-    form.reset();
-
-  }
-
-
-  const externalArea =
-    document.getElementById(
-      "externalLinkArea"
-    );
-
-
-  if (externalArea) {
-
-    externalArea.classList.remove(
-      "show"
-    );
-
-  }
-
-
-  renderActivityBuilder();
-
-
-  openModal(
-    "courseModal"
-  );
-
-}
-
-
-
-// ==========================================================
-// CURSO EXTERNO
-// ==========================================================
-
-function toggleExternalCourse() {
-
-  const checkbox =
-    document.getElementById(
-      "externalCourse"
-    );
-
-
-  const area =
-    document.getElementById(
-      "externalLinkArea"
-    );
-
-
-  if (
-    !checkbox ||
-    !area
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    checkbox.checked
-  ) {
-
-    area.classList.add(
-      "show"
-    );
-
-  } else {
-
-    area.classList.remove(
-      "show"
-    );
-
-  }
-
-}
-
-
-
-// ==========================================================
-// ADICIONAR ATIVIDADE
-// ==========================================================
-
-function addActivity() {
-
-  const activity = {
-
-    temporaryId:
-      Date.now() + Math.random(),
-
-    title:
-      "",
-
-    description:
-      "",
-
-    type:
-      "Texto",
-
-    resource:
-      ""
-
-  };
-
-
-  temporaryActivities.push(
-    activity
-  );
-
-
-  renderActivityBuilder();
-
-}
-
-
-
-// ==========================================================
-// REMOVER ATIVIDADE
-// ==========================================================
-
-function removeActivity(
-  activityId
-) {
-
-  temporaryActivities =
-    temporaryActivities.filter(
-      activity =>
-        activity.temporaryId !==
-        activityId
-    );
-
-
-  renderActivityBuilder();
-
-}
-
-
-
-// ==========================================================
-// ATUALIZAR ATIVIDADE
-// ==========================================================
-
-function updateActivity(
-  activityId,
-  field,
-  value
-) {
-
-  const activity =
-    temporaryActivities.find(
-      item =>
-        item.temporaryId ===
-        activityId
-    );
-
-
-  if (!activity) {
-
-    return;
-
-  }
-
-
-  activity[field] =
-    value;
-
-
-  if (
-    field ===
-    "type"
-  ) {
-
-    activity.resource =
-      "";
-
-
-    renderActivityBuilder();
-
-  }
-
-}
-
-
-
-// ==========================================================
-// RENDERIZAR CONSTRUTOR DE ATIVIDADES
-// ==========================================================
-
-function renderActivityBuilder() {
-
-  const container =
-    document.getElementById(
-      "activityBuilderList"
-    );
-
-
-  if (!container) {
-
-    return;
-
-  }
-
-
-  if (
-    temporaryActivities.length ===
-    0
-  ) {
-
-    container.innerHTML = `
-
-      <div class="empty-activities">
-
-        <i class="fa-regular fa-clipboard"></i>
-
-        <strong>
-          Nenhuma atividade adicionada
-        </strong>
-
-        <span>
-          Clique em "Adicionar atividade"
-          para começar.
-        </span>
-
-      </div>
-
-    `;
-
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    "";
-
-
-  temporaryActivities.forEach(
-    (activity, index) => {
-
-      const element =
-        document.createElement(
-          "div"
-        );
-
-
-      element.className =
-        "activity-builder";
-
-
-      let resourceField =
-        "";
-
-
-
-      // ======================================================
-      // LINK
-      // ======================================================
-
-      if (
-        activity.type ===
-        "Link"
-      ) {
-
-        resourceField = `
-
-          <div
-            class="
-              form-group
-              activity-extra-field
-            "
-          >
-
-            <label>
-              Link
-            </label>
-
-            <input
-              type="url"
-              placeholder="https://..."
-              value="${escapeHTML(
-                activity.resource
-              )}"
-              oninput="
-                updateActivity(
-                  ${activity.temporaryId},
-                  'resource',
-                  this.value
-                )
-              "
-            >
-
-          </div>
-
-        `;
-
-      }
-
-
-
-      // ======================================================
-      // ARQUIVO
-      // ======================================================
-
-      if (
-        activity.type ===
-        "Arquivo"
-      ) {
-
-        resourceField = `
-
-          <div
-            class="
-              form-group
-              activity-extra-field
-            "
-          >
-
-            <label>
-              Arquivo / material
-            </label>
-
-            <input
-              type="file"
-              onchange="
-                saveActivityFile(
-                  ${activity.temporaryId},
-                  this
-                )
-              "
-            >
-
-            ${
-              activity.resource
-
-                ?
-
-                `
-
-                  <span
-                    class="
-                      status-badge
-                      success
-                    "
-                  >
-
-                    ${escapeHTML(
-                      activity.resource
-                    )}
-
-                  </span>
-
-                `
-
-                :
-
-                ""
-            }
-
-          </div>
-
-        `;
-
-      }
-
-
-
-      // ======================================================
-      // CONTEÚDO DA ATIVIDADE
-      // ======================================================
-
-      element.innerHTML = `
-
-        <div class="activity-builder-header">
-
-          <strong>
-            Atividade ${index + 1}
-          </strong>
-
-
-          <button
-            type="button"
-            class="remove-activity"
-            onclick="
-              removeActivity(
-                ${activity.temporaryId}
-              )
-            "
-          >
-
-            <i class="fa-solid fa-trash"></i>
-
-          </button>
-
-        </div>
-
-
-
-        <div class="form-grid">
-
-
-          <div
-            class="
-              form-group
-              full
-            "
-          >
-
-            <label>
-              Título da atividade
-            </label>
-
-
-            <input
-              type="text"
-              placeholder="Ex.: Crie uma planilha financeira"
-              value="${escapeHTML(
-                activity.title
-              )}"
-              oninput="
-                updateActivity(
-                  ${activity.temporaryId},
-                  'title',
-                  this.value
-                )
-              "
-            >
-
-          </div>
-
-
-
-          <div
-            class="
-              form-group
-              full
-            "
-          >
-
-            <label>
-              Instruções
-            </label>
-
-
-            <textarea
-              rows="3"
-              placeholder="Explique o que o colaborador deverá realizar..."
-              oninput="
-                updateActivity(
-                  ${activity.temporaryId},
-                  'description',
-                  this.value
-                )
-              "
-            >${escapeHTML(
-              activity.description
-            )}</textarea>
-
-          </div>
-
-
-
-          <div class="form-group">
-
-            <label>
-              Tipo de conteúdo
-            </label>
-
-
-            <select
-              onchange="
-                updateActivity(
-                  ${activity.temporaryId},
-                  'type',
-                  this.value
-                )
-              "
-            >
-
-              <option
-                value="Texto"
-                ${
-                  activity.type ===
-                  "Texto"
-
-                    ? "selected"
-
-                    : ""
-                }
-              >
-                Somente texto
-              </option>
-
-
-              <option
-                value="Arquivo"
-                ${
-                  activity.type ===
-                  "Arquivo"
-
-                    ? "selected"
-
-                    : ""
-                }
-              >
-                Arquivo
-              </option>
-
-
-              <option
-                value="Link"
-                ${
-                  activity.type ===
-                  "Link"
-
-                    ? "selected"
-
-                    : ""
-                }
-              >
-                Link externo
-              </option>
-
-            </select>
-
-          </div>
-
-        </div>
-
-
-        ${resourceField}
-
-      `;
-
-
-      container.appendChild(
-        element
-      );
-
-    }
-  );
-
-}
-
-
-
-// ==========================================================
-// SALVAR ARQUIVO DA ATIVIDADE
-// ==========================================================
-//
-// Ainda estamos guardando somente
-// o nome do arquivo.
-//
-// Upload real ficará para o Supabase Storage.
-//
-// ==========================================================
-
-function saveActivityFile(
-  activityId,
-  input
-) {
-
-  if (
-    !input.files ||
-    input.files.length ===
-    0
-  ) {
-
-    return;
-
-  }
-
-
-  const activity =
-    temporaryActivities.find(
-      item =>
-        item.temporaryId ===
-        activityId
-    );
-
-
-  if (!activity) {
-
-    return;
-
-  }
-
-
-  activity.resource =
-    input.files[0].name;
-
-
-  renderActivityBuilder();
-
-}
-
-
-
-// ==========================================================
-// CRIAR CURSO
-// ==========================================================
-
-async function createCourse(
-  event
-) {
-
-  event.preventDefault();
-
-
-
-  // ========================================================
-  // VERIFICAR ATIVIDADES
-  // ========================================================
-
-  if (
-    temporaryActivities.length ===
-    0
-  ) {
-
-    const continueWithoutActivity =
-      confirm(
-        "O curso não possui atividades. Deseja publicá-lo mesmo assim?"
-      );
-
-
-    if (
-      !continueWithoutActivity
-    ) {
-
-      return;
-
-    }
-
-  }
-
-
-
-  // ========================================================
-  // VALIDAR ATIVIDADES
-  // ========================================================
-
-  const invalidActivity =
-    temporaryActivities.find(
-      activity =>
-        !activity.title.trim()
-    );
-
-
-  if (
-    invalidActivity
-  ) {
-
-    alert(
-      "Todas as atividades precisam possuir um título."
-    );
-
-    return;
-
-  }
-
-
-
-  const form =
-    document.getElementById(
-      "courseForm"
-    );
-
-
-  if (!form) {
-
-    return;
-
-  }
-
-
-
-  const submitButton =
-    form.querySelector(
-      'button[type="submit"]'
-    );
-
-
-  const originalButtonHTML =
-    submitButton
-      ? submitButton.innerHTML
-      : "";
-
-
-  if (submitButton) {
-
-    submitButton.disabled =
-      true;
-
-
-    submitButton.innerHTML = `
-
-      <i
-        class="
-          fa-solid
-          fa-spinner
-          fa-spin
-        "
-      ></i>
-
-      Salvando...
-
-    `;
-
-  }
-
-
-
-  try {
-
-    // ======================================================
-    // MONTAR CURSO
-    // ======================================================
-
-    const courseData = {
-
-      titulo:
-        document
-          .getElementById(
-            "courseTitle"
-          )
-          .value
-          .trim(),
-
-
-      descricao:
-        document
-          .getElementById(
-            "courseDescription"
-          )
-          .value
-          .trim(),
-
-
-      carga_horaria:
-        Number(
-          document
-            .getElementById(
-              "courseHours"
-            )
-            .value
-        ),
-
-
-      area:
-        document
-          .getElementById(
-            "courseArea"
-          )
-          .value,
-
-
-      nivel:
-        document
-          .getElementById(
-            "courseLevel"
-          )
-          .value,
-
-
-      setor_responsavel:
-        document
-          .getElementById(
-            "courseResponsibleSector"
-          )
-          .value,
-
-
-      setor_destino:
-        document
-          .getElementById(
-            "courseTargetSector"
-          )
-          .value,
-
-
-      classificacao:
-        document
-          .getElementById(
-            "courseRequirement"
-          )
-          .value,
-
-
-      curso_externo:
-        document
-          .getElementById(
-            "externalCourse"
-          )
-          .checked,
-
-
-      link_externo:
-        document
-          .getElementById(
-            "externalCourseLink"
-          )
-          .value
-          .trim()
-          || null,
-
-
-      atividades:
-        temporaryActivities.map(
-          activity => {
-
-            return {
-
-              titulo:
-                activity.title
-                  .trim(),
-
-
-              descricao:
-                activity.description
-                  .trim()
-                || null,
-
-
-              tipo:
-                activity.type,
-
-
-              recurso:
-                activity.resource
-                || null
-
-            };
-
-          }
-        )
-
-    };
-
-
-
-    // ======================================================
-    // ENVIAR PARA API
-    // ======================================================
-
-    const response =
-      await fetch(
-        "/api/cursos",
-        {
-
-          method:
-            "POST",
-
-          headers: {
-
-            "Content-Type":
-              "application/json"
-
-          },
-
-          body:
-            JSON.stringify(
-              courseData
-            )
-
-        }
-      );
-
-
-    const result =
-      await response.json();
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        result.erro ||
-        "Não foi possível criar o treinamento."
-      );
-
-    }
-
-
-
-    // ======================================================
-    // SUCESSO
-    // ======================================================
-
-    temporaryActivities =
-      [];
-
-
-    form.reset();
-
-
-    closeModal(
-      "courseModal"
-    );
-
-
-    await loadCoursesFromApi();
-
-
-    changePage(
-      "trainings"
-    );
-
-
-    alert(
-      "Treinamento publicado com sucesso!"
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Erro ao criar treinamento:",
-      error
-    );
-
-
-    alert(
-      "Não foi possível criar o treinamento.\n\n"
-      +
-      error.message
-    );
-
-
-  } finally {
-
-    if (submitButton) {
-
-      submitButton.disabled =
-        false;
-
-
-      submitButton.innerHTML =
-        originalButtonHTML;
-
-    }
-
-  }
-
-}
-
-
-
-// ==========================================================
 // RENDERIZAR CURSOS
 // ==========================================================
 
@@ -4542,7 +2954,7 @@ function renderCourses() {
 
   const container =
     document.getElementById(
-      "adminTrainingGrid"
+      "trainingAdminGrid"
     );
 
 
@@ -4560,82 +2972,44 @@ function renderCourses() {
 
 
   const search =
-    searchInput
-
-      ? searchInput
-          .value
-          .trim()
-          .toLowerCase()
-
-      : "";
-
-
-  const areaFilter =
-    document.getElementById(
-      "trainingAreaFilter"
-    );
-
-
-  const area =
-    areaFilter
-      ? areaFilter.value
-      : "";
+    String(
+      searchInput?.value || ""
+    )
+      .trim()
+      .toLowerCase();
 
 
   const filtered =
     courses.filter(
       course => {
 
-        if (
-          !course.active
-        ) {
+        const text = [
 
-          return false;
+          course.title,
 
-        }
+          course.description,
 
+          course.area,
 
-        const title =
-          String(
-            course.title || ""
-          )
-            .toLowerCase();
+          course.level,
 
+          course.responsibleSector,
 
-        const description =
-          String(
-            course.description || ""
-          )
-            .toLowerCase();
+          course.targetSector,
 
+          course.requirement
 
-        const matchesSearch =
+        ]
 
-          title.includes(
-            search
+          .join(
+            " "
           )
 
-          ||
-
-          description.includes(
-            search
-          );
+          .toLowerCase();
 
 
-        const matchesArea =
-
-          area === ""
-
-          ||
-
-          course.area ===
-            area;
-
-
-        return (
-          matchesSearch
-          &&
-          matchesArea
+        return text.includes(
+          search
         );
 
       }
@@ -4646,13 +3020,13 @@ function renderCourses() {
     "";
 
 
-
   // ========================================================
-  // NENHUM CURSO
+  // SEM CURSOS
   // ========================================================
 
   if (
-    filtered.length === 0
+    filtered.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -4666,8 +3040,7 @@ function renderCourses() {
         </strong>
 
         <span>
-          Crie um novo treinamento
-          ou altere os filtros.
+          Crie um novo treinamento ou altere sua busca.
         </span>
 
       </div>
@@ -4680,6 +3053,9 @@ function renderCourses() {
   }
 
 
+  // ========================================================
+  // CARDS
+  // ========================================================
 
   filtered.forEach(
     course => {
@@ -4694,7 +3070,7 @@ function renderCourses() {
         "admin-course-card";
 
 
-      const statusClass =
+      const requirementClass =
 
         course.requirement ===
         "Obrigatório"
@@ -4711,7 +3087,7 @@ function renderCourses() {
           <span
             class="
               status-badge
-              ${statusClass}
+              ${requirementClass}
             "
           >
 
@@ -4722,53 +3098,33 @@ function renderCourses() {
           </span>
 
 
-          <i
+          <i class="fa-solid fa-graduation-cap"></i>
+
+
+          <span
             class="
-              fa-solid
-              fa-graduation-cap
+              status-badge
+              ${
+                course.external
+                  ? "info"
+                  : "success"
+              }
             "
-          ></i>
+          >
 
+            ${
+              course.external
+                ? "Externo"
+                : "Interno"
+            }
 
-          ${
-            course.external
-
-              ?
-
-              `
-
-                <span
-                  class="
-                    status-badge
-                    info
-                  "
-                >
-                  Externo
-                </span>
-
-              `
-
-              :
-
-              `
-
-                <span
-                  class="
-                    status-badge
-                    success
-                  "
-                >
-                  Interno
-                </span>
-
-              `
-          }
+          </span>
 
         </div>
 
 
-
         <div class="course-card-content">
+
 
           <div class="course-card-top">
 
@@ -4781,13 +3137,10 @@ function renderCourses() {
             </span>
 
 
-            <span
-              class="
-                status-badge
-                success
-              "
-            >
+            <span class="status-badge success">
+
               Ativo
+
             </span>
 
           </div>
@@ -4809,7 +3162,6 @@ function renderCourses() {
             )}
 
           </p>
-
 
 
           <div class="course-meta-grid">
@@ -4874,14 +3226,15 @@ function renderCourses() {
 
             </div>
 
-          </div>
 
+          </div>
 
 
           <div class="course-actions">
 
 
             <button
+              type="button"
               class="view-course-button"
               onclick="
                 showCourseDetails(
@@ -4898,18 +3251,20 @@ function renderCourses() {
 
 
             <button
+              type="button"
               class="delete-course-button"
               onclick="
                 askDeleteCourse(
                   '${course.id}'
                 )
               "
-              title="Remover curso"
+              title="Remover treinamento"
             >
 
               <i class="fa-solid fa-trash"></i>
 
             </button>
+
 
           </div>
 
@@ -4930,48 +3285,21 @@ function renderCourses() {
 
 
 // ==========================================================
-// PESQUISA DE CURSO
+// PESQUISA DE TREINAMENTOS
 // ==========================================================
 
-const trainingSearchInput =
+const trainingSearch =
   document.getElementById(
     "trainingSearch"
   );
 
 
-if (
-  trainingSearchInput
-) {
+if (trainingSearch) {
 
-  trainingSearchInput
-    .addEventListener(
-      "input",
-      renderCourses
-    );
-
-}
-
-
-
-// ==========================================================
-// FILTRO DE ÁREA
-// ==========================================================
-
-const trainingAreaFilter =
-  document.getElementById(
-    "trainingAreaFilter"
+  trainingSearch.addEventListener(
+    "input",
+    renderCourses
   );
-
-
-if (
-  trainingAreaFilter
-) {
-
-  trainingAreaFilter
-    .addEventListener(
-      "change",
-      renderCourses
-    );
 
 }
 
@@ -4996,14 +3324,8 @@ function renderDashboardCourses() {
   }
 
 
-  const activeCourses =
+  const recentCourses =
     courses
-
-      .filter(
-        course =>
-          course.active
-      )
-
       .slice(
         0,
         3
@@ -5015,7 +3337,7 @@ function renderDashboardCourses() {
 
 
   if (
-    activeCourses.length ===
+    recentCourses.length ===
     0
   ) {
 
@@ -5028,7 +3350,7 @@ function renderDashboardCourses() {
         </strong>
 
         <span>
-          Crie seu primeiro treinamento.
+          Crie o primeiro treinamento da plataforma.
         </span>
 
       </div>
@@ -5041,20 +3363,20 @@ function renderDashboardCourses() {
   }
 
 
-  activeCourses.forEach(
+  recentCourses.forEach(
     course => {
 
-      const card =
+      const item =
         document.createElement(
           "article"
         );
 
 
-      card.className =
+      item.className =
         "training-mini-card";
 
 
-      card.innerHTML = `
+      item.innerHTML = `
 
         <div class="training-mini-top">
 
@@ -5067,12 +3389,7 @@ function renderDashboardCourses() {
           </span>
 
 
-          <span
-            class="
-              status-badge
-              success
-            "
-          >
+          <span class="status-badge success">
             Ativo
           </span>
 
@@ -5094,7 +3411,9 @@ function renderDashboardCourses() {
 
           ${escapeHTML(
             course.level
-          )} •
+          )}
+
+          •
 
           ${course.activities.length}
           atividade(s)
@@ -5105,10 +3424,984 @@ function renderDashboardCourses() {
 
 
       container.appendChild(
-        card
+        item
       );
 
     }
+  );
+
+}
+
+
+
+// ==========================================================
+// ABRIR MODAL DE NOVO CURSO
+// ==========================================================
+
+function openCourseModal() {
+
+  temporaryActivities =
+    [];
+
+
+  const form =
+    document.getElementById(
+      "courseForm"
+    );
+
+
+  if (form) {
+
+    form.reset();
+
+  }
+
+
+  // ========================================================
+  // CURSO EXTERNO
+  // ========================================================
+
+  const externalArea =
+    document.getElementById(
+      "externalLinkArea"
+    );
+
+
+  if (externalArea) {
+
+    externalArea.style.display =
+      "none";
+
+  }
+
+
+  renderActivityBuilder();
+
+
+  openModal(
+    "courseModal"
+  );
+
+}
+
+
+
+// ==========================================================
+// CURSO EXTERNO
+// ==========================================================
+
+function toggleExternalCourse() {
+
+  const checkbox =
+    document.getElementById(
+      "externalCourse"
+    );
+
+
+  const area =
+    document.getElementById(
+      "externalLinkArea"
+    );
+
+
+  if (
+    !checkbox ||
+    !area
+  ) {
+
+    return;
+
+  }
+
+
+  area.style.display =
+
+    checkbox.checked
+
+      ? "block"
+
+      : "none";
+
+}
+
+
+
+// ==========================================================
+// EVENTO DO CHECKBOX
+// ==========================================================
+
+const externalCourseCheckbox =
+  document.getElementById(
+    "externalCourse"
+  );
+
+
+if (
+  externalCourseCheckbox
+) {
+
+  externalCourseCheckbox.addEventListener(
+    "change",
+    toggleExternalCourse
+  );
+
+}
+
+
+
+// ==========================================================
+// ADICIONAR ATIVIDADE
+// ==========================================================
+
+function addActivity() {
+
+  temporaryActivities.push({
+
+    temporaryId:
+      Date.now() +
+      Math.random(),
+
+    title:
+      "",
+
+    description:
+      "",
+
+    type:
+      "Texto",
+
+    resource:
+      ""
+
+  });
+
+
+  renderActivityBuilder();
+
+}
+
+
+
+// ==========================================================
+// REMOVER ATIVIDADE
+// ==========================================================
+
+function removeActivity(
+  activityId
+) {
+
+  temporaryActivities =
+    temporaryActivities.filter(
+      activity =>
+        Number(
+          activity.temporaryId
+        )
+        !==
+        Number(
+          activityId
+        )
+    );
+
+
+  renderActivityBuilder();
+
+}
+
+
+
+// ==========================================================
+// ALTERAR ATIVIDADE
+// ==========================================================
+
+function updateActivity(
+  activityId,
+  field,
+  value
+) {
+
+  const activity =
+    temporaryActivities.find(
+      item =>
+        Number(
+          item.temporaryId
+        )
+        ===
+        Number(
+          activityId
+        )
+    );
+
+
+  if (!activity) {
+
+    return;
+
+  }
+
+
+  activity[
+    field
+  ] =
+    value;
+
+
+  // ========================================================
+  // AO TROCAR O TIPO
+  // ========================================================
+
+  if (
+    field ===
+    "type"
+  ) {
+
+    activity.resource =
+      "";
+
+
+    renderActivityBuilder();
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ARQUIVO DA ATIVIDADE
+// ==========================================================
+
+function saveActivityFile(
+  activityId,
+  input
+) {
+
+  if (
+    !input.files ||
+    input.files.length ===
+    0
+  ) {
+
+    return;
+
+  }
+
+
+  const activity =
+    temporaryActivities.find(
+      item =>
+        Number(
+          item.temporaryId
+        )
+        ===
+        Number(
+          activityId
+        )
+    );
+
+
+  if (!activity) {
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // POR ENQUANTO
+  // ========================================================
+  //
+  // Salvamos somente o nome.
+  //
+  // Depois:
+  // Supabase Storage.
+  //
+  // ========================================================
+
+  activity.resource =
+    input.files[0].name;
+
+
+  renderActivityBuilder();
+
+}
+
+
+
+// ==========================================================
+// CONSTRUTOR DE ATIVIDADES
+// ==========================================================
+
+function renderActivityBuilder() {
+
+  const container =
+    document.getElementById(
+      "activityBuilder"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // VAZIO
+  // ========================================================
+
+  if (
+    temporaryActivities.length ===
+    0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-activities">
+
+        <i class="fa-regular fa-clipboard"></i>
+
+        <strong>
+          Nenhuma atividade adicionada
+        </strong>
+
+        <span>
+          Clique em "Adicionar atividade" para começar.
+        </span>
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  // ========================================================
+  // ATIVIDADES
+  // ========================================================
+
+  temporaryActivities.forEach(
+    (
+      activity,
+      index
+    ) => {
+
+      const element =
+        document.createElement(
+          "div"
+        );
+
+
+      element.className =
+        "activity-builder";
+
+
+      let resourceField =
+        "";
+
+
+      // ====================================================
+      // LINK
+      // ====================================================
+
+      if (
+        activity.type ===
+        "Link"
+      ) {
+
+        resourceField = `
+
+          <div class="form-group">
+
+            <label>
+              Link
+            </label>
+
+            <input
+              type="url"
+              value="${escapeHTML(
+                activity.resource
+              )}"
+              placeholder="https://..."
+              oninput="
+                updateActivity(
+                  ${activity.temporaryId},
+                  'resource',
+                  this.value
+                )
+              "
+            >
+
+          </div>
+
+        `;
+
+      }
+
+
+
+      // ====================================================
+      // ARQUIVO
+      // ====================================================
+
+      if (
+        activity.type ===
+        "Arquivo"
+      ) {
+
+        resourceField = `
+
+          <div class="form-group">
+
+            <label>
+              Arquivo / material
+            </label>
+
+            <input
+              type="file"
+              onchange="
+                saveActivityFile(
+                  ${activity.temporaryId},
+                  this
+                )
+              "
+            >
+
+            ${
+              activity.resource
+
+                ? `
+
+                  <small class="field-helper">
+
+                    Arquivo selecionado:
+
+                    ${escapeHTML(
+                      activity.resource
+                    )}
+
+                  </small>
+
+                `
+
+                : ""
+            }
+
+          </div>
+
+        `;
+
+      }
+
+
+
+      element.innerHTML = `
+
+        <div class="activity-builder-header">
+
+          <strong>
+            Atividade ${index + 1}
+          </strong>
+
+
+          <button
+            type="button"
+            class="remove-activity"
+            onclick="
+              removeActivity(
+                ${activity.temporaryId}
+              )
+            "
+          >
+
+            <i class="fa-solid fa-trash"></i>
+
+          </button>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Título da atividade
+          </label>
+
+          <input
+            type="text"
+            value="${escapeHTML(
+              activity.title
+            )}"
+            placeholder="Ex.: Criar uma planilha"
+            oninput="
+              updateActivity(
+                ${activity.temporaryId},
+                'title',
+                this.value
+              )
+            "
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Instruções
+          </label>
+
+          <textarea
+            rows="3"
+            placeholder="Explique o que deve ser realizado."
+            oninput="
+              updateActivity(
+                ${activity.temporaryId},
+                'description',
+                this.value
+              )
+            "
+          >${escapeHTML(
+            activity.description
+          )}</textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>
+            Tipo
+          </label>
+
+          <select
+            onchange="
+              updateActivity(
+                ${activity.temporaryId},
+                'type',
+                this.value
+              )
+            "
+          >
+
+            <option
+              value="Texto"
+              ${
+                activity.type ===
+                "Texto"
+
+                  ? "selected"
+
+                  : ""
+              }
+            >
+              Texto
+            </option>
+
+
+            <option
+              value="Arquivo"
+              ${
+                activity.type ===
+                "Arquivo"
+
+                  ? "selected"
+
+                  : ""
+              }
+            >
+              Arquivo
+            </option>
+
+
+            <option
+              value="Link"
+              ${
+                activity.type ===
+                "Link"
+
+                  ? "selected"
+
+                  : ""
+              }
+            >
+              Link
+            </option>
+
+          </select>
+
+        </div>
+
+
+        ${resourceField}
+
+      `;
+
+
+      container.appendChild(
+        element
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// CRIAR CURSO
+// ==========================================================
+
+async function createCourse(
+  event
+) {
+
+  event.preventDefault();
+
+
+  // ========================================================
+  // CAMPOS
+  // ========================================================
+
+  const title =
+    document
+      .getElementById(
+        "courseTitle"
+      )
+      .value
+      .trim();
+
+
+  const description =
+    document
+      .getElementById(
+        "courseDescription"
+      )
+      .value
+      .trim();
+
+
+  const hours =
+    Number(
+      document.getElementById(
+        "courseHours"
+      ).value
+    );
+
+
+  const area =
+    document
+      .getElementById(
+        "courseArea"
+      )
+      .value
+      .trim();
+
+
+  const level =
+    document.getElementById(
+      "courseLevel"
+    ).value;
+
+
+  const requirement =
+    document.getElementById(
+      "courseRequirement"
+    ).value;
+
+
+  const responsibleSector =
+    document.getElementById(
+      "courseResponsibleSector"
+    ).value;
+
+
+  const targetSector =
+    document.getElementById(
+      "courseTargetSector"
+    ).value;
+
+
+  const external =
+    document.getElementById(
+      "externalCourse"
+    ).checked;
+
+
+  const externalLink =
+    document.getElementById(
+      "externalCourseLinkInput"
+    ).value.trim();
+
+
+
+  // ========================================================
+  // VALIDAÇÃO
+  // ========================================================
+
+  if (
+    !title ||
+    !description ||
+    !hours ||
+    !area ||
+    !level ||
+    !requirement ||
+    !responsibleSector ||
+    !targetSector
+  ) {
+
+    alert(
+      "Preencha todos os campos do treinamento."
+    );
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // REGRA DO SETOR RESPONSÁVEL
+  // ========================================================
+  //
+  // Admin de setor:
+  // curso pertence ao próprio setor.
+  //
+  // ========================================================
+
+  if (
+    currentAdmin.perfil ===
+      "admin_setor"
+    &&
+    responsibleSector !==
+      currentAdmin.setor
+  ) {
+
+    alert(
+      "Você só pode criar treinamentos cujo setor responsável seja o seu próprio setor."
+    );
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // CURSO EXTERNO
+  // ========================================================
+
+  if (
+    external &&
+    !externalLink
+  ) {
+
+    alert(
+      "Informe o link do treinamento externo."
+    );
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // ATIVIDADES
+  // ========================================================
+
+  const invalidActivity =
+    temporaryActivities.find(
+      activity =>
+        !activity.title.trim()
+    );
+
+
+  if (
+    invalidActivity
+  ) {
+
+    alert(
+      "Todas as atividades precisam possuir título."
+    );
+
+
+    return;
+
+  }
+
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/cursos",
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body:
+            JSON.stringify({
+
+              titulo:
+                title,
+
+              descricao:
+                description,
+
+              carga_horaria:
+                hours,
+
+              area:
+                area,
+
+              nivel:
+                level,
+
+              setor_responsavel:
+                responsibleSector,
+
+              setor_destino:
+                targetSector,
+
+              classificacao:
+                requirement,
+
+              curso_externo:
+                external,
+
+              link_externo:
+                external
+                  ? externalLink
+                  : null,
+
+              atividades:
+                temporaryActivities.map(
+                  activity => {
+
+                    return {
+
+                      titulo:
+                        activity.title
+                          .trim(),
+
+                      descricao:
+                        activity.description
+                          .trim()
+                        ||
+                        null,
+
+                      tipo:
+                        activity.type,
+
+                      recurso:
+                        activity.resource
+                        ||
+                        null
+
+                    };
+
+                  }
+                )
+
+            })
+
+        }
+      );
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.erro ||
+        result.error ||
+        "Não foi possível criar o treinamento."
+
+      );
+
+    }
+
+
+    closeModal(
+      "courseModal"
+    );
+
+
+    temporaryActivities =
+      [];
+
+
+    await loadCoursesFromApi();
+
+
+    changePage(
+      "trainings"
+    );
+
+
+    alert(
+      "Treinamento criado com sucesso!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao criar treinamento:",
+      error
+    );
+
+
+    alert(
+      error.message
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// FORMULÁRIO DE CURSO
+// ==========================================================
+
+const courseForm =
+  document.getElementById(
+    "courseForm"
+  );
+
+
+if (courseForm) {
+
+  courseForm.addEventListener(
+    "submit",
+    createCourse
   );
 
 }
@@ -5133,11 +4426,6 @@ function showCourseDetails(
 
   if (!course) {
 
-    console.warn(
-      "Curso não encontrado:",
-      courseId
-    );
-
     return;
 
   }
@@ -5147,97 +4435,78 @@ function showCourseDetails(
 
     course.activities.length > 0
 
-      ?
+      ? course.activities
+          .map(
+            (
+              activity,
+              index
+            ) => {
 
-      course.activities
-        .map(
-          (activity, index) => {
+              return `
 
-            return `
+                <div class="details-activity">
 
-              <div class="details-activity">
+                  <strong>
 
-                <strong>
+                    ${index + 1}.
 
-                  ${index + 1}.
+                    ${escapeHTML(
+                      activity.title
+                    )}
 
-                  ${escapeHTML(
-                    activity.title ||
-                    "Atividade sem título"
-                  )}
-
-                </strong>
+                  </strong>
 
 
-                <span>
+                  <span>
 
-                  ${escapeHTML(
-                    activity.type
-                  )}
+                    ${escapeHTML(
+                      activity.type
+                    )}
+
+                    ${
+                      activity.resource
+
+                        ? ` • ${escapeHTML(
+                            activity.resource
+                          )}`
+
+                        : ""
+                    }
+
+                  </span>
+
 
                   ${
-                    activity.resource
+                    activity.description
 
-                      ?
+                      ? `
 
-                      ` • ${escapeHTML(
-                        activity.resource
-                      )}`
+                        <p>
 
-                      :
+                          ${escapeHTML(
+                            activity.description
+                          )}
 
-                      ""
+                        </p>
+
+                      `
+
+                      : ""
                   }
 
-                </span>
+                </div>
 
+              `;
 
-                ${
-                  activity.description
+            }
+          )
+          .join("")
 
-                    ?
-
-                    `
-
-                      <p
-                        style="
-                          margin-top: 6px;
-                          font-size: 8px;
-                          color: var(--text-secondary);
-                          line-height: 1.5;
-                        "
-                      >
-
-                        ${escapeHTML(
-                          activity.description
-                        )}
-
-                      </p>
-
-                    `
-
-                    :
-
-                    ""
-                }
-
-              </div>
-
-            `;
-
-          }
-        )
-        .join("")
-
-      :
-
-      `
+      : `
 
         <div class="details-activity">
 
-          <span>
-            Nenhuma atividade cadastrada.
-          </span>
+          Nenhuma atividade cadastrada.
 
         </div>
 
@@ -5245,24 +4514,23 @@ function showCourseDetails(
 
 
 
-  const detailsContainer =
+  const container =
     document.getElementById(
       "courseDetailsContent"
     );
 
 
-  if (
-    !detailsContainer
-  ) {
+  if (!container) {
 
     return;
 
   }
 
 
-  detailsContainer.innerHTML = `
+  container.innerHTML = `
 
     <div class="details-course-header">
+
 
       <div class="course-icon-large">
 
@@ -5271,12 +4539,7 @@ function showCourseDetails(
       </div>
 
 
-      <span
-        class="
-          status-badge
-          purple-status
-        "
-      >
+      <span class="status-badge purple-status">
 
         ${escapeHTML(
           course.area
@@ -5303,7 +4566,6 @@ function showCourseDetails(
       </p>
 
     </div>
-
 
 
     <div class="details-grid">
@@ -5359,19 +4621,13 @@ function showCourseDetails(
       <div class="detail-item">
 
         <span>
-          Público
+          Setor de destino
         </span>
 
         <strong>
 
           ${escapeHTML(
             course.targetSector
-          )}
-
-          •
-
-          ${escapeHTML(
-            course.requirement
           )}
 
         </strong>
@@ -5381,13 +4637,10 @@ function showCourseDetails(
     </div>
 
 
-
     ${
       course.external
 
-        ?
-
-        `
+        ? `
 
           <div class="form-information">
 
@@ -5395,7 +4648,7 @@ function showCourseDetails(
 
             <p>
 
-              Este é um curso externo.
+              Curso externo:
 
               <br><br>
 
@@ -5409,11 +4662,8 @@ function showCourseDetails(
 
         `
 
-        :
-
-        ""
+        : ""
     }
-
 
 
     <div class="details-activities">
@@ -5438,7 +4688,7 @@ function showCourseDetails(
 
 
 // ==========================================================
-// SOLICITAR EXCLUSÃO DO CURSO
+// PEDIR EXCLUSÃO DO CURSO
 // ==========================================================
 
 function askDeleteCourse(
@@ -5458,7 +4708,7 @@ function askDeleteCourse(
 
 
 // ==========================================================
-// CONFIRMAR EXCLUSÃO / DESATIVAÇÃO DO CURSO
+// CONFIRMAR EXCLUSÃO
 // ==========================================================
 
 const confirmDeleteButton =
@@ -5471,25 +4721,25 @@ if (
   confirmDeleteButton
 ) {
 
-  confirmDeleteButton
-    .addEventListener(
-      "click",
-      async () => {
+  confirmDeleteButton.addEventListener(
+    "click",
+    async () => {
 
-        if (
-          courseToDelete ===
-          null
-        ) {
+      if (
+        courseToDelete ===
+        null
+      ) {
 
-          return;
+        return;
 
-        }
+      }
 
 
-        const originalButtonHTML =
-          confirmDeleteButton
-            .innerHTML;
+      const originalHTML =
+        confirmDeleteButton.innerHTML;
 
+
+      try {
 
         confirmDeleteButton.disabled =
           true;
@@ -5497,108 +4747,110 @@ if (
 
         confirmDeleteButton.innerHTML = `
 
-          <i
-            class="
-              fa-solid
-              fa-spinner
-              fa-spin
-            "
-          ></i>
+          <i class="fa-solid fa-spinner fa-spin"></i>
 
           Removendo...
 
         `;
 
 
-        try {
+        const response =
+          await fetch(
 
-          const response =
-            await fetch(
+            `/api/cursos/${courseToDelete}/desativar`,
 
-              `/api/cursos/${courseToDelete}/desativar`,
+            {
 
-              {
+              method:
+                "PATCH"
 
-                method:
-                  "PATCH"
+            }
 
-              }
-
-            );
-
-
-          const result =
-            await response.json();
-
-
-          if (!response.ok) {
-
-            throw new Error(
-
-              result.erro ||
-              "Não foi possível remover o treinamento."
-
-            );
-
-          }
-
-
-          closeModal(
-            "confirmationModal"
           );
 
 
-          courseToDelete =
-            null;
+        const result =
+          await response.json();
 
 
-          await loadCoursesFromApi();
+        if (!response.ok) {
 
+          throw new Error(
 
-          alert(
-            "Treinamento removido da plataforma."
+            result.erro ||
+            result.error ||
+            "Não foi possível remover o treinamento."
+
           );
-
-
-        } catch (error) {
-
-          console.error(
-            "Erro ao remover treinamento:",
-            error
-          );
-
-
-          alert(
-            "Não foi possível remover o treinamento.\n\n"
-            +
-            error.message
-          );
-
-
-        } finally {
-
-          confirmDeleteButton.disabled =
-            false;
-
-
-          confirmDeleteButton.innerHTML =
-            originalButtonHTML;
 
         }
 
+
+        closeModal(
+          "confirmationModal"
+        );
+
+
+        courseToDelete =
+          null;
+
+
+        await loadCoursesFromApi();
+
+
+        alert(
+          "Treinamento removido com sucesso."
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Erro ao remover treinamento:",
+          error
+        );
+
+
+        alert(
+          error.message
+        );
+
+
+      } finally {
+
+        confirmDeleteButton.disabled =
+          false;
+
+
+        confirmDeleteButton.innerHTML =
+          originalHTML;
+
       }
-    );
+
+    }
+  );
 
 }
 
 // ==========================================================
-// RENDERIZAR AVALIAÇÕES
+// ==========================================================
+// AVALIAÇÕES
+// ==========================================================
 // ==========================================================
 //
-// Por enquanto esta parte ainda utiliza dados simulados.
+// POR ENQUANTO:
 //
-// Depois vamos conectá-la ao Supabase.
+// avaliações continuam mockadas.
 //
+// Depois substituiremos pelos dados reais
+// enviados pelos colaboradores.
+//
+// ==========================================================
+
+
+
+// ==========================================================
+// RENDERIZAR AVALIAÇÕES
 // ==========================================================
 
 function renderEvaluations() {
@@ -5616,24 +4868,73 @@ function renderEvaluations() {
   }
 
 
-  const filtered =
-    evaluations.filter(
-      evaluation =>
-        evaluation.status ===
-        currentEvaluationStatus
+
+  const searchInput =
+    document.getElementById(
+      "evaluationSearch"
     );
+
+
+  const search =
+    String(
+      searchInput?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+
+  const pendingEvaluations =
+    evaluations.filter(
+      evaluation => {
+
+        if (
+          evaluation.status !==
+          "pending"
+        ) {
+
+          return false;
+
+        }
+
+
+        const text = [
+
+          evaluation.employee,
+
+          evaluation.course,
+
+          evaluation.sector
+
+        ]
+
+          .join(
+            " "
+          )
+
+          .toLowerCase();
+
+
+        return text.includes(
+          search
+        );
+
+      }
+    );
+
 
 
   container.innerHTML =
     "";
 
 
+
   // ========================================================
-  // SEM AVALIAÇÕES
+  // NENHUMA AVALIAÇÃO
   // ========================================================
 
   if (
-    filtered.length ===
+    pendingEvaluations.length ===
     0
   ) {
 
@@ -5641,14 +4942,14 @@ function renderEvaluations() {
 
       <div class="empty-state">
 
-        <i class="fa-solid fa-clipboard-check"></i>
+        <i class="fa-solid fa-circle-check"></i>
 
         <strong>
-          Nenhuma avaliação encontrada
+          Nenhuma avaliação pendente
         </strong>
 
         <span>
-          Não existem registros nesta categoria.
+          Todas as avaliações disponíveis já foram analisadas.
         </span>
 
       </div>
@@ -5656,16 +4957,20 @@ function renderEvaluations() {
     `;
 
 
+    updateEvaluationCounters();
+
+
     return;
 
   }
 
 
+
   // ========================================================
-  // CRIAR CARDS
+  // CARDS
   // ========================================================
 
-  filtered.forEach(
+  pendingEvaluations.forEach(
     evaluation => {
 
       const card =
@@ -5678,58 +4983,15 @@ function renderEvaluations() {
         "evaluation-card";
 
 
-      let statusHTML =
-        "";
-
-
-      if (
-        evaluation.status ===
-        "approved"
-      ) {
-
-        statusHTML = `
-
-          <span
-            class="
-              status-badge
-              success
-            "
-          >
-            Aprovado
-          </span>
-
-        `;
-
-      }
-
-
-      if (
-        evaluation.status ===
-        "rejected"
-      ) {
-
-        statusHTML = `
-
-          <span
-            class="
-              status-badge
-              danger
-            "
-          >
-            Reprovado
-          </span>
-
-        `;
-
-      }
-
-
       card.innerHTML = `
 
         <div class="evaluation-user-avatar">
 
           ${escapeHTML(
-            evaluation.initials
+            evaluation.initials ||
+            getInitials(
+              evaluation.employee
+            )
           )}
 
         </div>
@@ -5782,44 +5044,31 @@ function renderEvaluations() {
 
               <i class="fa-regular fa-calendar"></i>
 
-              Enviado em
-
               ${escapeHTML(
                 evaluation.submittedAt
               )}
 
             </span>
 
+
           </div>
 
         </div>
 
 
-        ${
-          evaluation.status ===
-          "pending"
+        <button
+          type="button"
+          class="evaluate-button"
+          onclick="
+            openEvaluation(
+              ${evaluation.id}
+            )
+          "
+        >
 
-            ?
+          Avaliar
 
-            `
-
-              <button
-                class="evaluate-button"
-                onclick="
-                  openEvaluation(
-                    ${evaluation.id}
-                  )
-                "
-              >
-                Avaliar
-              </button>
-
-            `
-
-            :
-
-            statusHTML
-        }
+        </button>
 
       `;
 
@@ -5831,57 +5080,32 @@ function renderEvaluations() {
     }
   );
 
+
+
+  updateEvaluationCounters();
+
 }
 
 
 
 // ==========================================================
-// ABAS DAS AVALIAÇÕES
+// PESQUISA DE AVALIAÇÃO
 // ==========================================================
 
-document
-  .querySelectorAll(
-    ".evaluation-tab"
-  )
-  .forEach(
-    tab => {
-
-      tab.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll(
-              ".evaluation-tab"
-            )
-            .forEach(
-              item => {
-
-                item.classList.remove(
-                  "active"
-                );
-
-              }
-            );
-
-
-          tab.classList.add(
-            "active"
-          );
-
-
-          currentEvaluationStatus =
-            tab.dataset
-              .evaluationStatus;
-
-
-          renderEvaluations();
-
-        }
-      );
-
-    }
+const evaluationSearch =
+  document.getElementById(
+    "evaluationSearch"
   );
+
+
+if (evaluationSearch) {
+
+  evaluationSearch.addEventListener(
+    "input",
+    renderEvaluations
+  );
+
+}
 
 
 
@@ -5903,14 +5127,10 @@ function openEvaluation(
 
   if (!evaluation) {
 
-    console.warn(
-      "Avaliação não encontrada:",
-      evaluationId
-    );
-
     return;
 
   }
+
 
 
   const activitiesHTML =
@@ -5933,26 +5153,14 @@ function openEvaluation(
                   Atividade ${index + 1}
                 </strong>
 
-
-                <span
-                  class="
-                    status-badge
-                    success
-                  "
-                >
+                <span class="status-badge success">
                   Entregue
                 </span>
 
               </div>
 
 
-              <p
-                style="
-                  font-size: 9px;
-                  color: var(--text-secondary);
-                  margin-bottom: 10px;
-                "
-              >
+              <p>
 
                 ${escapeHTML(
                   activity.title
@@ -5965,7 +5173,6 @@ function openEvaluation(
 
                 <i class="fa-solid fa-file"></i>
 
-
                 <span>
 
                   ${escapeHTML(
@@ -5974,19 +5181,8 @@ function openEvaluation(
 
                 </span>
 
-
-                <button
-                  type="button"
-                  onclick="
-                    alert(
-                      'A visualização real do arquivo será conectada posteriormente.'
-                    )
-                  "
-                >
-                  Visualizar
-                </button>
-
               </div>
+
 
             </div>
 
@@ -5998,20 +5194,22 @@ function openEvaluation(
       .join("");
 
 
-  const modalContent =
+
+  const container =
     document.getElementById(
       "evaluationModalContent"
     );
 
 
-  if (!modalContent) {
+  if (!container) {
 
     return;
 
   }
 
 
-  modalContent.innerHTML = `
+
+  container.innerHTML = `
 
     <div class="modal-header">
 
@@ -6030,7 +5228,7 @@ function openEvaluation(
         </h2>
 
         <p>
-          Analise todas as atividades antes de tomar uma decisão.
+          Analise as atividades enviadas pelo colaborador.
         </p>
 
       </div>
@@ -6050,7 +5248,7 @@ function openEvaluation(
       </div>
 
 
-      <div class="evaluation-profile-info">
+      <div>
 
         <strong>
 
@@ -6060,6 +5258,7 @@ function openEvaluation(
 
         </strong>
 
+
         <span>
 
           ${escapeHTML(
@@ -6068,33 +5267,14 @@ function openEvaluation(
 
           •
 
-          ${evaluation.hours} horas
+          ${evaluation.hours}h
 
         </span>
 
       </div>
 
+
     </div>
-
-
-    <h3
-      style="
-        font-size: 13px;
-        margin-bottom: 5px;
-      "
-    >
-      Atividades enviadas
-    </h3>
-
-
-    <p
-      style="
-        color: var(--text-secondary);
-        font-size: 9px;
-      "
-    >
-      Confira os arquivos enviados pelo colaborador.
-    </p>
 
 
     <div class="submission-list">
@@ -6106,72 +5286,24 @@ function openEvaluation(
 
     <div class="form-group">
 
-      <label>
-        Observações da avaliação
+      <label for="evaluationObservation">
+        Observações
       </label>
 
       <textarea
         id="evaluationObservation"
         rows="4"
-        placeholder="Informe observações, principalmente em caso de reprovação..."
+        placeholder="Informe observações ou instruções de correção..."
       ></textarea>
 
     </div>
-
-
-    ${
-      evaluation.internalCourse
-
-        ?
-
-        `
-
-          <div class="certificate-upload">
-
-            <label>
-              Certificado do colaborador
-            </label>
-
-            <p>
-              Em caso de aprovação, você poderá anexar
-              o certificado emitido pela empresa.
-            </p>
-
-            <input
-              type="file"
-              id="certificateFile"
-              accept=".pdf,.png,.jpg,.jpeg"
-            >
-
-          </div>
-
-        `
-
-        :
-
-        `
-
-          <div class="form-information">
-
-            <i class="fa-solid fa-circle-info"></i>
-
-            <p>
-              Este treinamento foi realizado externamente.
-
-              O certificado enviado pelo colaborador
-              já funciona como comprovante.
-            </p>
-
-          </div>
-
-        `
-    }
 
 
     <div class="evaluation-decision-actions">
 
 
       <button
+        type="button"
         class="danger-button"
         onclick="
           rejectEvaluation(
@@ -6180,14 +5312,15 @@ function openEvaluation(
         "
       >
 
-        <i class="fa-solid fa-xmark"></i>
+        <i class="fa-solid fa-rotate-left"></i>
 
-        Reprovar
+        Solicitar correção
 
       </button>
 
 
       <button
+        type="button"
         class="primary-button"
         onclick="
           approveEvaluation(
@@ -6201,6 +5334,7 @@ function openEvaluation(
         Aprovar
 
       </button>
+
 
     </div>
 
@@ -6217,10 +5351,6 @@ function openEvaluation(
 
 // ==========================================================
 // APROVAR AVALIAÇÃO
-// ==========================================================
-//
-// Ainda temporário.
-//
 // ==========================================================
 
 function approveEvaluation(
@@ -6254,7 +5384,7 @@ function approveEvaluation(
   renderEvaluations();
 
 
-  updateEvaluationCounters();
+  updateDashboardCounters();
 
 
   alert(
@@ -6266,7 +5396,7 @@ function approveEvaluation(
 
 
 // ==========================================================
-// REPROVAR AVALIAÇÃO
+// SOLICITAR CORREÇÃO
 // ==========================================================
 
 function rejectEvaluation(
@@ -6288,12 +5418,14 @@ function rejectEvaluation(
   if (!observation) {
 
     alert(
-      "Informe o motivo da reprovação."
+      "Informe o que precisa ser corrigido."
     );
+
 
     return;
 
   }
+
 
 
   const evaluation =
@@ -6327,11 +5459,11 @@ function rejectEvaluation(
   renderEvaluations();
 
 
-  updateEvaluationCounters();
+  updateDashboardCounters();
 
 
   alert(
-    "Treinamento reprovado."
+    "O treinamento foi enviado para correção."
   );
 
 }
@@ -6339,108 +5471,1240 @@ function rejectEvaluation(
 
 
 // ==========================================================
-// CONTADORES DO DASHBOARD
+// ==========================================================
+// SOLICITAÇÕES DE FÉRIAS DO ADMIN
+// ==========================================================
+// ==========================================================
+//
+// BACKEND:
+//
+// GET
+//
+// /api/ferias/admin/solicitacoes
+//
+// retorna as solicitações.
+//
+// Admin de setor:
+// backend retorna somente solicitações
+// dos colaboradores daquele setor.
+//
 // ==========================================================
 
-function updateDashboardCounters() {
-
-  // ========================================================
-  // COLABORADORES
-  // ========================================================
-  //
-  // Não contamos os administradores como funcionários
-  // no card do dashboard.
-  //
-
-  const collaborators =
-    employees.filter(
-      employee =>
-        employee.profile ===
-        "colaborador"
-    );
 
 
-  // ========================================================
-  // CURSOS ATIVOS
-  // ========================================================
+// ==========================================================
+// CARREGAR SOLICITAÇÕES
+// ==========================================================
 
-  const activeCourses =
-    courses.filter(
-      course =>
-        course.active
-    );
+async function loadVacationRequests() {
 
-
-  // ========================================================
-  // FUNCIONÁRIOS
-  // ========================================================
-
-  const employeesCounter =
+  const container =
     document.getElementById(
-      "dashboardEmployees"
+      "vacationRequestList"
     );
 
 
-  if (employeesCounter) {
+  if (container) {
 
-    employeesCounter.textContent =
-      collaborators.length;
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        <strong>
+          Carregando solicitações...
+        </strong>
+
+        <span>
+          Buscando solicitações de férias.
+        </span>
+
+      </div>
+
+    `;
 
   }
 
 
-  // ========================================================
-  // TREINAMENTOS
-  // ========================================================
 
-  const trainingsCounter =
-    document.getElementById(
-      "dashboardTrainings"
-    );
+  try {
 
+    const response =
+      await fetch(
+        "/api/ferias/admin/solicitacoes",
+        {
 
-  if (trainingsCounter) {
+          method:
+            "GET",
 
-    trainingsCounter.textContent =
-      activeCourses.length;
+          headers:
+            getAuthHeaders()
 
-  }
-
-
-  // ========================================================
-  // APROVADOS
-  // ========================================================
-
-  const approvedCounter =
-    document.getElementById(
-      "dashboardApproved"
-    );
-
-
-  if (approvedCounter) {
-
-    const approved =
-      evaluations.filter(
-        evaluation =>
-          evaluation.status ===
-          "approved"
+        }
       );
 
 
-    approvedCounter.textContent =
-      approved.length;
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.error ||
+        "Não foi possível carregar as solicitações de férias."
+
+      );
+
+    }
+
+
+
+    vacationRequests =
+      Array.isArray(
+        result
+      )
+        ? result
+        : [];
+
+
+
+    // ======================================================
+    // FILA DO ADMIN
+    // ======================================================
+    //
+    // Queremos mostrar apenas pendentes.
+    //
+    // Mesmo que futuramente o backend retorne
+    // histórico também, a tela continua correta.
+    //
+    // ======================================================
+
+    vacationRequests =
+      vacationRequests.filter(
+        request =>
+          request.status ===
+          "pendente"
+      );
+
+
+
+    renderVacationRequests();
+
+
+    updateVacationCounters();
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao carregar solicitações de férias:",
+      error
+    );
+
+
+    vacationRequests =
+      [];
+
+
+    updateVacationCounters();
+
+
+    if (container) {
+
+      container.innerHTML = `
+
+        <div class="empty-state">
+
+          <i class="fa-solid fa-triangle-exclamation"></i>
+
+          <strong>
+            Não foi possível carregar as solicitações
+          </strong>
+
+          <span>
+
+            ${escapeHTML(
+              error.message
+            )}
+
+          </span>
+
+        </div>
+
+      `;
+
+    }
 
   }
-
-
-  updateEvaluationCounters();
 
 }
 
 
 
 // ==========================================================
-// CONTADORES DAS AVALIAÇÕES
+// RENDERIZAR SOLICITAÇÕES
+// ==========================================================
+
+function renderVacationRequests() {
+
+  const container =
+    document.getElementById(
+      "vacationRequestList"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+
+  const searchInput =
+    document.getElementById(
+      "vacationSearch"
+    );
+
+
+  const search =
+    String(
+      searchInput?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+
+  const filtered =
+    vacationRequests.filter(
+      request => {
+
+        const employee =
+          request.usuario ||
+          {};
+
+
+        const text = [
+
+          employee.nome,
+
+          employee.matricula,
+
+          employee.cargo,
+
+          employee.setor
+
+        ]
+
+          .join(
+            " "
+          )
+
+          .toLowerCase();
+
+
+        return text.includes(
+          search
+        );
+
+      }
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+
+  // ========================================================
+  // SEM SOLICITAÇÕES
+  // ========================================================
+
+  if (
+    filtered.length ===
+    0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-circle-check"></i>
+
+        <strong>
+          Nenhuma solicitação pendente
+        </strong>
+
+        <span>
+          Não existem solicitações de férias aguardando sua análise.
+        </span>
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // CARDS
+  // ========================================================
+
+  filtered.forEach(
+    request => {
+
+      const employee =
+        request.usuario ||
+        {};
+
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+
+      card.className =
+        "vacation-request-card";
+
+
+      card.innerHTML = `
+
+        <div class="vacation-request-person">
+
+
+          <div class="list-avatar">
+
+            ${getInitials(
+              employee.nome
+            )}
+
+          </div>
+
+
+          <div>
+
+            <strong>
+
+              ${escapeHTML(
+                employee.nome ||
+                "Colaborador"
+              )}
+
+            </strong>
+
+
+            <span>
+
+              ${escapeHTML(
+                employee.cargo ||
+                "Cargo não informado"
+              )}
+
+              •
+
+              ${escapeHTML(
+                employee.setor ||
+                "Setor não informado"
+              )}
+
+            </span>
+
+          </div>
+
+
+        </div>
+
+
+        <div class="vacation-request-period">
+
+
+          <span>
+            Período solicitado
+          </span>
+
+
+          <strong>
+
+            ${formatDate(
+              request.data_inicio
+            )}
+
+            até
+
+            ${formatDate(
+              request.data_fim
+            )}
+
+          </strong>
+
+
+        </div>
+
+
+        <div class="vacation-request-days">
+
+
+          <span>
+            Quantidade
+          </span>
+
+
+          <strong>
+
+            ${formatDays(
+              request.quantidade_dias
+            )}
+
+          </strong>
+
+
+        </div>
+
+
+        <div class="vacation-request-status">
+
+          <span class="status-badge warning">
+
+            Pendente
+
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="primary-button vacation-review-button"
+          onclick="
+            openVacationRequestReview(
+              '${request.id}'
+            )
+          "
+        >
+
+          <i class="fa-regular fa-eye"></i>
+
+          Analisar
+
+        </button>
+
+      `;
+
+
+      container.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// BUSCA DE SOLICITAÇÃO
+// ==========================================================
+
+const vacationSearch =
+  document.getElementById(
+    "vacationSearch"
+  );
+
+
+if (vacationSearch) {
+
+  vacationSearch.addEventListener(
+    "input",
+    renderVacationRequests
+  );
+
+}
+
+
+
+// ==========================================================
+// ABRIR SOLICITAÇÃO
+// ==========================================================
+
+function openVacationRequestReview(
+  requestId
+) {
+
+  const request =
+    vacationRequests.find(
+      item =>
+        String(item.id) ===
+        String(requestId)
+    );
+
+
+  if (!request) {
+
+    alert(
+      "Solicitação não encontrada."
+    );
+
+
+    return;
+
+  }
+
+
+  currentVacationRequestId =
+    request.id;
+
+
+
+  const employee =
+    request.usuario ||
+    {};
+
+
+
+  // ========================================================
+  // ID
+  // ========================================================
+
+  const requestIdInput =
+    document.getElementById(
+      "vacationReviewRequestId"
+    );
+
+
+  if (requestIdInput) {
+
+    requestIdInput.value =
+      request.id;
+
+  }
+
+
+
+  // ========================================================
+  // AVATAR
+  // ========================================================
+
+  const avatar =
+    document.getElementById(
+      "vacationReviewAvatar"
+    );
+
+
+  if (avatar) {
+
+    avatar.textContent =
+      getInitials(
+        employee.nome
+      );
+
+  }
+
+
+
+  // ========================================================
+  // NOME
+  // ========================================================
+
+  const name =
+    document.getElementById(
+      "vacationReviewName"
+    );
+
+
+  if (name) {
+
+    name.textContent =
+      employee.nome ||
+      "Colaborador";
+
+  }
+
+
+
+  // ========================================================
+  // DETALHES
+  // ========================================================
+
+  const details =
+    document.getElementById(
+      "vacationReviewEmployeeDetails"
+    );
+
+
+  if (details) {
+
+    details.textContent =
+      `${
+        employee.cargo ||
+        "Cargo não informado"
+      } • ${
+        employee.setor ||
+        "Setor não informado"
+      }`;
+
+  }
+
+
+
+  // ========================================================
+  // INÍCIO
+  // ========================================================
+
+  const start =
+    document.getElementById(
+      "vacationReviewStart"
+    );
+
+
+  if (start) {
+
+    start.textContent =
+      formatDate(
+        request.data_inicio
+      );
+
+  }
+
+
+
+  // ========================================================
+  // FIM
+  // ========================================================
+
+  const end =
+    document.getElementById(
+      "vacationReviewEnd"
+    );
+
+
+  if (end) {
+
+    end.textContent =
+      formatDate(
+        request.data_fim
+      );
+
+  }
+
+
+
+  // ========================================================
+  // DIAS
+  // ========================================================
+
+  const days =
+    document.getElementById(
+      "vacationReviewDays"
+    );
+
+
+  if (days) {
+
+    days.textContent =
+      formatDays(
+        request.quantidade_dias
+      );
+
+  }
+
+
+
+  // ========================================================
+  // DATA DA SOLICITAÇÃO
+  // ========================================================
+
+  const createdAt =
+    document.getElementById(
+      "vacationReviewCreatedAt"
+    );
+
+
+  if (createdAt) {
+
+    createdAt.textContent =
+      formatDate(
+        request.created_at
+      );
+
+  }
+
+
+
+  // ========================================================
+  // OBSERVAÇÃO DO COLABORADOR
+  // ========================================================
+
+  const employeeObservation =
+    document.getElementById(
+      "vacationReviewEmployeeObservation"
+    );
+
+
+  if (employeeObservation) {
+
+    employeeObservation.textContent =
+
+      request.observacoes?.trim()
+
+        ? request.observacoes
+
+        : "Nenhuma observação informada.";
+
+  }
+
+
+
+  // ========================================================
+  // LIMPAR OBSERVAÇÃO DO ADMIN
+  // ========================================================
+
+  const adminObservation =
+    document.getElementById(
+      "vacationAdminObservation"
+    );
+
+
+  if (adminObservation) {
+
+    adminObservation.value =
+      "";
+
+  }
+
+
+
+  clearVacationAdminMessage();
+
+
+
+  openModal(
+    "vacationRequestAdminModal"
+  );
+
+}
+
+
+
+// ==========================================================
+// RESPONDER SOLICITAÇÃO
+// ==========================================================
+
+async function answerVacationRequest(
+  status
+) {
+
+  // ========================================================
+  // SOLICITAÇÃO
+  // ========================================================
+
+  const requestId =
+
+    currentVacationRequestId
+
+    ||
+
+    document.getElementById(
+      "vacationReviewRequestId"
+    )?.value;
+
+
+
+  if (!requestId) {
+
+    showVacationAdminMessage(
+      "Solicitação não identificada.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // STATUS PERMITIDOS
+  // ========================================================
+
+  const allowedStatus = [
+
+    "aprovada",
+
+    "aprovada_com_ressalvas",
+
+    "recusada"
+
+  ];
+
+
+  if (
+    !allowedStatus.includes(
+      status
+    )
+  ) {
+
+    showVacationAdminMessage(
+      "Decisão inválida.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // OBSERVAÇÃO
+  // ========================================================
+
+  const observationInput =
+    document.getElementById(
+      "vacationAdminObservation"
+    );
+
+
+  const observation =
+    observationInput
+      ? observationInput.value.trim()
+      : "";
+
+
+
+  // ========================================================
+  // RECUSA / RESSALVA
+  // ========================================================
+
+  if (
+    (
+      status ===
+        "recusada"
+
+      ||
+
+      status ===
+        "aprovada_com_ressalvas"
+    )
+
+    &&
+
+    !observation
+  ) {
+
+    showVacationAdminMessage(
+      "Informe uma observação para esta decisão.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // CONFIRMAÇÃO
+  // ========================================================
+
+  let confirmationMessage =
+    "Deseja aprovar esta solicitação de férias?";
+
+
+  if (
+    status ===
+    "recusada"
+  ) {
+
+    confirmationMessage =
+      "Deseja realmente recusar esta solicitação?";
+
+  }
+
+
+  if (
+    status ===
+    "aprovada_com_ressalvas"
+  ) {
+
+    confirmationMessage =
+      "Deseja aprovar esta solicitação com ressalvas?";
+
+  }
+
+
+
+  const confirmed =
+    confirm(
+      confirmationMessage
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // BOTÕES
+  // ========================================================
+
+  setVacationDecisionButtonsDisabled(
+    true
+  );
+
+
+
+  try {
+
+    showVacationAdminMessage(
+      "Salvando decisão...",
+      "info"
+    );
+
+
+
+    const response =
+      await fetch(
+
+        `/api/ferias/admin/solicitacoes/${requestId}`,
+
+        {
+
+          method:
+            "PATCH",
+
+          headers:
+            getAuthHeaders(
+              true
+            ),
+
+          body:
+            JSON.stringify({
+
+              status,
+
+              observacao_admin:
+                observation ||
+                null
+
+            })
+
+        }
+
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+
+    const result =
+      await response.json();
+
+
+
+    if (!response.ok) {
+
+      throw new Error(
+
+        result.error ||
+        result.details ||
+        "Não foi possível analisar a solicitação."
+
+      );
+
+    }
+
+
+
+    // ======================================================
+    // SUCESSO
+    // ======================================================
+
+    showVacationAdminMessage(
+
+      result.message ||
+      "Solicitação analisada com sucesso.",
+
+      "success"
+
+    );
+
+
+
+    // ======================================================
+    // REMOVER DA LISTA LOCAL
+    // ======================================================
+    //
+    // Como a solicitação deixou de ser pendente,
+    // removemos imediatamente.
+    //
+    // ======================================================
+
+    vacationRequests =
+      vacationRequests.filter(
+        request =>
+          String(request.id) !==
+          String(requestId)
+      );
+
+
+
+    updateVacationCounters();
+
+
+
+    setTimeout(
+      () => {
+
+        closeModal(
+          "vacationRequestAdminModal"
+        );
+
+
+        currentVacationRequestId =
+          null;
+
+
+        renderVacationRequests();
+
+
+      },
+      700
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao responder solicitação:",
+      error
+    );
+
+
+    showVacationAdminMessage(
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    setVacationDecisionButtonsDisabled(
+      false
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// DESABILITAR BOTÕES DE DECISÃO
+// ==========================================================
+
+function setVacationDecisionButtonsDisabled(
+  disabled
+) {
+
+  const ids = [
+
+    "rejectVacationButton",
+
+    "approveVacationWithConditionsButton",
+
+    "approveVacationButton"
+
+  ];
+
+
+  ids.forEach(
+    id => {
+
+      const button =
+        document.getElementById(
+          id
+        );
+
+
+      if (button) {
+
+        button.disabled =
+          disabled;
+
+      }
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// MENSAGEM DO MODAL
+// ==========================================================
+
+function showVacationAdminMessage(
+  message,
+  type
+) {
+
+  const container =
+    document.getElementById(
+      "vacationAdminMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    message;
+
+
+  container.className =
+    `form-message ${type}`;
+
+}
+
+
+
+// ==========================================================
+// LIMPAR MENSAGEM
+// ==========================================================
+
+function clearVacationAdminMessage() {
+
+  const container =
+    document.getElementById(
+      "vacationAdminMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    "";
+
+
+  container.className =
+    "form-message";
+
+}
+
+
+
+// ==========================================================
+// CONTADOR DE FÉRIAS
+// ==========================================================
+
+function updateVacationCounters() {
+
+  const pendingCount =
+    vacationRequests.filter(
+      request =>
+        request.status ===
+        "pendente"
+    ).length;
+
+
+
+  // ========================================================
+  // MENU
+  // ========================================================
+
+  const menuCounter =
+    document.getElementById(
+      "vacationMenuCounter"
+    );
+
+
+  if (menuCounter) {
+
+    menuCounter.textContent =
+      pendingCount;
+
+  }
+
+
+
+  // ========================================================
+  // PÁGINA
+  // ========================================================
+
+  const pageCounter =
+    document.getElementById(
+      "vacationPendingCount"
+    );
+
+
+  if (pageCounter) {
+
+    pageCounter.textContent =
+      pendingCount;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// CONTADORES
+// ==========================================================
+// ==========================================================
+
+
+
+// ==========================================================
+// CONTADOR DE AVALIAÇÕES
 // ==========================================================
 
 function updateEvaluationCounters() {
@@ -6450,21 +6714,8 @@ function updateEvaluationCounters() {
       evaluation =>
         evaluation.status ===
         "pending"
-    );
+    ).length;
 
-
-  const dashboardCounter =
-    document.getElementById(
-      "dashboardEvaluations"
-    );
-
-
-  if (dashboardCounter) {
-
-    dashboardCounter.textContent =
-      pending.length;
-
-  }
 
 
   const menuCounter =
@@ -6476,9 +6727,40 @@ function updateEvaluationCounters() {
   if (menuCounter) {
 
     menuCounter.textContent =
-      pending.length;
+      pending;
 
   }
+
+
+
+  const pageCounter =
+    document.getElementById(
+      "evaluationPendingCount"
+    );
+
+
+  if (pageCounter) {
+
+    pageCounter.textContent =
+      pending;
+
+  }
+
+
+
+  const dashboardCounter =
+    document.getElementById(
+      "dashboardEvaluations"
+    );
+
+
+  if (dashboardCounter) {
+
+    dashboardCounter.textContent =
+      pending;
+
+  }
+
 
 
   renderDashboardEvaluations();
@@ -6506,6 +6788,7 @@ function renderDashboardEvaluations() {
   }
 
 
+
   const pending =
     evaluations
 
@@ -6521,13 +6804,11 @@ function renderDashboardEvaluations() {
       );
 
 
+
   container.innerHTML =
     "";
 
 
-  // ========================================================
-  // SEM PENDÊNCIAS
-  // ========================================================
 
   if (
     pending.length ===
@@ -6558,6 +6839,7 @@ function renderDashboardEvaluations() {
   }
 
 
+
   pending.forEach(
     evaluation => {
 
@@ -6575,8 +6857,8 @@ function renderDashboardEvaluations() {
 
         <div class="list-avatar">
 
-          ${escapeHTML(
-            evaluation.initials
+          ${getInitials(
+            evaluation.employee
           )}
 
         </div>
@@ -6604,13 +6886,10 @@ function renderDashboardEvaluations() {
         </div>
 
 
-        <span
-          class="
-            status-badge
-            warning
-          "
-        >
+        <span class="status-badge warning">
+
           Aguardando
+
         </span>
 
       `;
@@ -6628,7 +6907,109 @@ function renderDashboardEvaluations() {
 
 
 // ==========================================================
-// FECHAR MODAL CLICANDO FORA
+// CONTADORES PRINCIPAIS DO DASHBOARD
+// ==========================================================
+
+function updateDashboardCounters() {
+
+  // ========================================================
+  // COLABORADORES
+  // ========================================================
+
+  const collaborators =
+    employees.filter(
+      employee =>
+        employee.profile ===
+        "colaborador"
+    );
+
+
+
+  const employeesCounter =
+    document.getElementById(
+      "dashboardEmployees"
+    );
+
+
+  if (employeesCounter) {
+
+    employeesCounter.textContent =
+      collaborators.length;
+
+  }
+
+
+
+  // ========================================================
+  // TREINAMENTOS
+  // ========================================================
+
+  const trainingCounter =
+    document.getElementById(
+      "dashboardTrainings"
+    );
+
+
+  if (trainingCounter) {
+
+    trainingCounter.textContent =
+      courses.length;
+
+  }
+
+
+
+  // ========================================================
+  // APROVADOS
+  // ========================================================
+
+  const approved =
+    evaluations.filter(
+      evaluation =>
+        evaluation.status ===
+        "approved"
+    ).length;
+
+
+
+  const approvedCounter =
+    document.getElementById(
+      "dashboardApproved"
+    );
+
+
+  if (approvedCounter) {
+
+    approvedCounter.textContent =
+      approved;
+
+  }
+
+
+
+  // ========================================================
+  // OUTROS CONTADORES
+  // ========================================================
+
+  updateEvaluationCounters();
+
+
+  updateVacationCounters();
+
+}
+
+
+
+// ==========================================================
+// ==========================================================
+// MODAIS
+// ==========================================================
+// ==========================================================
+
+
+
+// ==========================================================
+// CLICAR FORA DO MODAL
 // ==========================================================
 
 document
@@ -6636,19 +7017,19 @@ document
     ".modal-overlay"
   )
   .forEach(
-    overlay => {
+    modal => {
 
-      overlay.addEventListener(
+      modal.addEventListener(
         "click",
         event => {
 
           if (
             event.target ===
-            overlay
+            modal
           ) {
 
             closeModal(
-              overlay.id
+              modal.id
             );
 
           }
@@ -6662,7 +7043,7 @@ document
 
 
 // ==========================================================
-// FECHAR MODAIS COM ESC
+// FECHAR COM ESC
 // ==========================================================
 
 document.addEventListener(
@@ -6699,18 +7080,9 @@ document.addEventListener(
 
 
 // ==========================================================
+// ==========================================================
 // LOGOUT
 // ==========================================================
-//
-// Agora o logout deixa de ser apenas visual.
-//
-// Removemos:
-//
-// access_token
-// usuario_logado
-//
-// e voltamos ao login.
-//
 // ==========================================================
 
 const logoutButton =
@@ -6725,24 +7097,22 @@ if (logoutButton) {
     "click",
     () => {
 
-      const confirmLogout =
+      const confirmed =
         confirm(
           "Deseja sair da área administrativa?"
         );
 
 
-      if (!confirmLogout) {
+      if (!confirmed) {
 
         return;
 
       }
 
 
-      // Limpamos a sessão local.
       clearSession();
 
 
-      // Voltamos ao login.
       window.location.href =
         "/login/";
 
@@ -6754,38 +7124,31 @@ if (logoutButton) {
 
 
 // ==========================================================
+// ==========================================================
 // INICIALIZAÇÃO
 // ==========================================================
-//
-// FLUXO:
-//
-// /admin/
-//    ↓
-// existe token?
-//    ↓
-// existe usuario_logado?
-//    ↓
-// perfil é admin?
-//    ↓
-// SIM
-//    ↓
-// carrega tela
-//
-// Caso contrário:
-//
-// /login/
-//
 // ==========================================================
 
 async function initializeApp() {
+
+  console.log(
+    "=============================================="
+  );
+
 
   console.log(
     "Iniciando Evolua+ Admin..."
   );
 
 
+  console.log(
+    "=============================================="
+  );
+
+
+
   // ========================================================
-  // VALIDAR LOGIN
+  // VALIDAR SESSÃO
   // ========================================================
 
   const validSession =
@@ -6799,24 +7162,32 @@ async function initializeApp() {
   }
 
 
+
+  // ========================================================
+  // MOSTRAR ADMIN
+  // ========================================================
+
+  renderCurrentAdmin();
+
+
+
   console.log(
     "Administrador autenticado:",
     currentAdmin.nome
   );
 
 
-  // ========================================================
-  // ADMIN LOGADO
-  // ========================================================
+  console.log(
+    "Perfil:",
+    currentAdmin.perfil
+  );
 
-  renderCurrentAdmin();
 
+  console.log(
+    "Setor:",
+    currentAdmin.setor
+  );
 
-  // ========================================================
-  // SELECTS
-  // ========================================================
-
-  populateSectorSelect();
 
 
   // ========================================================
@@ -6829,6 +7200,7 @@ async function initializeApp() {
   updateEvaluationCounters();
 
 
+
   // ========================================================
   // USUÁRIOS
   // ========================================================
@@ -6836,10 +7208,10 @@ async function initializeApp() {
   await loadUsersFromApi();
 
 
-  // A função acima pode ter detectado token expirado
-  // e redirecionado para o login.
-  //
-  // Portanto verificamos novamente.
+
+  // ========================================================
+  // VERIFICAR SE A SESSÃO AINDA EXISTE
+  // ========================================================
 
   if (
     !localStorage.getItem(
@@ -6852,11 +7224,30 @@ async function initializeApp() {
   }
 
 
+
   // ========================================================
   // CURSOS
   // ========================================================
 
   await loadCoursesFromApi();
+
+
+
+  // ========================================================
+  // SOLICITAÇÕES DE FÉRIAS
+  // ========================================================
+  //
+  // Carregamos já na inicialização para que:
+  //
+  // vacationMenuCounter
+  //
+  // apareça corretamente mesmo antes
+  // de o Admin entrar na página Férias.
+  //
+  // ========================================================
+
+  await loadVacationRequests();
+
 
 
   // ========================================================
@@ -6866,8 +7257,19 @@ async function initializeApp() {
   updateDashboardCounters();
 
 
+
+  console.log(
+    "=============================================="
+  );
+
+
   console.log(
     "Evolua+ Admin iniciado com sucesso."
+  );
+
+
+  console.log(
+    "=============================================="
   );
 
 }
@@ -6875,7 +7277,7 @@ async function initializeApp() {
 
 
 // ==========================================================
-// INICIAR QUANDO O HTML ESTIVER PRONTO
+// INICIAR APLICAÇÃO
 // ==========================================================
 
 document.addEventListener(

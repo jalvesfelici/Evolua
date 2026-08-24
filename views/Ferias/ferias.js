@@ -1,16 +1,22 @@
 // ==========================================================
 // EVOLUA+
-// FÉRIAS - FRONTEND
+// FÉRIAS - FRONTEND DO COLABORADOR
 // ==========================================================
 //
-// Este arquivo:
+// RESPONSABILIDADES:
 //
-// - identifica o colaborador logado;
-// - busca férias no backend;
-// - busca solicitações;
-// - calcula visualmente os dias;
-// - envia novas solicitações;
-// - atualiza as tabelas.
+// - validar sessão;
+// - recuperar colaborador logado;
+// - preencher sidebar;
+// - buscar período de férias;
+// - mostrar saldo e status;
+// - calcular progresso do período aquisitivo;
+// - carregar solicitações;
+// - separar pendências e histórico;
+// - abrir modal;
+// - calcular quantidade de dias;
+// - enviar solicitação;
+// - realizar logout.
 //
 // ==========================================================
 
@@ -26,9 +32,30 @@ const accessToken =
   );
 
 
-let loggedUser =
+let currentUser =
   null;
 
+
+// ==========================================================
+// DADOS ATUAIS DE FÉRIAS
+// ==========================================================
+
+let currentVacationPeriod =
+  null;
+
+
+let currentAvailableDays =
+  0;
+
+
+let currentRequests =
+  [];
+
+
+
+// ==========================================================
+// RECUPERAR USUÁRIO DO LOCALSTORAGE
+// ==========================================================
 
 try {
 
@@ -40,7 +67,7 @@ try {
 
   if (storedUser) {
 
-    loggedUser =
+    currentUser =
       JSON.parse(
         storedUser
       );
@@ -50,7 +77,7 @@ try {
 } catch (error) {
 
   console.error(
-    "Erro ao carregar usuário:",
+    "Erro ao recuperar usuário logado:",
     error
   );
 
@@ -59,98 +86,18 @@ try {
 
 
 // ==========================================================
-// DADOS DA PÁGINA
+// VALIDAR SESSÃO
 // ==========================================================
 
-let periodoAtual =
-  null;
+function validateSession() {
 
-
-let solicitacoes =
-  [];
-
-
-
-// ==========================================================
-// ELEMENTOS DO MODAL
-// ==========================================================
-
-const modal =
-  document.getElementById(
-    "modalSolicitacao"
-  );
-
-
-const abrirModalBtn =
-  document.getElementById(
-    "abrirModal"
-  );
-
-
-const btnNovaSolicitacao =
-  document.getElementById(
-    "btnNovaSolicitacao"
-  );
-
-
-const fecharModalBtn =
-  document.getElementById(
-    "fecharModal"
-  );
-
-
-const cancelarModalBtn =
-  document.getElementById(
-    "cancelarModal"
-  );
-
-
-const formSolicitacao =
-  document.getElementById(
-    "formSolicitacao"
-  );
-
-
-const dataInicio =
-  document.getElementById(
-    "dataInicio"
-  );
-
-
-const dataFim =
-  document.getElementById(
-    "dataFim"
-  );
-
-
-const quantidadeDias =
-  document.getElementById(
-    "quantidadeDias"
-  );
-
-
-const observacoes =
-  document.getElementById(
-    "observacoes"
-  );
-
-
-const salvarSolicitacao =
-  document.getElementById(
-    "salvarSolicitacao"
-  );
-
-
-
-// ==========================================================
-// VALIDAR ACESSO
-// ==========================================================
-
-function validarSessao() {
+  // ========================================================
+  // SEM SESSÃO
+  // ========================================================
 
   if (
     !accessToken ||
-    !loggedUser
+    !currentUser
   ) {
 
     window.location.href =
@@ -161,11 +108,16 @@ function validarSessao() {
   }
 
 
-  // Somente colaborador utiliza esta tela.
+  // ========================================================
+  // ADMIN NÃO DEVE FICAR NA TELA DO COLABORADOR
+  // ========================================================
 
   if (
-    loggedUser.perfil !==
-    "colaborador"
+    currentUser.perfil ===
+      "admin_principal"
+    ||
+    currentUser.perfil ===
+      "admin_setor"
   ) {
 
     window.location.href =
@@ -176,12 +128,36 @@ function validarSessao() {
   }
 
 
+  // ========================================================
+  // SOMENTE COLABORADOR
+  // ========================================================
+
   if (
-    loggedUser.ativo ===
+    currentUser.perfil !==
+    "colaborador"
+  ) {
+
+    clearSession();
+
+
+    window.location.href =
+      "/login/";
+
+    return false;
+
+  }
+
+
+  // ========================================================
+  // USUÁRIO INATIVO
+  // ========================================================
+
+  if (
+    currentUser.ativo ===
     false
   ) {
 
-    limparSessao();
+    clearSession();
 
 
     window.location.href =
@@ -202,7 +178,7 @@ function validarSessao() {
 // LIMPAR SESSÃO
 // ==========================================================
 
-function limparSessao() {
+function clearSession() {
 
   localStorage.removeItem(
     "access_token"
@@ -218,11 +194,11 @@ function limparSessao() {
 
 
 // ==========================================================
-// HEADERS
+// HEADERS AUTENTICADOS
 // ==========================================================
 
 function getAuthHeaders(
-  incluirJson = false
+  includeJson = false
 ) {
 
   const headers = {
@@ -233,9 +209,11 @@ function getAuthHeaders(
   };
 
 
-  if (incluirJson) {
+  if (includeJson) {
 
-    headers["Content-Type"] =
+    headers[
+      "Content-Type"
+    ] =
       "application/json";
 
   }
@@ -248,70 +226,195 @@ function getAuthHeaders(
 
 
 // ==========================================================
-// TRATAR TOKEN EXPIRADO
+// TRATAR SESSÃO EXPIRADA
 // ==========================================================
 
-function tratarNaoAutorizado(
+function handleUnauthorized(
   response
 ) {
 
   if (
-    response.status !== 401
+    response.status ===
+    401
   ) {
 
-    return false;
+    clearSession();
+
+
+    alert(
+      "Sua sessão expirou. Faça login novamente."
+    );
+
+
+    window.location.href =
+      "/login/";
+
+
+    return true;
 
   }
 
 
-  limparSessao();
-
-
-  alert(
-    "Sua sessão expirou. Faça login novamente."
-  );
-
-
-  window.location.href =
-    "/login/";
-
-
-  return true;
+  return false;
 
 }
 
 
 
 // ==========================================================
-// EXIBIR USUÁRIO
+// ESCAPAR HTML
 // ==========================================================
 
-function renderizarUsuario() {
+function escapeHTML(
+  value
+) {
 
-  const nome =
-    document.getElementById(
-      "loggedUserName"
-    );
+  if (
+    value === null ||
+    value === undefined
+  ) {
 
-
-  const setor =
-    document.getElementById(
-      "loggedUserSector"
-    );
-
-
-  if (nome) {
-
-    nome.textContent =
-      loggedUser.nome;
+    return "";
 
   }
 
 
-  if (setor) {
+  return String(
+    value
+  )
 
-    setor.textContent =
-      loggedUser.setor;
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+
+// ==========================================================
+// INICIAIS DO USUÁRIO
+// ==========================================================
+
+function getInitials(
+  name
+) {
+
+  if (!name) {
+
+    return "--";
+
+  }
+
+
+  return name
+
+    .split(
+      " "
+    )
+
+    .filter(
+      word =>
+        word.length > 0
+    )
+
+    .slice(
+      0,
+      2
+    )
+
+    .map(
+      word =>
+        word[0]
+    )
+
+    .join(
+      ""
+    )
+
+    .toUpperCase();
+
+}
+
+
+
+// ==========================================================
+// PREENCHER USUÁRIO NA SIDEBAR
+// ==========================================================
+
+function renderLoggedUser() {
+
+  if (
+    !currentUser
+  ) {
+
+    return;
+
+  }
+
+
+  const avatar =
+    document.getElementById(
+      "sidebarUserAvatar"
+    );
+
+
+  const name =
+    document.getElementById(
+      "sidebarUserName"
+    );
+
+
+  const sector =
+    document.getElementById(
+      "sidebarUserSector"
+    );
+
+
+  if (avatar) {
+
+    avatar.textContent =
+      getInitials(
+        currentUser.nome
+      );
+
+  }
+
+
+  if (name) {
+
+    name.textContent =
+      currentUser.nome ||
+      "Colaborador";
+
+  }
+
+
+  if (sector) {
+
+    sector.textContent =
+      currentUser.setor ||
+      "Setor não informado";
 
   }
 
@@ -325,42 +428,59 @@ function renderizarUsuario() {
 //
 // Recebe:
 //
-// 2026-08-21
+// 2026-08-23
 //
 // Retorna:
 //
-// 21/08/2026
+// 23/08/2026
 //
 // ==========================================================
 
-function formatarData(
-  data
+function formatDate(
+  value
 ) {
 
-  if (!data) {
+  if (!value) {
 
-    return "-";
+    return "--";
 
   }
 
 
-  const partes =
-    String(data)
-      .substring(0, 10)
-      .split("-");
+  const dateOnly =
+    String(value)
+      .substring(
+        0,
+        10
+      );
+
+
+  const parts =
+    dateOnly.split(
+      "-"
+    );
 
 
   if (
-    partes.length !== 3
+    parts.length !==
+    3
   ) {
 
-    return data;
+    return value;
 
   }
 
 
+  const [
+    year,
+    month,
+    day
+  ] =
+    parts;
+
+
   return (
-    `${partes[2]}/${partes[1]}/${partes[0]}`
+    `${day}/${month}/${year}`
   );
 
 }
@@ -368,17 +488,76 @@ function formatarData(
 
 
 // ==========================================================
-// CALCULAR DIAS ENTRE DATAS
+// CRIAR DATA LOCAL SEGURA
 // ==========================================================
 
-function calcularDiasEntreDatas(
-  inicio,
-  fim
+function createDateFromInput(
+  value
 ) {
 
+  if (!value) {
+
+    return null;
+
+  }
+
+
+  const date =
+    new Date(
+      `${value}T00:00:00`
+    );
+
+
   if (
-    !inicio ||
-    !fim
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  return date;
+
+}
+
+
+
+// ==========================================================
+// CALCULAR DIAS ENTRE DUAS DATAS
+// ==========================================================
+//
+// Incluímos o dia inicial e o dia final.
+//
+// Exemplo:
+//
+// 01/09 até 05/09
+// = 5 dias.
+//
+// ==========================================================
+
+function calculateDaysBetween(
+  start,
+  end
+) {
+
+  const startDate =
+    createDateFromInput(
+      start
+    );
+
+
+  const endDate =
+    createDateFromInput(
+      end
+    );
+
+
+  if (
+    !startDate ||
+    !endDate
   ) {
 
     return 0;
@@ -386,21 +565,9 @@ function calcularDiasEntreDatas(
   }
 
 
-  const dataInicial =
-    new Date(
-      `${inicio}T00:00:00Z`
-    );
-
-
-  const dataFinal =
-    new Date(
-      `${fim}T00:00:00Z`
-    );
-
-
   if (
-    dataFinal <
-    dataInicial
+    endDate <
+    startDate
   ) {
 
     return 0;
@@ -408,14 +575,14 @@ function calcularDiasEntreDatas(
   }
 
 
-  const diferenca =
-    dataFinal.getTime() -
-    dataInicial.getTime();
+  const difference =
+    endDate.getTime() -
+    startDate.getTime();
 
 
   return (
     Math.floor(
-      diferenca /
+      difference /
       86400000
     ) + 1
   );
@@ -425,12 +592,78 @@ function calcularDiasEntreDatas(
 
 
 // ==========================================================
-// BUSCAR PERÍODO DE FÉRIAS
+// MOSTRAR MENSAGEM DA PÁGINA
 // ==========================================================
 
-async function carregarFerias() {
+function showPageMessage(
+  message,
+  type = "info"
+) {
+
+  const container =
+    document.getElementById(
+      "vacationPageMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    message;
+
+
+  container.className =
+    `page-message ${type}`;
+
+}
+
+
+
+// ==========================================================
+// LIMPAR MENSAGEM DA PÁGINA
+// ==========================================================
+
+function clearPageMessage() {
+
+  const container =
+    document.getElementById(
+      "vacationPageMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    "";
+
+
+  container.className =
+    "page-message";
+
+}
+
+
+
+// ==========================================================
+// BUSCAR DADOS DE FÉRIAS
+// ==========================================================
+
+async function loadVacationData() {
 
   try {
+
+    clearPageMessage();
+
 
     const response =
       await fetch(
@@ -448,7 +681,7 @@ async function carregarFerias() {
 
 
     if (
-      tratarNaoAutorizado(
+      handleUnauthorized(
         response
       )
     ) {
@@ -462,21 +695,91 @@ async function carregarFerias() {
       await response.json();
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error ||
-        "Não foi possível carregar as férias."
+        "Não foi possível carregar suas férias."
       );
 
     }
 
 
-    periodoAtual =
+    // ======================================================
+    // ATUALIZAR USUÁRIO COM DADOS DO BACKEND
+    // ======================================================
+
+    if (
+      result.usuario
+    ) {
+
+      currentUser =
+        {
+
+          ...currentUser,
+
+          ...result.usuario
+
+        };
+
+
+      localStorage.setItem(
+        "usuario_logado",
+        JSON.stringify(
+          currentUser
+        )
+      );
+
+
+      renderLoggedUser();
+
+    }
+
+
+    // ======================================================
+    // SEM PERÍODO CADASTRADO
+    // ======================================================
+
+    if (
+      !result.periodo
+    ) {
+
+      currentVacationPeriod =
+        null;
+
+
+      currentAvailableDays =
+        0;
+
+
+      renderNoVacationPeriod();
+
+
+      return;
+
+    }
+
+
+    // ======================================================
+    // PERÍODO
+    // ======================================================
+
+    currentVacationPeriod =
       result.periodo;
 
 
-    renderizarPeriodo();
+    currentAvailableDays =
+      Number(
+        result.periodo
+          .dias_disponiveis || 0
+      );
+
+
+    renderVacationPeriod(
+      result.periodo
+    );
 
 
   } catch (error) {
@@ -487,9 +790,116 @@ async function carregarFerias() {
     );
 
 
-    mostrarPeriodoVazio();
+    showPageMessage(
+      error.message,
+      "error"
+    );
+
+
+    disableVacationRequestButtons();
 
   }
+
+}
+
+
+
+// ==========================================================
+// SEM PERÍODO CADASTRADO
+// ==========================================================
+
+function renderNoVacationPeriod() {
+
+  setText(
+    "availableDays",
+    "0 dias"
+  );
+
+
+  setText(
+    "availableDaysDescription",
+    "Nenhum período de férias foi cadastrado."
+  );
+
+
+  setText(
+    "usedDays",
+    "0 dias"
+  );
+
+
+  setText(
+    "expirationDate",
+    "--"
+  );
+
+
+  setText(
+    "vacationStatus",
+    "Não cadastrado"
+  );
+
+
+  setText(
+    "vacationStatusDescription",
+    "A empresa ainda não cadastrou seu período aquisitivo."
+  );
+
+
+  setText(
+    "periodStart",
+    "--"
+  );
+
+
+  setText(
+    "periodEnd",
+    "--"
+  );
+
+
+  setText(
+    "entitledDays",
+    "0 dias"
+  );
+
+
+  setText(
+    "periodUsedDays",
+    "0 dias"
+  );
+
+
+  setText(
+    "acquisitionProgressText",
+    "0%"
+  );
+
+
+  setText(
+    "acquisitionMessage",
+    "Seu período aquisitivo ainda não foi cadastrado pela empresa."
+  );
+
+
+  setProgressBar(
+    0
+  );
+
+
+  setPeriodBadge(
+    "Não cadastrado",
+    "neutral"
+  );
+
+
+  disableVacationRequestButtons();
+
+
+  showPageMessage(
+    "Seu período de férias ainda não foi cadastrado pelo administrador do seu setor.",
+    "info"
+  );
 
 }
 
@@ -499,260 +909,487 @@ async function carregarFerias() {
 // RENDERIZAR PERÍODO
 // ==========================================================
 
-function renderizarPeriodo() {
+function renderVacationPeriod(
+  periodo
+) {
 
-  // ========================================================
-  // COLABORADOR SEM PERÍODO
-  // ========================================================
-
-  if (!periodoAtual) {
-
-    mostrarPeriodoVazio();
-
-    return;
-
-  }
-
-
-  const direito =
+  const entitledDays =
     Number(
-      periodoAtual.dias_direito || 0
+      periodo.dias_direito || 0
     );
 
 
-  const usados =
+  const usedDays =
     Number(
-      periodoAtual.dias_usados || 0
+      periodo.dias_usados || 0
     );
 
 
-  const disponiveis =
+  const availableDays =
     Number(
-      periodoAtual.dias_disponiveis || 0
+      periodo.dias_disponiveis || 0
     );
-
-
-  // ========================================================
-  // CARDS
-  // ========================================================
-
-  document.getElementById(
-    "saldoDisponivel"
-  ).textContent =
-    `${disponiveis} dias`;
-
-
-  document.getElementById(
-    "diasUsados"
-  ).textContent =
-    `${usados} dias`;
-
-
-  document.getElementById(
-    "proximoVencimento"
-  ).textContent =
-    formatarData(
-      periodoAtual.data_vencimento
-    );
-
-
-  document.getElementById(
-    "statusFerias"
-  ).textContent =
-    disponiveis > 0
-      ? "Disponível"
-      : "Sem saldo";
-
-
-  document.getElementById(
-    "statusFeriasDescricao"
-  ).textContent =
-    disponiveis > 0
-      ? "Você possui dias disponíveis."
-      : "Todo o saldo deste período foi utilizado.";
-
-
-
-  // ========================================================
-  // PERÍODO
-  // ========================================================
-
-  document.getElementById(
-    "periodoAquisitivo"
-  ).textContent =
-
-    `${formatarData(
-      periodoAtual.periodo_inicio
-    )} - ${formatarData(
-      periodoAtual.periodo_fim
-    )}`;
-
-
-  document.getElementById(
-    "diasDireito"
-  ).textContent =
-    `${direito} dias`;
-
-
-  document.getElementById(
-    "periodoDiasUsados"
-  ).textContent =
-    `${usados} dias`;
-
-
-  document.getElementById(
-    "periodoInicio"
-  ).textContent =
-    formatarData(
-      periodoAtual.periodo_inicio
-    );
-
-
-  document.getElementById(
-    "timelineSaldo"
-  ).textContent =
-    `${disponiveis} dias disponíveis`;
-
-
-  document.getElementById(
-    "periodoVencimento"
-  ).textContent =
-    formatarData(
-      periodoAtual.data_vencimento
-    );
-
-
-  document.getElementById(
-    "periodoStatus"
-  ).textContent =
-    disponiveis > 0
-      ? "Disponível"
-      : "Utilizado";
-
 
 
   // ========================================================
   // RESUMO
   // ========================================================
 
-  document.getElementById(
-    "resumoDireito"
-  ).textContent =
-    `${direito} dias`;
+  setText(
+    "availableDays",
+    formatDays(
+      availableDays
+    )
+  );
 
 
-  document.getElementById(
-    "resumoUsados"
-  ).textContent =
-    `${usados} dias`;
+  setText(
+    "usedDays",
+    formatDays(
+      usedDays
+    )
+  );
 
 
-  document.getElementById(
-    "resumoDisponiveis"
-  ).textContent =
-    `${disponiveis} dias`;
-
-
-  document.getElementById(
-    "saldoModalInfo"
-  ).textContent =
-    `Saldo disponível: ${disponiveis} dias`;
-
+  setText(
+    "expirationDate",
+    formatDate(
+      periodo.data_vencimento
+    )
+  );
 
 
   // ========================================================
-  // HABILITAR / DESABILITAR SOLICITAÇÃO
+  // PERÍODO
   // ========================================================
 
-  const possuiSaldo =
-    disponiveis > 0;
+  setText(
+    "periodStart",
+    formatDate(
+      periodo.periodo_inicio
+    )
+  );
 
 
-  abrirModalBtn.disabled =
-    !possuiSaldo;
+  setText(
+    "periodEnd",
+    formatDate(
+      periodo.periodo_fim
+    )
+  );
 
 
-  btnNovaSolicitacao.disabled =
-    !possuiSaldo;
+  setText(
+    "entitledDays",
+    formatDays(
+      entitledDays
+    )
+  );
+
+
+  setText(
+    "periodUsedDays",
+    formatDays(
+      usedDays
+    )
+  );
+
+
+  // ========================================================
+  // STATUS
+  // ========================================================
+
+  renderVacationStatus(
+    periodo
+  );
+
+
+  // ========================================================
+  // PROGRESSO
+  // ========================================================
+
+  renderAcquisitionProgress(
+    periodo
+  );
+
+
+  // ========================================================
+  // BOTÕES
+  // ========================================================
+
+  if (
+    periodo.periodo_concluido ===
+      true
+    &&
+    availableDays > 0
+  ) {
+
+    enableVacationRequestButtons();
+
+
+    setText(
+      "availableDaysDescription",
+      "Saldo disponível para solicitação."
+    );
+
+  } else {
+
+    disableVacationRequestButtons();
+
+
+    if (
+      periodo.periodo_concluido !==
+      true
+    ) {
+
+      setText(
+        "availableDaysDescription",
+        "O período aquisitivo ainda está em andamento."
+      );
+
+    } else {
+
+      setText(
+        "availableDaysDescription",
+        "Seu saldo atual foi totalmente utilizado."
+      );
+
+    }
+
+  }
 
 }
 
 
 
 // ==========================================================
-// PERÍODO NÃO CADASTRADO
+// RENDERIZAR STATUS
 // ==========================================================
 
-function mostrarPeriodoVazio() {
+function renderVacationStatus(
+  periodo
+) {
 
-  periodoAtual =
-    null;
-
-
-  document.getElementById(
-    "saldoDisponivel"
-  ).textContent =
-    "0 dias";
+  const status =
+    periodo.status_calculado ||
+    periodo.status ||
+    "";
 
 
-  document.getElementById(
-    "diasUsados"
-  ).textContent =
-    "0 dias";
+  // ========================================================
+  // EM AQUISIÇÃO
+  // ========================================================
+
+  if (
+    status ===
+    "em_aquisicao"
+  ) {
+
+    setText(
+      "vacationStatus",
+      "Em aquisição"
+    );
 
 
-  document.getElementById(
-    "proximoVencimento"
-  ).textContent =
-    "-";
+    setText(
+      "vacationStatusDescription",
+      "Você ainda está completando o período aquisitivo."
+    );
 
 
-  document.getElementById(
-    "statusFerias"
-  ).textContent =
-    "Indisponível";
+    setPeriodBadge(
+      "Em aquisição",
+      "warning"
+    );
 
 
-  document.getElementById(
-    "statusFeriasDescricao"
-  ).textContent =
-    "Nenhum período de férias cadastrado.";
+    return;
+
+  }
 
 
-  document.getElementById(
-    "periodoAquisitivo"
-  ).textContent =
-    "-";
+  // ========================================================
+  // DISPONÍVEL
+  // ========================================================
+
+  if (
+    status ===
+    "disponivel"
+  ) {
+
+    setText(
+      "vacationStatus",
+      "Disponível"
+    );
 
 
-  document.getElementById(
-    "periodoStatus"
-  ).textContent =
-    "Não cadastrado";
+    setText(
+      "vacationStatusDescription",
+      "Você já possui férias disponíveis para solicitação."
+    );
 
 
-  document.getElementById(
-    "saldoModalInfo"
-  ).textContent =
-    "Nenhum período disponível.";
+    setPeriodBadge(
+      "Disponível",
+      "success"
+    );
 
 
-  abrirModalBtn.disabled =
-    true;
+    return;
+
+  }
 
 
-  btnNovaSolicitacao.disabled =
-    true;
+  // ========================================================
+  // UTILIZADO
+  // ========================================================
+
+  if (
+    status ===
+    "utilizado"
+  ) {
+
+    setText(
+      "vacationStatus",
+      "Utilizado"
+    );
+
+
+    setText(
+      "vacationStatusDescription",
+      "O saldo deste período foi utilizado."
+    );
+
+
+    setPeriodBadge(
+      "Utilizado",
+      "neutral"
+    );
+
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // FALLBACK
+  // ========================================================
+
+  setText(
+    "vacationStatus",
+    "Em análise"
+  );
+
+
+  setText(
+    "vacationStatusDescription",
+    "Verificando situação do período."
+  );
+
+
+  setPeriodBadge(
+    "Em análise",
+    "info"
+  );
 
 }
 
 
 
 // ==========================================================
-// CARREGAR SOLICITAÇÕES
+// PROGRESSO DO PERÍODO AQUISITIVO
 // ==========================================================
 
-async function carregarSolicitacoes() {
+function renderAcquisitionProgress(
+  periodo
+) {
+
+  if (
+    !periodo.periodo_inicio ||
+    !periodo.periodo_fim
+  ) {
+
+    setProgressBar(
+      0
+    );
+
+
+    setText(
+      "acquisitionProgressText",
+      "0%"
+    );
+
+
+    return;
+
+  }
+
+
+  const start =
+    createDateFromInput(
+      String(
+        periodo.periodo_inicio
+      ).substring(
+        0,
+        10
+      )
+    );
+
+
+  const end =
+    createDateFromInput(
+      String(
+        periodo.periodo_fim
+      ).substring(
+        0,
+        10
+      )
+    );
+
+
+  const today =
+    new Date();
+
+
+  if (
+    !start ||
+    !end
+  ) {
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // JÁ CONCLUÍDO
+  // ========================================================
+
+  if (
+    periodo.periodo_concluido ===
+    true
+  ) {
+
+    setProgressBar(
+      100
+    );
+
+
+    setText(
+      "acquisitionProgressText",
+      "100%"
+    );
+
+
+    setText(
+      "acquisitionMessage",
+      "Período aquisitivo concluído."
+    );
+
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // AINDA NÃO COMEÇOU
+  // ========================================================
+
+  if (
+    today <
+    start
+  ) {
+
+    setProgressBar(
+      0
+    );
+
+
+    setText(
+      "acquisitionProgressText",
+      "0%"
+    );
+
+
+    setText(
+      "acquisitionMessage",
+      `Seu período começa em ${formatDate(
+        periodo.periodo_inicio
+      )}.`
+    );
+
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // CALCULAR PERCENTUAL
+  // ========================================================
+
+  const total =
+    end.getTime() -
+    start.getTime();
+
+
+  const elapsed =
+    today.getTime() -
+    start.getTime();
+
+
+  let percentage =
+    total > 0
+
+      ? Math.floor(
+          (
+            elapsed /
+            total
+          ) * 100
+        )
+
+      : 0;
+
+
+  percentage =
+    Math.max(
+      0,
+      Math.min(
+        percentage,
+        100
+      )
+    );
+
+
+  setProgressBar(
+    percentage
+  );
+
+
+  setText(
+    "acquisitionProgressText",
+    `${percentage}%`
+  );
+
+
+  setText(
+    "acquisitionMessage",
+    `Período em andamento até ${formatDate(
+      periodo.periodo_fim
+    )}.`
+  );
+
+}
+
+
+
+// ==========================================================
+// BUSCAR SOLICITAÇÕES
+// ==========================================================
+
+async function loadVacationRequests() {
 
   try {
 
@@ -772,7 +1409,7 @@ async function carregarSolicitacoes() {
 
 
     if (
-      tratarNaoAutorizado(
+      handleUnauthorized(
         response
       )
     ) {
@@ -786,23 +1423,27 @@ async function carregarSolicitacoes() {
       await response.json();
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error ||
-        "Não foi possível carregar as solicitações."
+        "Não foi possível carregar suas solicitações."
       );
 
     }
 
 
-    solicitacoes =
-      Array.isArray(result)
+    currentRequests =
+      Array.isArray(
+        result
+      )
         ? result
         : [];
 
 
-    renderizarSolicitacoes();
+    renderVacationRequests();
 
 
   } catch (error) {
@@ -813,77 +1454,9 @@ async function carregarSolicitacoes() {
     );
 
 
-    solicitacoes =
-      [];
-
-
-    renderizarSolicitacoes();
+    renderRequestLoadError();
 
   }
-
-}
-
-
-
-// ==========================================================
-// STATUS
-// ==========================================================
-
-function getStatusLabel(
-  status
-) {
-
-  if (
-    status ===
-    "aprovada"
-  ) {
-
-    return "Aprovada";
-
-  }
-
-
-  if (
-    status ===
-    "reprovada"
-  ) {
-
-    return "Reprovada";
-
-  }
-
-
-  return "Pendente";
-
-}
-
-
-
-function getStatusClass(
-  status
-) {
-
-  if (
-    status ===
-    "aprovada"
-  ) {
-
-    return "success";
-
-  }
-
-
-  if (
-    status ===
-    "reprovada"
-  ) {
-
-    return "danger";
-
-  }
-
-
-  return "warning";
 
 }
 
@@ -893,79 +1466,91 @@ function getStatusClass(
 // RENDERIZAR SOLICITAÇÕES
 // ==========================================================
 
-function renderizarSolicitacoes() {
+function renderVacationRequests() {
 
-  const tabelaPendentes =
-    document.getElementById(
-      "tabelaSolicitacoes"
-    );
-
-
-  const tabelaHistorico =
-    document.getElementById(
-      "tabelaHistorico"
-    );
-
-
-  tabelaPendentes.innerHTML =
-    "";
-
-
-  tabelaHistorico.innerHTML =
-    "";
-
-
-
-  const pendentes =
-    solicitacoes.filter(
-      item =>
-        item.status ===
+  const pending =
+    currentRequests.filter(
+      request =>
+        request.status ===
         "pendente"
     );
 
 
-  const historico =
-    solicitacoes.filter(
-      item =>
-        item.status !==
+  const history =
+    currentRequests.filter(
+      request =>
+        request.status !==
         "pendente"
     );
 
 
+  renderPendingRequests(
+    pending
+  );
 
-  // ========================================================
-  // PENDENTES
-  // ========================================================
+
+  renderVacationHistory(
+    history
+  );
+
+}
+
+
+
+// ==========================================================
+// PENDÊNCIAS
+// ==========================================================
+
+function renderPendingRequests(
+  requests
+) {
+
+  const tbody =
+    document.getElementById(
+      "pendingRequestsTableBody"
+    );
+
+
+  if (!tbody) {
+
+    return;
+
+  }
+
+
+  tbody.innerHTML =
+    "";
+
 
   if (
-    pendentes.length ===
-    0
+    requests.length === 0
   ) {
 
-    tabelaPendentes.innerHTML = `
+    tbody.innerHTML = `
 
       <tr>
 
         <td
-          colspan="4"
-          style="
-            text-align:center;
-            color:#5f6f86;
-            padding:24px;
-          "
+          colspan="5"
+          class="empty-table"
         >
-          Nenhuma solicitação aguardando análise.
+
+          Nenhuma solicitação em andamento.
+
         </td>
 
       </tr>
 
     `;
 
+
+    return;
+
   }
 
 
-  pendentes.forEach(
-    solicitacao => {
+  requests.forEach(
+    request => {
 
       const row =
         document.createElement(
@@ -977,14 +1562,14 @@ function renderizarSolicitacoes() {
 
         <td>
 
-          ${formatarData(
-            solicitacao.data_inicio
+          ${formatDate(
+            request.data_inicio
           )}
 
-          -
+          até
 
-          ${formatarData(
-            solicitacao.data_fim
+          ${formatDate(
+            request.data_fim
           )}
 
         </td>
@@ -992,7 +1577,18 @@ function renderizarSolicitacoes() {
 
         <td>
 
-          ${solicitacao.quantidade_dias}
+          ${formatDays(
+            request.quantidade_dias
+          )}
+
+        </td>
+
+
+        <td>
+
+          ${formatDate(
+            request.created_at
+          )}
 
         </td>
 
@@ -1001,16 +1597,12 @@ function renderizarSolicitacoes() {
 
           <span
             class="
-              status-pill
-              ${getStatusClass(
-                solicitacao.status
-              )}
+              status-badge
+              warning
             "
           >
 
-            ${getStatusLabel(
-              solicitacao.status
-            )}
+            Pendente
 
           </span>
 
@@ -1019,46 +1611,294 @@ function renderizarSolicitacoes() {
 
         <td>
 
-          ${formatarData(
-            solicitacao.created_at
-          )}
+          ${
+            request.observacoes
+
+              ? escapeHTML(
+                  request.observacoes
+                )
+
+              : "—"
+          }
 
         </td>
 
       `;
 
 
-      tabelaPendentes.appendChild(
+      tbody.appendChild(
         row
       );
 
     }
   );
 
+}
 
 
-  // ========================================================
-  // HISTÓRICO
-  // ========================================================
+
+// ==========================================================
+// HISTÓRICO
+// ==========================================================
+
+function renderVacationHistory(
+  requests
+) {
+
+  const tbody =
+    document.getElementById(
+      "vacationHistoryTableBody"
+    );
+
+
+  if (!tbody) {
+
+    return;
+
+  }
+
+
+  tbody.innerHTML =
+    "";
+
 
   if (
-    historico.length ===
-    0
+    requests.length === 0
   ) {
 
-    tabelaHistorico.innerHTML = `
+    tbody.innerHTML = `
 
       <tr>
 
         <td
-          colspan="4"
-          style="
-            text-align:center;
-            color:#5f6f86;
-            padding:24px;
-          "
+          colspan="5"
+          class="empty-table"
         >
-          Nenhuma solicitação analisada.
+
+          Nenhum histórico disponível.
+
+        </td>
+
+      </tr>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  requests.forEach(
+    request => {
+
+      const row =
+        document.createElement(
+          "tr"
+        );
+
+
+      const statusData =
+        getRequestStatusData(
+          request.status
+        );
+
+
+      row.innerHTML = `
+
+        <td>
+
+          ${formatDate(
+            request.data_inicio
+          )}
+
+          até
+
+          ${formatDate(
+            request.data_fim
+          )}
+
+        </td>
+
+
+        <td>
+
+          ${formatDays(
+            request.quantidade_dias
+          )}
+
+        </td>
+
+
+        <td>
+
+          <span
+            class="
+              status-badge
+              ${statusData.className}
+            "
+          >
+
+            ${statusData.label}
+
+          </span>
+
+        </td>
+
+
+        <td>
+
+          ${
+            request.data_avaliacao
+
+              ? formatDate(
+                  request.data_avaliacao
+                )
+
+              : "—"
+          }
+
+        </td>
+
+
+        <td>
+
+          ${
+            request.observacao_admin
+
+              ? escapeHTML(
+                  request.observacao_admin
+                )
+
+              : "—"
+          }
+
+        </td>
+
+      `;
+
+
+      tbody.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// STATUS DE SOLICITAÇÃO
+// ==========================================================
+
+function getRequestStatusData(
+  status
+) {
+
+  if (
+    status ===
+    "aprovada"
+  ) {
+
+    return {
+
+      label:
+        "Aprovada",
+
+      className:
+        "success"
+
+    };
+
+  }
+
+
+  if (
+    status ===
+    "aprovada_com_ressalvas"
+  ) {
+
+    return {
+
+      label:
+        "Aprovada com ressalvas",
+
+      className:
+        "info"
+
+    };
+
+  }
+
+
+  if (
+    status ===
+      "recusada"
+    ||
+    status ===
+      "reprovada"
+  ) {
+
+    return {
+
+      label:
+        "Recusada",
+
+      className:
+        "danger"
+
+    };
+
+  }
+
+
+  return {
+
+    label:
+      status || "Desconhecido",
+
+    className:
+      "neutral"
+
+  };
+
+}
+
+
+
+// ==========================================================
+// ERRO AO CARREGAR SOLICITAÇÕES
+// ==========================================================
+
+function renderRequestLoadError() {
+
+  const pending =
+    document.getElementById(
+      "pendingRequestsTableBody"
+    );
+
+
+  const history =
+    document.getElementById(
+      "vacationHistoryTableBody"
+    );
+
+
+  if (pending) {
+
+    pending.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="5"
+          class="empty-table"
+        >
+
+          Não foi possível carregar as solicitações.
+
         </td>
 
       </tr>
@@ -1068,93 +1908,100 @@ function renderizarSolicitacoes() {
   }
 
 
-  historico.forEach(
-    solicitacao => {
+  if (history) {
 
-      const row =
-        document.createElement(
-          "tr"
-        );
+    history.innerHTML = `
 
+      <tr>
 
-      let observacao =
-        solicitacao.observacoes ||
-        "-";
+        <td
+          colspan="5"
+          class="empty-table"
+        >
 
-
-      if (
-        solicitacao.status ===
-          "reprovada"
-        &&
-        solicitacao.motivo_reprovacao
-      ) {
-
-        observacao =
-          solicitacao.motivo_reprovacao;
-
-      }
-
-
-      row.innerHTML = `
-
-        <td>
-
-          ${formatarData(
-            solicitacao.data_inicio
-          )}
-
-          -
-
-          ${formatarData(
-            solicitacao.data_fim
-          )}
+          Não foi possível carregar o histórico.
 
         </td>
 
+      </tr>
 
-        <td>
+    `;
 
-          ${solicitacao.quantidade_dias}
-          dias
+  }
 
-        </td>
-
-
-        <td>
-
-          <span
-            class="
-              status-pill
-              ${getStatusClass(
-                solicitacao.status
-              )}
-            "
-          >
-
-            ${getStatusLabel(
-              solicitacao.status
-            )}
-
-          </span>
-
-        </td>
+}
 
 
-        <td>
 
-          ${observacao}
+// ==========================================================
+// HABILITAR BOTÕES
+// ==========================================================
 
-        </td>
+function enableVacationRequestButtons() {
 
-      `;
+  const mainButton =
+    document.getElementById(
+      "openVacationRequestButton"
+    );
 
 
-      tabelaHistorico.appendChild(
-        row
-      );
+  const secondaryButton =
+    document.getElementById(
+      "secondaryVacationRequestButton"
+    );
 
-    }
-  );
+
+  if (mainButton) {
+
+    mainButton.disabled =
+      false;
+
+  }
+
+
+  if (secondaryButton) {
+
+    secondaryButton.disabled =
+      false;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// DESABILITAR BOTÕES
+// ==========================================================
+
+function disableVacationRequestButtons() {
+
+  const mainButton =
+    document.getElementById(
+      "openVacationRequestButton"
+    );
+
+
+  const secondaryButton =
+    document.getElementById(
+      "secondaryVacationRequestButton"
+    );
+
+
+  if (mainButton) {
+
+    mainButton.disabled =
+      true;
+
+  }
+
+
+  if (secondaryButton) {
+
+    secondaryButton.disabled =
+      true;
+
+  }
 
 }
 
@@ -1164,38 +2011,80 @@ function renderizarSolicitacoes() {
 // ABRIR MODAL
 // ==========================================================
 
-function abrirModal() {
+function openVacationRequestModal() {
 
-  if (!periodoAtual) {
+  if (
+    currentAvailableDays <= 0
+  ) {
 
-    alert(
-      "Você ainda não possui um período de férias disponível."
+    showPageMessage(
+      "Você não possui saldo disponível para solicitar férias.",
+      "info"
     );
+
 
     return;
 
   }
 
 
-  formSolicitacao.reset();
+  const modal =
+    document.getElementById(
+      "vacationRequestModal"
+    );
 
 
-  quantidadeDias.value =
-    "0 dias";
+  const form =
+    document.getElementById(
+      "vacationRequestForm"
+    );
 
 
-  modal.classList.add(
-    "open"
+  if (
+    form
+  ) {
+
+    form.reset();
+
+  }
+
+
+  setText(
+    "requestDays",
+    "0 dias"
   );
 
 
-  modal.setAttribute(
-    "aria-hidden",
-    "false"
+  setText(
+    "modalAvailableDays",
+    formatDays(
+      currentAvailableDays
+    )
   );
 
 
-  dataInicio.focus();
+  clearRequestMessage();
+
+
+  if (
+    modal
+  ) {
+
+    modal.classList.add(
+      "show"
+    );
+
+
+    modal.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+
+    document.body.style.overflow =
+      "hidden";
+
+  }
 
 }
 
@@ -1205,10 +2094,23 @@ function abrirModal() {
 // FECHAR MODAL
 // ==========================================================
 
-function fecharModal() {
+function closeVacationRequestModal() {
+
+  const modal =
+    document.getElementById(
+      "vacationRequestModal"
+    );
+
+
+  if (!modal) {
+
+    return;
+
+  }
+
 
   modal.classList.remove(
-    "open"
+    "show"
   );
 
 
@@ -1218,38 +2120,98 @@ function fecharModal() {
   );
 
 
-  formSolicitacao.reset();
+  document.body.style.overflow =
+    "auto";
 
 
-  quantidadeDias.value =
-    "0 dias";
-
-
-  limparMensagem();
+  clearRequestMessage();
 
 }
 
 
 
 // ==========================================================
-// ATUALIZAR QUANTIDADE DE DIAS
+// CALCULAR DIAS DO PEDIDO
 // ==========================================================
 
-function atualizarQuantidadeDias() {
+function updateRequestDays() {
 
-  const total =
-    calcularDiasEntreDatas(
-      dataInicio.value,
-      dataFim.value
+  const startInput =
+    document.getElementById(
+      "requestStartDate"
     );
 
 
-  quantidadeDias.value =
-    `${total} ${
-      total === 1
-        ? "dia"
-        : "dias"
-    }`;
+  const endInput =
+    document.getElementById(
+      "requestEndDate"
+    );
+
+
+  if (
+    !startInput ||
+    !endInput
+  ) {
+
+    return;
+
+  }
+
+
+  const days =
+    calculateDaysBetween(
+      startInput.value,
+      endInput.value
+    );
+
+
+  setText(
+    "requestDays",
+    formatDays(
+      days
+    )
+  );
+
+
+  clearRequestMessage();
+
+
+  // ========================================================
+  // PERÍODO INVÁLIDO
+  // ========================================================
+
+  if (
+    startInput.value &&
+    endInput.value &&
+    days === 0
+  ) {
+
+    showRequestMessage(
+      "A data final deve ser igual ou posterior à data inicial.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // SALDO INSUFICIENTE
+  // ========================================================
+
+  if (
+    days >
+    currentAvailableDays
+  ) {
+
+    showRequestMessage(
+      `Você possui somente ${currentAvailableDays} dias disponíveis.`,
+      "error"
+    );
+
+  }
 
 }
 
@@ -1259,205 +2221,330 @@ function atualizarQuantidadeDias() {
 // ENVIAR SOLICITAÇÃO
 // ==========================================================
 
-formSolicitacao.addEventListener(
-  "submit",
-  async event => {
+async function submitVacationRequest(
+  event
+) {
 
-    event.preventDefault();
+  event.preventDefault();
 
+
+  const startInput =
+    document.getElementById(
+      "requestStartDate"
+    );
+
+
+  const endInput =
+    document.getElementById(
+      "requestEndDate"
+    );
+
+
+  const observationInput =
+    document.getElementById(
+      "requestObservation"
+    );
+
+
+  const submitButton =
+    document.getElementById(
+      "submitVacationRequest"
+    );
+
+
+  const submitText =
+    document.getElementById(
+      "submitVacationRequestText"
+    );
+
+
+  const start =
+    startInput
+      ? startInput.value
+      : "";
+
+
+  const end =
+    endInput
+      ? endInput.value
+      : "";
+
+
+  const observation =
+    observationInput
+      ? observationInput.value.trim()
+      : "";
+
+
+  // ========================================================
+  // CAMPOS
+  // ========================================================
+
+  if (
+    !start ||
+    !end
+  ) {
+
+    showRequestMessage(
+      "Informe a data de início e a data de término.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+  const days =
+    calculateDaysBetween(
+      start,
+      end
+    );
+
+
+  // ========================================================
+  // DATAS INVÁLIDAS
+  // ========================================================
+
+  if (
+    days <= 0
+  ) {
+
+    showRequestMessage(
+      "O período informado é inválido.",
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+  // ========================================================
+  // SALDO
+  // ========================================================
+
+  if (
+    days >
+    currentAvailableDays
+  ) {
+
+    showRequestMessage(
+      `Você possui somente ${currentAvailableDays} dias disponíveis.`,
+      "error"
+    );
+
+
+    return;
+
+  }
+
+
+  const originalText =
+    submitText
+      ? submitText.textContent
+      : "Enviar solicitação";
+
+
+  try {
 
     if (
-      !dataInicio.value ||
-      !dataFim.value
+      submitButton
     ) {
 
-      mostrarMensagem(
-        "Informe as datas de início e término.",
-        "error"
-      );
-
-      return;
-
-    }
-
-
-    const totalDias =
-      calcularDiasEntreDatas(
-        dataInicio.value,
-        dataFim.value
-      );
-
-
-    if (
-      totalDias <= 0
-    ) {
-
-      mostrarMensagem(
-        "O período informado é inválido.",
-        "error"
-      );
-
-      return;
-
-    }
-
-
-    if (
-      periodoAtual &&
-      totalDias >
-      periodoAtual.dias_disponiveis
-    ) {
-
-      mostrarMensagem(
-        `Você possui somente ${periodoAtual.dias_disponiveis} dias disponíveis.`,
-        "error"
-      );
-
-      return;
-
-    }
-
-
-    try {
-
-      salvarSolicitacao.disabled =
+      submitButton.disabled =
         true;
 
+    }
 
-      salvarSolicitacao.textContent =
+
+    if (
+      submitText
+    ) {
+
+      submitText.textContent =
         "Enviando...";
 
-
-      const response =
-        await fetch(
-          "/api/ferias/solicitacoes",
-          {
-
-            method:
-              "POST",
-
-            headers:
-              getAuthHeaders(
-                true
-              ),
-
-            body:
-              JSON.stringify({
-
-                data_inicio:
-                  dataInicio.value,
-
-                data_fim:
-                  dataFim.value,
-
-                observacoes:
-                  observacoes.value
-                    .trim()
-
-              })
-
-          }
-        );
+    }
 
 
-      if (
-        tratarNaoAutorizado(
-          response
-        )
-      ) {
+    const response =
+      await fetch(
+        "/api/ferias/solicitacoes",
+        {
 
-        return;
+          method:
+            "POST",
 
-      }
+          headers:
+            getAuthHeaders(
+              true
+            ),
 
+          body:
+            JSON.stringify({
 
-      const result =
-        await response.json();
+              data_inicio:
+                start,
 
+              data_fim:
+                end,
 
-      if (!response.ok) {
+              observacoes:
+                observation ||
+                null
 
-        throw new Error(
-          result.error ||
-          "Não foi possível enviar a solicitação."
-        );
+            })
 
-      }
-
-
-      fecharModal();
-
-
-      await carregarSolicitacoes();
-
-
-      alert(
-        "Solicitação de férias enviada com sucesso!"
+        }
       );
 
 
-    } catch (error) {
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
 
-      console.error(
-        "Erro ao solicitar férias:",
-        error
+      return;
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        result.error ||
+        result.details ||
+        "Não foi possível enviar a solicitação."
       );
 
-
-      mostrarMensagem(
-        error.message,
-        "error"
-      );
+    }
 
 
-    } finally {
+    showRequestMessage(
+      result.message ||
+      "Solicitação enviada com sucesso.",
+      "success"
+    );
 
-      salvarSolicitacao.disabled =
+
+    // ======================================================
+    // RECARREGAR SOLICITAÇÕES
+    // ======================================================
+
+    await loadVacationRequests();
+
+
+    setTimeout(
+      () => {
+
+        closeVacationRequestModal();
+
+      },
+      800
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erro ao solicitar férias:",
+      error
+    );
+
+
+    showRequestMessage(
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    if (
+      submitButton
+    ) {
+
+      submitButton.disabled =
         false;
 
+    }
 
-      salvarSolicitacao.textContent =
-        "Enviar solicitação";
+
+    if (
+      submitText
+    ) {
+
+      submitText.textContent =
+        originalText;
 
     }
 
   }
-);
-
-
-
-// ==========================================================
-// MENSAGENS
-// ==========================================================
-
-function mostrarMensagem(
-  mensagem,
-  tipo
-) {
-
-  const container =
-    document.getElementById(
-      "formMessage"
-    );
-
-
-  container.textContent =
-    mensagem;
-
-
-  container.className =
-    `form-message ${tipo}`;
 
 }
 
 
 
-function limparMensagem() {
+// ==========================================================
+// MENSAGEM DO MODAL
+// ==========================================================
+
+function showRequestMessage(
+  message,
+  type
+) {
 
   const container =
     document.getElementById(
-      "formMessage"
+      "vacationRequestMessage"
     );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  container.textContent =
+    message;
+
+
+  container.className =
+    `form-message ${type}`;
+
+}
+
+
+
+// ==========================================================
+// LIMPAR MENSAGEM DO MODAL
+// ==========================================================
+
+function clearRequestMessage() {
+
+  const container =
+    document.getElementById(
+      "vacationRequestMessage"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
 
 
   container.textContent =
@@ -1472,90 +2559,302 @@ function limparMensagem() {
 
 
 // ==========================================================
-// EVENTOS DAS DATAS
+// FUNÇÕES AUXILIARES
 // ==========================================================
 
-dataInicio.addEventListener(
-  "change",
-  atualizarQuantidadeDias
-);
+function setText(
+  id,
+  value
+) {
+
+  const element =
+    document.getElementById(
+      id
+    );
 
 
-dataFim.addEventListener(
-  "change",
-  atualizarQuantidadeDias
-);
+  if (element) {
 
-
-
-// ==========================================================
-// BOTÕES DO MODAL
-// ==========================================================
-
-abrirModalBtn.addEventListener(
-  "click",
-  abrirModal
-);
-
-
-btnNovaSolicitacao.addEventListener(
-  "click",
-  abrirModal
-);
-
-
-fecharModalBtn.addEventListener(
-  "click",
-  fecharModal
-);
-
-
-cancelarModalBtn.addEventListener(
-  "click",
-  fecharModal
-);
-
-
-
-// ==========================================================
-// FECHAR CLICANDO FORA
-// ==========================================================
-
-modal.addEventListener(
-  "click",
-  event => {
-
-    if (
-      event.target ===
-      modal
-    ) {
-
-      fecharModal();
-
-    }
+    element.textContent =
+      value;
 
   }
-);
+
+}
 
 
 
-// ==========================================================
-// VOLTAR PARA TREINAMENTOS
-// ==========================================================
+function formatDays(
+  value
+) {
 
-document
-  .getElementById(
-    "voltarTreinamentos"
-  )
-  .addEventListener(
-    "click",
-    () => {
+  const number =
+    Number(
+      value || 0
+    );
 
-      window.location.href =
-        "/treinamentos/";
 
-    }
+  return (
+    `${number} ${
+      number === 1
+        ? "dia"
+        : "dias"
+    }`
   );
+
+}
+
+
+
+function setProgressBar(
+  percentage
+) {
+
+  const bar =
+    document.getElementById(
+      "acquisitionProgressBar"
+    );
+
+
+  if (bar) {
+
+    bar.style.width =
+      `${percentage}%`;
+
+  }
+
+}
+
+
+
+function setPeriodBadge(
+  text,
+  className
+) {
+
+  const badge =
+    document.getElementById(
+      "periodStatusBadge"
+    );
+
+
+  if (!badge) {
+
+    return;
+
+  }
+
+
+  badge.textContent =
+    text;
+
+
+  badge.className =
+    `status-badge ${className}`;
+
+}
+
+
+
+// ==========================================================
+// EVENTOS
+// ==========================================================
+
+// ==========================================================
+// BOTÃO PRINCIPAL
+// ==========================================================
+
+const openVacationRequestButton =
+  document.getElementById(
+    "openVacationRequestButton"
+  );
+
+
+if (
+  openVacationRequestButton
+) {
+
+  openVacationRequestButton
+    .addEventListener(
+      "click",
+      openVacationRequestModal
+    );
+
+}
+
+
+
+// ==========================================================
+// BOTÃO SECUNDÁRIO
+// ==========================================================
+
+const secondaryVacationRequestButton =
+  document.getElementById(
+    "secondaryVacationRequestButton"
+  );
+
+
+if (
+  secondaryVacationRequestButton
+) {
+
+  secondaryVacationRequestButton
+    .addEventListener(
+      "click",
+      openVacationRequestModal
+    );
+
+}
+
+
+
+// ==========================================================
+// FECHAR MODAL
+// ==========================================================
+
+const closeVacationRequestButton =
+  document.getElementById(
+    "closeVacationRequestModal"
+  );
+
+
+if (
+  closeVacationRequestButton
+) {
+
+  closeVacationRequestButton
+    .addEventListener(
+      "click",
+      closeVacationRequestModal
+    );
+
+}
+
+
+
+// ==========================================================
+// CANCELAR
+// ==========================================================
+
+const cancelVacationRequestButton =
+  document.getElementById(
+    "cancelVacationRequest"
+  );
+
+
+if (
+  cancelVacationRequestButton
+) {
+
+  cancelVacationRequestButton
+    .addEventListener(
+      "click",
+      closeVacationRequestModal
+    );
+
+}
+
+
+
+// ==========================================================
+// DATAS
+// ==========================================================
+
+const requestStartDate =
+  document.getElementById(
+    "requestStartDate"
+  );
+
+
+const requestEndDate =
+  document.getElementById(
+    "requestEndDate"
+  );
+
+
+if (
+  requestStartDate
+) {
+
+  requestStartDate
+    .addEventListener(
+      "change",
+      updateRequestDays
+    );
+
+}
+
+
+if (
+  requestEndDate
+) {
+
+  requestEndDate
+    .addEventListener(
+      "change",
+      updateRequestDays
+    );
+
+}
+
+
+
+// ==========================================================
+// FORMULÁRIO
+// ==========================================================
+
+const vacationRequestForm =
+  document.getElementById(
+    "vacationRequestForm"
+  );
+
+
+if (
+  vacationRequestForm
+) {
+
+  vacationRequestForm
+    .addEventListener(
+      "submit",
+      submitVacationRequest
+    );
+
+}
+
+
+
+// ==========================================================
+// CLICAR FORA DO MODAL
+// ==========================================================
+
+const vacationRequestModal =
+  document.getElementById(
+    "vacationRequestModal"
+  );
+
+
+if (
+  vacationRequestModal
+) {
+
+  vacationRequestModal
+    .addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target ===
+          vacationRequestModal
+        ) {
+
+          closeVacationRequestModal();
+
+        }
+
+      }
+    );
+
+}
 
 
 
@@ -1570,13 +2869,9 @@ document.addEventListener(
     if (
       event.key ===
       "Escape"
-      &&
-      modal.classList.contains(
-        "open"
-      )
     ) {
 
-      fecharModal();
+      closeVacationRequestModal();
 
     }
 
@@ -1586,34 +2881,111 @@ document.addEventListener(
 
 
 // ==========================================================
+// LOGOUT
+// ==========================================================
+
+const logoutButton =
+  document.getElementById(
+    "logoutButton"
+  );
+
+
+if (
+  logoutButton
+) {
+
+  logoutButton
+    .addEventListener(
+      "click",
+      () => {
+
+        const confirmLogout =
+          confirm(
+            "Deseja sair do Evolua+?"
+          );
+
+
+        if (
+          !confirmLogout
+        ) {
+
+          return;
+
+        }
+
+
+        clearSession();
+
+
+        window.location.href =
+          "/login/";
+
+      }
+    );
+
+}
+
+
+
+// ==========================================================
 // INICIALIZAÇÃO
 // ==========================================================
 
-async function initializeFerias() {
+async function initializeVacationPage() {
 
-  // Verifica se realmente existe
-  // um colaborador autenticado.
-
-  const sessionValid =
-    validarSessao();
+  console.log(
+    "Iniciando tela de Férias..."
+  );
 
 
-  if (!sessionValid) {
+  // ========================================================
+  // SESSÃO
+  // ========================================================
+
+  const validSession =
+    validateSession();
+
+
+  if (
+    !validSession
+  ) {
 
     return;
 
   }
 
 
-  renderizarUsuario();
+  // ========================================================
+  // USUÁRIO
+  // ========================================================
+
+  renderLoggedUser();
 
 
-  // Primeiro carregamos o período.
-  await carregarFerias();
+  // ========================================================
+  // DESABILITAR ENQUANTO CARREGA
+  // ========================================================
+
+  disableVacationRequestButtons();
 
 
-  // Depois as solicitações.
-  await carregarSolicitacoes();
+  // ========================================================
+  // FÉRIAS
+  // ========================================================
+
+  await loadVacationData();
+
+
+  // ========================================================
+  // SOLICITAÇÕES
+  // ========================================================
+
+  await loadVacationRequests();
+
+
+  console.log(
+    "Tela de Férias carregada."
+  );
 
 }
 
@@ -1625,5 +2997,5 @@ async function initializeFerias() {
 
 document.addEventListener(
   "DOMContentLoaded",
-  initializeFerias
+  initializeVacationPage
 );

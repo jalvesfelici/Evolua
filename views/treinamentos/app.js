@@ -1,53 +1,391 @@
 // ==========================================================
-// PORTAL DE CARREIRAS
+// EVOLUA+
 // TELA DE TREINAMENTOS - APP.JS
 // ==========================================================
 //
-// SITUAÇÃO ATUAL:
+// RESPONSABILIDADES:
 //
-// - Cursos vêm da API /api/cursos.
-// - A API busca os dados no Supabase.
-// - Usuário ainda é temporário.
-// - Progresso ainda não é salvo no banco.
-// - Upload ainda não vai para o Supabase Storage.
-// - Arquivos selecionados existem apenas no navegador.
-//
-// ==========================================================
-
-
-
-// ==========================================================
-// USUÁRIO TEMPORÁRIO
-// ==========================================================
-//
-// Enquanto ainda não temos login e criação de usuários,
-// simulamos o colaborador atual.
+// - validar o colaborador autenticado;
+// - recuperar usuário real do localStorage;
+// - mostrar nome, setor e avatar reais na sidebar;
+// - permitir logout;
+// - carregar cursos da API;
+// - mostrar treinamentos do setor do colaborador;
+// - mostrar catálogo geral;
+// - controlar temporariamente o progresso;
+// - controlar temporariamente arquivos selecionados;
 //
 // IMPORTANTE:
 //
-// O setor precisa ser exatamente igual ao valor utilizado
-// pelo Admin ao cadastrar o curso.
+// Progresso e uploads ainda não são persistidos.
 //
-// Exemplo:
+// Posteriormente:
 //
-// Tecnologia
+// - progresso irá para o Supabase;
+// - arquivos irão para o Supabase Storage;
+// - conclusões irão gerar avaliações para o Admin.
 //
 // ==========================================================
 
-const currentUser = {
 
-  id: 1,
 
-  name:
-    "Maycon Santos",
+// ==========================================================
+// SESSÃO
+// ==========================================================
+//
+// O login salva:
+//
+// access_token
+//
+// usuario_logado
+//
+// Exemplo de usuario_logado:
+//
+// {
+//   id: "...",
+//   nome: "João Silva",
+//   email: "...",
+//   cargo: "Analista",
+//   setor: "Tecnologia",
+//   perfil: "colaborador",
+//   ativo: true
+// }
+//
+// ==========================================================
 
-  sector:
-    "Tecnologia",
+const accessToken =
+  localStorage.getItem(
+    "access_token"
+  );
 
-  role:
-    "Desenvolvedor Júnior"
 
-};
+
+// ==========================================================
+// USUÁRIO ATUAL
+// ==========================================================
+//
+// Não existe mais usuário mockado.
+//
+// Este objeto será preenchido usando:
+//
+// localStorage.usuario_logado
+//
+// ==========================================================
+
+let currentUser =
+  null;
+
+
+
+// ==========================================================
+// RECUPERAR USUÁRIO LOGADO
+// ==========================================================
+
+try {
+
+  const storedUser =
+    localStorage.getItem(
+      "usuario_logado"
+    );
+
+
+  if (
+    storedUser
+  ) {
+
+    const loggedUser =
+      JSON.parse(
+        storedUser
+      );
+
+
+    // ======================================================
+    // NORMALIZAMOS OS NOMES
+    // ======================================================
+    //
+    // O backend utiliza:
+    //
+    // nome
+    // setor
+    // cargo
+    //
+    // Parte antiga do frontend utiliza:
+    //
+    // name
+    // sector
+    // role
+    //
+    // Para evitar alterar centenas de linhas,
+    // transformamos uma vez aqui.
+    //
+    // ======================================================
+
+    currentUser = {
+
+      id:
+        loggedUser.id,
+
+
+      name:
+        loggedUser.nome ||
+        loggedUser.name ||
+        "",
+
+
+      email:
+        loggedUser.email ||
+        "",
+
+
+      registration:
+        loggedUser.matricula ||
+        loggedUser.registration ||
+        "",
+
+
+      sector:
+        loggedUser.setor ||
+        loggedUser.sector ||
+        "",
+
+
+      role:
+        loggedUser.cargo ||
+        loggedUser.role ||
+        "",
+
+
+      profile:
+        loggedUser.perfil ||
+        loggedUser.profile ||
+        "",
+
+
+      active:
+
+        loggedUser.ativo !==
+        false
+
+    };
+
+  }
+
+} catch (
+  error
+) {
+
+  console.error(
+    "Erro ao recuperar usuário logado:",
+    error
+  );
+
+}
+
+
+
+// ==========================================================
+// LIMPAR SESSÃO
+// ==========================================================
+
+function clearSession() {
+
+  localStorage.removeItem(
+    "access_token"
+  );
+
+
+  localStorage.removeItem(
+    "usuario_logado"
+  );
+
+}
+
+
+
+// ==========================================================
+// VALIDAR SESSÃO
+// ==========================================================
+//
+// REGRAS:
+//
+// sem login
+// → /login/
+//
+// Admin
+// → /admin/
+//
+// colaborador
+// → pode continuar.
+//
+// ==========================================================
+
+function validateUserSession() {
+
+  // ========================================================
+  // TOKEN OU USUÁRIO AUSENTE
+  // ========================================================
+
+  if (
+    !accessToken ||
+    !currentUser
+  ) {
+
+    window.location.href =
+      "/login/";
+
+
+    return false;
+
+  }
+
+
+
+  // ========================================================
+  // ADMIN
+  // ========================================================
+
+  if (
+    currentUser.profile ===
+      "admin_principal"
+
+    ||
+
+    currentUser.profile ===
+      "admin_setor"
+  ) {
+
+    window.location.href =
+      "/admin/";
+
+
+    return false;
+
+  }
+
+
+
+  // ========================================================
+  // PERFIL INVÁLIDO
+  // ========================================================
+
+  if (
+    currentUser.profile !==
+    "colaborador"
+  ) {
+
+    clearSession();
+
+
+    window.location.href =
+      "/login/";
+
+
+    return false;
+
+  }
+
+
+
+  // ========================================================
+  // USUÁRIO INATIVO
+  // ========================================================
+
+  if (
+    currentUser.active ===
+    false
+  ) {
+
+    clearSession();
+
+
+    window.location.href =
+      "/login/";
+
+
+    return false;
+
+  }
+
+
+
+  return true;
+
+}
+
+
+
+// ==========================================================
+// HEADERS AUTENTICADOS
+// ==========================================================
+//
+// Já deixamos esta função pronta porque posteriormente
+// as rotas de treinamentos/progresso serão protegidas.
+//
+// ==========================================================
+
+function getAuthHeaders(
+  includeJson = false
+) {
+
+  const headers = {
+
+    Authorization:
+      `Bearer ${accessToken}`
+
+  };
+
+
+  if (
+    includeJson
+  ) {
+
+    headers[
+      "Content-Type"
+    ] =
+      "application/json";
+
+  }
+
+
+  return headers;
+
+}
+
+
+
+// ==========================================================
+// TRATAR SESSÃO EXPIRADA
+// ==========================================================
+
+function handleUnauthorized(
+  response
+) {
+
+  if (
+    response.status ===
+    401
+  ) {
+
+    clearSession();
+
+
+    alert(
+      "Sua sessão expirou. Faça login novamente."
+    );
+
+
+    window.location.href =
+      "/login/";
+
+
+    return true;
+
+  }
+
+
+  return false;
+
+}
 
 
 
@@ -55,28 +393,21 @@ const currentUser = {
 // CURSOS
 // ==========================================================
 //
-// Este array começa vazio.
+// Começa vazio.
 //
-// Depois será preenchido através de:
+// Depois será preenchido por:
 //
 // GET /api/cursos
 //
 // ==========================================================
 
-let courses = [];
+let courses =
+  [];
 
 
 
 // ==========================================================
 // CURSO ATUALMENTE ABERTO
-// ==========================================================
-//
-// Quando o usuário clicar em:
-//
-// Ver treinamento
-//
-// guardamos o ID do curso aqui.
-//
 // ==========================================================
 
 let currentCourseId =
@@ -85,7 +416,7 @@ let currentCourseId =
 
 
 // ==========================================================
-// FILTRO ATUAL DO CATÁLOGO
+// FILTRO ATUAL
 // ==========================================================
 
 let currentAreaFilter =
@@ -94,31 +425,24 @@ let currentAreaFilter =
 
 
 // ==========================================================
-// CONTROLE TEMPORÁRIO DE ATIVIDADES CONCLUÍDAS
+// PROGRESSO TEMPORÁRIO
 // ==========================================================
 //
-// Como ainda não temos usuários reais,
-// não existe tabela de progresso.
+// Ainda não salvamos progresso no Supabase.
 //
-// Então guardamos temporariamente:
+// Estrutura:
 //
 // {
-//   10: {
-//     3: true,
-//     4: false
+//   cursoId: {
+//     atividadeId: true,
+//     atividadeId: false
 //   }
 // }
 //
-// Significa:
-//
-// curso 10
-//
-// atividade 3 = concluída
-// atividade 4 = pendente
-//
 // ==========================================================
 
-const completedActivities = {};
+const completedActivities =
+  {};
 
 
 
@@ -126,27 +450,22 @@ const completedActivities = {};
 // ARQUIVOS TEMPORÁRIOS
 // ==========================================================
 //
-// Guardamos apenas informações dos arquivos
-// selecionados durante esta sessão.
-//
-// Nenhum arquivo é enviado ao servidor ainda.
+// Nesta etapa continuam somente no navegador.
 //
 // ==========================================================
 
-const uploadedFiles = {};
+const uploadedFiles =
+  {};
 
 
 
 // ==========================================================
-// FUNÇÃO AUXILIAR - ESCAPAR HTML
-// ==========================================================
-//
-// Evita que textos vindos do banco sejam interpretados
-// como código HTML.
-//
+// ESCAPAR HTML
 // ==========================================================
 
-function escapeHTML(value) {
+function escapeHTML(
+  value
+) {
 
   if (
     value === null ||
@@ -158,7 +477,9 @@ function escapeHTML(value) {
   }
 
 
-  return String(value)
+  return String(
+    value
+  )
 
     .replaceAll(
       "&",
@@ -193,19 +514,32 @@ function escapeHTML(value) {
 // GERAR INICIAIS
 // ==========================================================
 //
-// Maycon Santos
+// João Silva
 //
 // vira:
 //
-// MS
+// JS
 //
 // ==========================================================
 
-function getInitials(name) {
+function getInitials(
+  name
+) {
+
+  if (
+    !name
+  ) {
+
+    return "--";
+
+  }
+
 
   return name
 
-    .split(" ")
+    .split(
+      " "
+    )
 
     .filter(
       word =>
@@ -222,7 +556,9 @@ function getInitials(name) {
         word[0]
     )
 
-    .join("")
+    .join(
+      ""
+    )
 
     .toUpperCase();
 
@@ -234,21 +570,21 @@ function getInitials(name) {
 // NORMALIZAR TEXTO
 // ==========================================================
 //
-// Usaremos para comparar setores e áreas.
+// Permite comparar:
 //
-// Exemplo:
-//
-// "Tecnologia"
-// "tecnologia"
-//
-// passam a ser tratados como iguais.
+// Tecnologia
+// tecnologia
+// TECNOLOGIA
 //
 // ==========================================================
 
-function normalizeText(value) {
+function normalizeText(
+  value
+) {
 
   return String(
-    value || ""
+    value ||
+    ""
   )
 
     .trim()
@@ -269,23 +605,7 @@ function normalizeText(value) {
 
 
 // ==========================================================
-// CONVERTER CURSO DA API PARA O FORMATO DO FRONTEND
-// ==========================================================
-//
-// API retorna:
-//
-// titulo
-// descricao
-// carga_horaria
-// setor_destino
-//
-// Frontend utiliza:
-//
-// title
-// description
-// hours
-// targetSector
-//
+// CONVERTER CURSO DA API
 // ==========================================================
 
 function mapApiCourse(
@@ -293,11 +613,15 @@ function mapApiCourse(
 ) {
 
   const apiActivities =
-    apiCourse.atividades_curso
-    || [];
+    apiCourse.atividades_curso ||
+    [];
 
 
-  // Ordenamos as atividades.
+
+  // ========================================================
+  // ORDENAR ATIVIDADES
+  // ========================================================
+
   apiActivities.sort(
     (
       activityA,
@@ -307,19 +631,22 @@ function mapApiCourse(
       return (
 
         Number(
-          activityA.ordem || 0
+          activityA.ordem ||
+          0
         )
 
         -
 
         Number(
-          activityB.ordem || 0
+          activityB.ordem ||
+          0
         )
 
       );
 
     }
   );
+
 
 
   return {
@@ -367,8 +694,8 @@ function mapApiCourse(
 
 
     externalLink:
-      apiCourse.link_externo
-      || "",
+      apiCourse.link_externo ||
+      "",
 
 
     active:
@@ -394,8 +721,8 @@ function mapApiCourse(
 
 
             description:
-              activity.descricao
-              || "",
+              activity.descricao ||
+              "",
 
 
             type:
@@ -403,8 +730,8 @@ function mapApiCourse(
 
 
             resource:
-              activity.recurso
-              || "",
+              activity.recurso ||
+              "",
 
 
             order:
@@ -422,30 +749,55 @@ function mapApiCourse(
 
 
 // ==========================================================
-// EXIBIR DADOS DO USUÁRIO TEMPORÁRIO
+// EXIBIR COLABORADOR LOGADO
+// ==========================================================
+//
+// IDs utilizados no novo index.html:
+//
+// sidebarUserAvatar
+// sidebarUserName
+// sidebarUserSector
+//
 // ==========================================================
 
 function renderCurrentUser() {
 
+  if (
+    !currentUser
+  ) {
+
+    return;
+
+  }
+
+
+
   const avatar =
     document.getElementById(
-      "userAvatar"
+      "sidebarUserAvatar"
     );
 
 
   const name =
     document.getElementById(
-      "userName"
+      "sidebarUserName"
     );
 
 
-  const role =
+  const sector =
     document.getElementById(
-      "userRole"
+      "sidebarUserSector"
     );
 
 
-  if (avatar) {
+
+  // ========================================================
+  // AVATAR
+  // ========================================================
+
+  if (
+    avatar
+  ) {
 
     avatar.textContent =
       getInitials(
@@ -455,18 +807,34 @@ function renderCurrentUser() {
   }
 
 
-  if (name) {
+
+  // ========================================================
+  // NOME
+  // ========================================================
+
+  if (
+    name
+  ) {
 
     name.textContent =
-      currentUser.name;
+      currentUser.name ||
+      "Colaborador";
 
   }
 
 
-  if (role) {
 
-    role.textContent =
-      currentUser.role;
+  // ========================================================
+  // SETOR
+  // ========================================================
+
+  if (
+    sector
+  ) {
+
+    sector.textContent =
+      currentUser.sector ||
+      "Setor não informado";
 
   }
 
@@ -484,7 +852,13 @@ async function loadCourses() {
 
     const response =
       await fetch(
-        "/api/cursos"
+        "/api/cursos",
+        {
+
+          method:
+            "GET"
+
+        }
       );
 
 
@@ -492,17 +866,21 @@ async function loadCourses() {
       await response.json();
 
 
+
     if (
       !response.ok
     ) {
 
       throw new Error(
-        data.erro
-        ||
+
+        data.erro ||
+        data.error ||
         "Não foi possível carregar os treinamentos."
+
       );
 
     }
+
 
 
     // ======================================================
@@ -510,7 +888,10 @@ async function loadCourses() {
     // ======================================================
 
     courses =
-      (data || [])
+      (
+        data ||
+        []
+      )
 
         .map(
           course =>
@@ -525,17 +906,20 @@ async function loadCourses() {
         );
 
 
+
     console.log(
       "Cursos recebidos:",
       courses
     );
 
 
+
     // ======================================================
-    // CRIAR ESTRUTURA DE PROGRESSO TEMPORÁRIO
+    // PROGRESSO TEMPORÁRIO
     // ======================================================
 
     initializeTemporaryProgress();
+
 
 
     // ======================================================
@@ -544,13 +928,19 @@ async function loadCourses() {
 
     renderUserTrainings();
 
+
     renderAreaFilters();
+
 
     renderCatalog();
 
+
     updateSummary();
 
-  } catch (error) {
+
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao carregar treinamentos:",
@@ -585,9 +975,11 @@ function initializeTemporaryProgress() {
 
         completedActivities[
           course.id
-        ] = {};
+        ] =
+          {};
 
       }
+
 
 
       course.activities.forEach(
@@ -596,13 +988,18 @@ function initializeTemporaryProgress() {
           if (
             completedActivities[
               course.id
-            ][activity.id]
-            === undefined
+            ][
+              activity.id
+            ]
+            ===
+            undefined
           ) {
 
             completedActivities[
               course.id
-            ][activity.id] =
+            ][
+              activity.id
+            ] =
               false;
 
           }
@@ -618,7 +1015,7 @@ function initializeTemporaryProgress() {
 
 
 // ==========================================================
-// MOSTRAR ERRO NAS DUAS ÁREAS
+// MOSTRAR ERRO
 // ==========================================================
 
 function showLoadingError(
@@ -653,12 +1050,16 @@ function showLoadingError(
         "
       ></i>
 
+
       <strong>
         Não foi possível carregar os treinamentos
       </strong>
 
+
       <span>
-        ${escapeHTML(message)}
+        ${escapeHTML(
+          message
+        )}
       </span>
 
     </div>
@@ -666,7 +1067,9 @@ function showLoadingError(
   `;
 
 
-  if (userGrid) {
+  if (
+    userGrid
+  ) {
 
     userGrid.innerHTML =
       errorHTML;
@@ -674,7 +1077,9 @@ function showLoadingError(
   }
 
 
-  if (catalog) {
+  if (
+    catalog
+  ) {
 
     catalog.innerHTML =
       errorHTML;
@@ -686,16 +1091,39 @@ function showLoadingError(
 
 
 // ==========================================================
-// CURSOS DESTINADOS AO USUÁRIO
+// CURSOS DESTINADOS AO COLABORADOR
 // ==========================================================
 //
-// Regra:
+// REGRA:
 //
-// setor_destino === currentUser.sector
+// setor_destino
+//
+// deve ser igual ao:
+//
+// setor do colaborador.
+//
+// Exemplo:
+//
+// João
+// setor = Tecnologia
+//
+// Curso Python
+// setor_destino = Tecnologia
+//
+// → aparece em "Seus treinamentos".
 //
 // ==========================================================
 
 function getUserCourses() {
+
+  if (
+    !currentUser
+  ) {
+
+    return [];
+
+  }
+
 
   return courses.filter(
     course => {
@@ -722,7 +1150,7 @@ function getUserCourses() {
 
 
 // ==========================================================
-// CALCULAR PROGRESSO DE UM CURSO
+// CALCULAR PROGRESSO
 // ==========================================================
 
 function getCourseProgress(
@@ -733,9 +1161,14 @@ function getCourseProgress(
     course.activities.length;
 
 
-  // Curso sem atividades.
+
+  // ========================================================
+  // CURSO SEM ATIVIDADE
+  // ========================================================
+
   if (
-    total === 0
+    total ===
+    0
   ) {
 
     return {
@@ -754,29 +1187,35 @@ function getCourseProgress(
   }
 
 
+
   const courseProgress =
     completedActivities[
       course.id
     ]
-    || {};
+    ||
+    {};
+
 
 
   const completed =
     course.activities.filter(
       activity =>
+
         courseProgress[
           activity.id
         ]
-        === true
+        ===
+        true
+
     ).length;
+
 
 
   const percentage =
     Math.round(
 
       (
-        completed
-        /
+        completed /
         total
       )
 
@@ -785,6 +1224,7 @@ function getCourseProgress(
       100
 
     );
+
 
 
   return {
@@ -802,7 +1242,7 @@ function getCourseProgress(
 
 
 // ==========================================================
-// ESCOLHER ÍCONE DE ACORDO COM ÁREA
+// VISUAL DO CURSO
 // ==========================================================
 
 function getCourseVisual(
@@ -815,12 +1255,18 @@ function getCourseVisual(
     );
 
 
-  // Tecnologia
+
+  // ========================================================
+  // TECNOLOGIA
+  // ========================================================
+
   if (
     area.includes(
       "tecnologia"
     )
+
     ||
+
     area.includes(
       "ti"
     )
@@ -839,7 +1285,11 @@ function getCourseVisual(
   }
 
 
-  // Desenvolvimento
+
+  // ========================================================
+  // DESENVOLVIMENTO
+  // ========================================================
+
   if (
     area.includes(
       "desenvolvimento"
@@ -859,7 +1309,11 @@ function getCourseVisual(
   }
 
 
-  // Comunicação
+
+  // ========================================================
+  // COMUNICAÇÃO
+  // ========================================================
+
   if (
     area.includes(
       "comunicacao"
@@ -879,7 +1333,11 @@ function getCourseVisual(
   }
 
 
-  // Liderança
+
+  // ========================================================
+  // LIDERANÇA
+  // ========================================================
+
   if (
     area.includes(
       "lideranca"
@@ -899,12 +1357,18 @@ function getCourseVisual(
   }
 
 
-  // Compliance
+
+  // ========================================================
+  // COMPLIANCE
+  // ========================================================
+
   if (
     area.includes(
       "compliance"
     )
+
     ||
+
     area.includes(
       "lgpd"
     )
@@ -923,7 +1387,11 @@ function getCourseVisual(
   }
 
 
-  // Genérico
+
+  // ========================================================
+  // PADRÃO
+  // ========================================================
+
   return {
 
     icon:
@@ -939,7 +1407,7 @@ function getCourseVisual(
 
 
 // ==========================================================
-// RENDERIZAR CURSOS DO USUÁRIO
+// RENDERIZAR CURSOS DO SETOR DO COLABORADOR
 // ==========================================================
 
 function renderUserTrainings() {
@@ -950,11 +1418,14 @@ function renderUserTrainings() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
   }
+
 
 
   const userCourses =
@@ -965,8 +1436,9 @@ function renderUserTrainings() {
     "";
 
 
+
   // ========================================================
-  // NENHUM CURSO PARA O SETOR
+  // NENHUM CURSO
   // ========================================================
 
   if (
@@ -985,9 +1457,11 @@ function renderUserTrainings() {
           "
         ></i>
 
+
         <strong>
           Nenhum treinamento direcionado ao seu setor
         </strong>
+
 
         <span>
           Você ainda pode acessar os cursos disponíveis
@@ -1004,16 +1478,19 @@ function renderUserTrainings() {
   }
 
 
+
   // ========================================================
   // ORDENAR
   // ========================================================
   //
-  // Obrigatórios primeiro.
+  // Obrigatórios aparecem primeiro.
   //
   // ========================================================
 
   const orderedCourses =
-    [...userCourses].sort(
+    [
+      ...userCourses
+    ].sort(
       (
         courseA,
         courseB
@@ -1024,10 +1501,15 @@ function renderUserTrainings() {
           courseB.requirement
         ) {
 
-          return courseA.title
-            .localeCompare(
-              courseB.title
-            );
+          return String(
+            courseA.title ||
+            ""
+          ).localeCompare(
+            String(
+              courseB.title ||
+              ""
+            )
+          );
 
         }
 
@@ -1046,6 +1528,7 @@ function renderUserTrainings() {
 
       }
     );
+
 
 
   // ========================================================
@@ -1104,7 +1587,9 @@ function renderUserTrainings() {
             "
           >
 
-            ${escapeHTML(course.requirement)}
+            ${escapeHTML(
+              course.requirement
+            )}
 
           </span>
 
@@ -1123,21 +1608,27 @@ function renderUserTrainings() {
 
           <span class="training-category">
 
-            ${escapeHTML(course.area)}
+            ${escapeHTML(
+              course.area
+            )}
 
           </span>
 
 
           <h3>
 
-            ${escapeHTML(course.title)}
+            ${escapeHTML(
+              course.title
+            )}
 
           </h3>
 
 
           <p>
 
-            ${escapeHTML(course.description)}
+            ${escapeHTML(
+              course.description
+            )}
 
           </p>
 
@@ -1168,9 +1659,12 @@ function renderUserTrainings() {
                 "
               ></i>
 
-              ${escapeHTML(course.level)}
+              ${escapeHTML(
+                course.level
+              )}
 
             </span>
+
 
           </div>
 
@@ -1199,11 +1693,12 @@ function renderUserTrainings() {
                 class="progress"
                 style="
                   width:
-                  ${progress.percentage}%
+                  ${progress.percentage}%;
                 "
               ></div>
 
             </div>
+
 
           </div>
 
@@ -1211,10 +1706,9 @@ function renderUserTrainings() {
           <button
             type="button"
             class="primary-button"
-
             onclick="
               openCourseModal(
-                ${course.id}
+                '${course.id}'
               )
             "
           >
@@ -1222,16 +1716,13 @@ function renderUserTrainings() {
             ${
               progress.percentage > 0
 
-                ?
+                ? "Continuar"
 
-                "Continuar"
-
-                :
-
-                "Ver treinamento"
+                : "Ver treinamento"
             }
 
           </button>
+
 
         </div>
 
@@ -1247,15 +1738,8 @@ function renderUserTrainings() {
 
 }
 
-
-
 // ==========================================================
-// CRIAR FILTROS DE ÁREA
-// ==========================================================
-//
-// As áreas agora vêm dos cursos cadastrados
-// pelo administrador.
-//
+// FILTROS DE ÁREA
 // ==========================================================
 
 function renderAreaFilters() {
@@ -1266,15 +1750,18 @@ function renderAreaFilters() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
   }
 
 
+
   // ========================================================
-  // DESCOBRIR ÁREAS ÚNICAS
+  // PEGAR ÁREAS ÚNICAS
   // ========================================================
 
   const areas = [
@@ -1298,7 +1785,8 @@ function renderAreaFilters() {
   ];
 
 
-  // Ordenamos alfabeticamente.
+
+  // Ordenar alfabeticamente.
   areas.sort(
     (
       areaA,
@@ -1308,6 +1796,7 @@ function renderAreaFilters() {
         areaB
       )
   );
+
 
 
   // ========================================================
@@ -1323,7 +1812,9 @@ function renderAreaFilters() {
         ${
           currentAreaFilter ===
           "Todos"
+
             ? "active"
+
             : ""
         }
       "
@@ -1337,8 +1828,9 @@ function renderAreaFilters() {
   `;
 
 
+
   // ========================================================
-  // DEMAIS ÁREAS
+  // OUTRAS ÁREAS
   // ========================================================
 
   areas.forEach(
@@ -1386,8 +1878,9 @@ function renderAreaFilters() {
   );
 
 
+
   // ========================================================
-  // EVENTOS DOS FILTROS
+  // EVENTOS
   // ========================================================
 
   container
@@ -1407,6 +1900,7 @@ function renderAreaFilters() {
 
             renderAreaFilters();
 
+
             renderCatalog();
 
           }
@@ -1420,7 +1914,25 @@ function renderAreaFilters() {
 
 
 // ==========================================================
-// RENDERIZAR CATÁLOGO GERAL
+// CATÁLOGO GERAL
+// ==========================================================
+//
+// IMPORTANTE:
+//
+// Aqui mostramos TODOS os cursos ativos.
+//
+// Então:
+//
+// colaborador Tecnologia
+//
+// pode acessar:
+//
+// curso Financeiro
+// curso RH
+// curso Marketing
+//
+// caso queira realizar voluntariamente.
+//
 // ==========================================================
 
 function renderCatalog() {
@@ -1431,11 +1943,14 @@ function renderCatalog() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
   }
+
 
 
   const searchInput =
@@ -1446,10 +1961,15 @@ function renderCatalog() {
 
   const search =
     normalizeText(
+
       searchInput
+
         ? searchInput.value
+
         : ""
+
     );
+
 
 
   // ========================================================
@@ -1478,6 +1998,23 @@ function renderCatalog() {
           );
 
 
+        const responsibleSector =
+          normalizeText(
+            course.responsibleSector
+          );
+
+
+        const targetSector =
+          normalizeText(
+            course.targetSector
+          );
+
+
+
+        // ==================================================
+        // BUSCA
+        // ==================================================
+
         const matchesSearch =
 
           title.includes(
@@ -1494,8 +2031,25 @@ function renderCatalog() {
 
           area.includes(
             search
+          )
+
+          ||
+
+          responsibleSector.includes(
+            search
+          )
+
+          ||
+
+          targetSector.includes(
+            search
           );
 
+
+
+        // ==================================================
+        // ÁREA
+        // ==================================================
 
         const matchesArea =
 
@@ -1506,6 +2060,7 @@ function renderCatalog() {
 
           course.area ===
           currentAreaFilter;
+
 
 
         return (
@@ -1522,8 +2077,10 @@ function renderCatalog() {
     );
 
 
+
   container.innerHTML =
     "";
+
 
 
   // ========================================================
@@ -1551,7 +2108,8 @@ function renderCatalog() {
         </strong>
 
         <span>
-          Tente alterar sua pesquisa ou selecionar outra área.
+          Tente alterar sua pesquisa
+          ou selecionar outra área.
         </span>
 
       </div>
@@ -1564,8 +2122,9 @@ function renderCatalog() {
   }
 
 
+
   // ========================================================
-  // CARDS DO CATÁLOGO
+  // CARDS
   // ========================================================
 
   filteredCourses.forEach(
@@ -1573,6 +2132,12 @@ function renderCatalog() {
 
       const visual =
         getCourseVisual(
+          course
+        );
+
+
+      const progress =
+        getCourseProgress(
           course
         );
 
@@ -1605,21 +2170,27 @@ function renderCatalog() {
 
           <span class="catalog-category">
 
-            ${escapeHTML(course.area)}
+            ${escapeHTML(
+              course.area
+            )}
 
           </span>
 
 
           <h3>
 
-            ${escapeHTML(course.title)}
+            ${escapeHTML(
+              course.title
+            )}
 
           </h3>
 
 
           <p>
 
-            ${escapeHTML(course.description)}
+            ${escapeHTML(
+              course.description
+            )}
 
           </p>
 
@@ -1643,19 +2214,26 @@ function renderCatalog() {
 
             <button
               type="button"
-
               onclick="
                 openCourseModal(
-                  ${course.id}
+                  '${course.id}'
                 )
               "
             >
 
-              Ver curso
+              ${
+                progress.percentage > 0
+
+                  ? "Continuar"
+
+                  : "Ver curso"
+              }
 
             </button>
 
+
           </div>
+
 
         </div>
 
@@ -1699,12 +2277,6 @@ if (
 // ==========================================================
 // ABRIR MODAL DO CURSO
 // ==========================================================
-//
-// Agora recebe:
-//
-// openCourseModal(courseId)
-//
-// ==========================================================
 
 function openCourseModal(
   courseId
@@ -1713,30 +2285,40 @@ function openCourseModal(
   const course =
     courses.find(
       item =>
-        Number(item.id) ===
-        Number(courseId)
+        String(item.id) ===
+        String(courseId)
     );
 
 
-  if (!course) {
+  if (
+    !course
+  ) {
 
     console.warn(
       "Curso não encontrado:",
       courseId
     );
 
+
     return;
 
   }
 
 
-  // Guardamos o curso atual.
+
+  // ========================================================
+  // CURSO ATUAL
+  // ========================================================
+
   currentCourseId =
     course.id;
 
 
-  // Garantimos que a estrutura
-  // temporária exista.
+
+  // ========================================================
+  // GARANTIR ESTRUTURA DE PROGRESSO
+  // ========================================================
+
   if (
     !completedActivities[
       course.id
@@ -1745,13 +2327,42 @@ function openCourseModal(
 
     completedActivities[
       course.id
-    ] = {};
+    ] =
+      {};
 
   }
 
 
+
+  course.activities.forEach(
+    activity => {
+
+      if (
+        completedActivities[
+          course.id
+        ][
+          activity.id
+        ]
+        ===
+        undefined
+      ) {
+
+        completedActivities[
+          course.id
+        ][
+          activity.id
+        ] =
+          false;
+
+      }
+
+    }
+  );
+
+
+
   // ========================================================
-  // CABEÇALHO
+  // VISUAL
   // ========================================================
 
   const visual =
@@ -1776,6 +2387,11 @@ function openCourseModal(
   }
 
 
+
+  // ========================================================
+  // BADGE
+  // ========================================================
+
   const badge =
     document.getElementById(
       "modalCourseBadge"
@@ -1786,8 +2402,13 @@ function openCourseModal(
     badge
   ) {
 
+    const requirement =
+      course.requirement ||
+      "Recomendado";
+
+
     badge.textContent =
-      `Treinamento ${course.requirement.toLowerCase()}`;
+      `Treinamento ${requirement.toLowerCase()}`;
 
 
     badge.className =
@@ -1795,7 +2416,7 @@ function openCourseModal(
 
 
     if (
-      course.requirement ===
+      requirement ===
       "Obrigatório"
     ) {
 
@@ -1814,52 +2435,136 @@ function openCourseModal(
   }
 
 
-  document
-    .getElementById(
+
+  // ========================================================
+  // TÍTULO
+  // ========================================================
+
+  const title =
+    document.getElementById(
       "modalCourseTitle"
-    )
-    .textContent =
-      course.title;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    title
+  ) {
+
+    title.textContent =
+      course.title ||
+      "Treinamento";
+
+  }
+
+
+
+  // ========================================================
+  // ÁREA
+  // ========================================================
+
+  const area =
+    document.getElementById(
       "modalCourseArea"
-    )
-    .textContent =
-      course.area;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    area
+  ) {
+
+    area.textContent =
+      course.area ||
+      "Área não informada";
+
+  }
+
+
+
+  // ========================================================
+  // HORAS
+  // ========================================================
+
+  const hours =
+    document.getElementById(
       "modalCourseHours"
-    )
-    .textContent =
-      `${course.hours} horas`;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    hours
+  ) {
+
+    hours.textContent =
+      `${course.hours || 0} horas`;
+
+  }
+
+
+
+  // ========================================================
+  // NÍVEL
+  // ========================================================
+
+  const level =
+    document.getElementById(
       "modalCourseLevel"
-    )
-    .textContent =
-      course.level;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    level
+  ) {
+
+    level.textContent =
+      course.level ||
+      "Não informado";
+
+  }
+
+
+
+  // ========================================================
+  // SETOR RESPONSÁVEL
+  // ========================================================
+
+  const sector =
+    document.getElementById(
       "modalCourseSector"
-    )
-    .textContent =
-      course.responsibleSector;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    sector
+  ) {
+
+    sector.textContent =
+      course.responsibleSector ||
+      "Não informado";
+
+  }
+
+
+
+  // ========================================================
+  // DESCRIÇÃO
+  // ========================================================
+
+  const description =
+    document.getElementById(
       "modalCourseDescription"
-    )
-    .textContent =
-      course.description;
+    );
+
+
+  if (
+    description
+  ) {
+
+    description.textContent =
+      course.description ||
+      "Sem descrição.";
+
+  }
+
 
 
   // ========================================================
@@ -1879,30 +2584,38 @@ function openCourseModal(
 
 
   if (
-    course.external
-    &&
-    course.externalLink
+    externalBox &&
+    externalLink
   ) {
 
-    externalBox.classList.add(
-      "show"
-    );
+    if (
+      course.external
+      &&
+      course.externalLink
+    ) {
+
+      externalBox.classList.add(
+        "show"
+      );
 
 
-    externalLink.href =
-      course.externalLink;
+      externalLink.href =
+        course.externalLink;
 
-  } else {
+    } else {
 
-    externalBox.classList.remove(
-      "show"
-    );
+      externalBox.classList.remove(
+        "show"
+      );
 
 
-    externalLink.href =
-      "#";
+      externalLink.href =
+        "#";
+
+    }
 
   }
+
 
 
   // ========================================================
@@ -1914,6 +2627,7 @@ function openCourseModal(
   );
 
 
+
   // ========================================================
   // PROGRESSO
   // ========================================================
@@ -1921,17 +2635,26 @@ function openCourseModal(
   updateCourseProgress();
 
 
+
   // ========================================================
   // EXIBIR MODAL
   // ========================================================
 
-  document
-    .getElementById(
+  const modal =
+    document.getElementById(
       "courseModal"
-    )
-    .classList.add(
+    );
+
+
+  if (
+    modal
+  ) {
+
+    modal.classList.add(
       "show"
     );
+
+  }
 
 
   document.body.style.overflow =
@@ -1953,9 +2676,15 @@ function closeCourseModal() {
     );
 
 
-  modal.classList.remove(
-    "show"
-  );
+  if (
+    modal
+  ) {
+
+    modal.classList.remove(
+      "show"
+    );
+
+  }
 
 
   document.body.style.overflow =
@@ -1970,7 +2699,7 @@ function closeCourseModal() {
 
 
 // ==========================================================
-// RENDERIZAR ATIVIDADES DO CURSO
+// RENDERIZAR ATIVIDADES
 // ==========================================================
 
 function renderCourseActivities(
@@ -1983,7 +2712,9 @@ function renderCourseActivities(
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -1994,8 +2725,9 @@ function renderCourseActivities(
     "";
 
 
+
   // ========================================================
-  // CURSO SEM ATIVIDADES
+  // SEM ATIVIDADES
   // ========================================================
 
   if (
@@ -2019,7 +2751,8 @@ function renderCourseActivities(
         </strong>
 
         <span>
-          Este treinamento não possui atividades no momento.
+          Este treinamento não possui
+          atividades no momento.
         </span>
 
       </div>
@@ -2030,6 +2763,7 @@ function renderCourseActivities(
     return;
 
   }
+
 
 
   // ========================================================
@@ -2046,11 +2780,14 @@ function renderCourseActivities(
 
         completedActivities[
           course.id
-        ][activity.id]
+        ][
+          activity.id
+        ]
 
         ===
 
         true;
+
 
 
       const card =
@@ -2078,6 +2815,7 @@ function renderCourseActivities(
       }
 
 
+
       const resourceHTML =
         createActivityResourceHTML(
           activity
@@ -2089,6 +2827,7 @@ function renderCourseActivities(
           course,
           activity
         );
+
 
 
       card.innerHTML = `
@@ -2116,7 +2855,9 @@ function renderCourseActivities(
               <span class="activity-number">
 
                 Atividade
-                ${String(index + 1).padStart(
+                ${String(
+                  index + 1
+                ).padStart(
                   2,
                   "0"
                 )}
@@ -2126,7 +2867,9 @@ function renderCourseActivities(
 
               <h4>
 
-                ${escapeHTML(activity.title)}
+                ${escapeHTML(
+                  activity.title
+                )}
 
               </h4>
 
@@ -2138,16 +2881,13 @@ function renderCourseActivities(
               ${
                 isCompleted
 
-                  ?
+                  ? "Concluída"
 
-                  "Concluída"
-
-                  :
-
-                  "Pendente"
+                  : "Pendente"
               }
 
             </span>
+
 
           </div>
 
@@ -2155,21 +2895,19 @@ function renderCourseActivities(
           ${
             activity.description
 
-              ?
-
-              `
+              ? `
 
                 <p>
 
-                  ${escapeHTML(activity.description)}
+                  ${escapeHTML(
+                    activity.description
+                  )}
 
                 </p>
 
               `
 
-              :
-
-              ""
+              : ""
           }
 
 
@@ -2177,6 +2915,7 @@ function renderCourseActivities(
 
 
           ${actionHTML}
+
 
         </div>
 
@@ -2195,15 +2934,7 @@ function renderCourseActivities(
 
 
 // ==========================================================
-// MONTAR RECURSO DA ATIVIDADE
-// ==========================================================
-//
-// Tipo:
-//
-// Texto
-// Arquivo
-// Link
-//
+// RECURSO DA ATIVIDADE
 // ==========================================================
 
 function createActivityResourceHTML(
@@ -2246,6 +2977,7 @@ function createActivityResourceHTML(
   }
 
 
+
   // ========================================================
   // ARQUIVO
   // ========================================================
@@ -2286,6 +3018,7 @@ function createActivityResourceHTML(
 
           </strong>
 
+
           <span>
             Material disponibilizado pelo administrador
           </span>
@@ -2295,10 +3028,9 @@ function createActivityResourceHTML(
 
         <button
           type="button"
-
           onclick="
             showMaterialNotice(
-              ${activity.id}
+              '${activity.id}'
             )
           "
         >
@@ -2314,11 +3046,13 @@ function createActivityResourceHTML(
 
         </button>
 
+
       </div>
 
     `;
 
   }
+
 
 
   // ========================================================
@@ -2364,7 +3098,9 @@ function createActivityResourceHTML(
 
             <span>
 
-              ${escapeHTML(activity.resource)}
+              ${escapeHTML(
+                activity.resource
+              )}
 
             </span>
 
@@ -2372,10 +3108,10 @@ function createActivityResourceHTML(
 
 
           <a
-            href="${escapeHTML(activity.resource)}"
-
+            href="${escapeHTML(
+              activity.resource
+            )}"
             target="_blank"
-
             rel="noopener noreferrer"
           >
 
@@ -2390,6 +3126,7 @@ function createActivityResourceHTML(
 
           </a>
 
+
         </div>
 
       `;
@@ -2399,6 +3136,7 @@ function createActivityResourceHTML(
   }
 
 
+
   return "";
 
 }
@@ -2406,14 +3144,18 @@ function createActivityResourceHTML(
 
 
 // ==========================================================
-// MONTAR ÁREA DE ENVIO DA ATIVIDADE
+// ÁREA DE AÇÃO DA ATIVIDADE
 // ==========================================================
 //
-// Nesta fase todas as atividades podem ser comprovadas
-// através de arquivo.
+// Nesta etapa:
 //
-// Para atividades Texto também oferecemos uma opção
-// temporária de conclusão manual.
+// Texto:
+// → pode ser marcado manualmente como concluído.
+//
+// Link/Arquivo:
+// → exige seleção de um comprovante.
+//
+// Tudo ainda é temporário no navegador.
 //
 // ==========================================================
 
@@ -2432,13 +3174,9 @@ function createActivityActionHTML(
     ];
 
 
+
   // ========================================================
-  // ATIVIDADE TEXTO
-  // ========================================================
-  //
-  // Por enquanto permitimos marcar como concluída
-  // manualmente.
-  //
+  // TEXTO
   // ========================================================
 
   if (
@@ -2450,9 +3188,13 @@ function createActivityActionHTML(
 
       completedActivities[
         course.id
-      ][activity.id]
+      ][
+        activity.id
+      ]
 
-      === true;
+      ===
+
+      true;
 
 
     return `
@@ -2461,20 +3203,20 @@ function createActivityActionHTML(
 
         <button
           type="button"
-
           class="activity-complete-button"
-
           onclick="
             toggleTextActivity(
-              ${course.id},
-              ${activity.id}
+              '${course.id}',
+              '${activity.id}'
             )
           "
         >
 
           ${
             completed
+
               ? "Marcar como pendente"
+
               : "Marcar como concluída"
           }
 
@@ -2487,13 +3229,18 @@ function createActivityActionHTML(
   }
 
 
+
   // ========================================================
-  // LINK E ARQUIVO
+  // ARQUIVO / LINK
   // ========================================================
-  //
-  // Usuário envia um comprovante.
-  //
-  // ========================================================
+
+  const inputId =
+    `file_${course.id}_${activity.id}`;
+
+
+  const uploadedContainerId =
+    `uploadedFile_${course.id}_${activity.id}`;
+
 
   return `
 
@@ -2502,28 +3249,20 @@ function createActivityActionHTML(
 
       <input
         type="file"
-
-        id="
-          file_${course.id}_${activity.id}
-        "
-
+        id="${inputId}"
         class="file-input"
-
         onchange="
           handleFileUpload(
             this,
-            ${course.id},
-            ${activity.id}
+            '${course.id}',
+            '${activity.id}'
           )
         "
-      />
+      >
 
 
       <label
-        for="
-          file_${course.id}_${activity.id}
-        "
-
+        for="${inputId}"
         class="upload-label"
       >
 
@@ -2555,29 +3294,23 @@ function createActivityActionHTML(
           uploaded-file
           ${file ? "show" : ""}
         "
-
-        id="
-          uploadedFile_${course.id}_${activity.id}
-        "
+        id="${uploadedContainerId}"
       >
 
         ${
           file
 
-            ?
+            ? createUploadedFileHTML(
+                file,
+                course.id,
+                activity.id
+              )
 
-            createUploadedFileHTML(
-              file,
-              course.id,
-              activity.id
-            )
-
-            :
-
-            ""
+            : ""
         }
 
       </div>
+
 
     </div>
 
@@ -2589,13 +3322,6 @@ function createActivityActionHTML(
 
 // ==========================================================
 // ATIVIDADE DE TEXTO
-// ==========================================================
-//
-// Função temporária.
-//
-// Quando tivermos usuários reais,
-// isso será salvo no banco.
-//
 // ==========================================================
 
 function toggleTextActivity(
@@ -2611,25 +3337,31 @@ function toggleTextActivity(
 
     completedActivities[
       courseId
-    ] = {};
+    ] =
+      {};
 
   }
 
 
   completedActivities[
     courseId
-  ][activityId] =
+  ][
+    activityId
+  ] =
 
     !completedActivities[
       courseId
-    ][activityId];
+    ][
+      activityId
+    ];
+
 
 
   const course =
     courses.find(
       item =>
-        Number(item.id) ===
-        Number(courseId)
+        String(item.id) ===
+        String(courseId)
     );
 
 
@@ -2647,6 +3379,10 @@ function toggleTextActivity(
 
     renderUserTrainings();
 
+
+    renderCatalog();
+
+
     updateSummary();
 
   }
@@ -2656,7 +3392,7 @@ function toggleTextActivity(
 
 
 // ==========================================================
-// USUÁRIO SELECIONA ARQUIVO
+// SELECIONAR ARQUIVO
 // ==========================================================
 
 function handleFileUpload(
@@ -2666,30 +3402,43 @@ function handleFileUpload(
 ) {
 
   const file =
-    input.files[0];
+    input.files?.[0];
 
 
-  if (!file) {
+  if (
+    !file
+  ) {
 
     return;
 
   }
 
 
+
   // ========================================================
-  // CHAVE TEMPORÁRIA
+  // CHAVE
   // ========================================================
 
   const key =
     `${courseId}_${activityId}`;
 
 
-  // Guardamos o arquivo apenas na memória.
-  uploadedFiles[key] =
+
+  // ========================================================
+  // GUARDAR ARQUIVO TEMPORÁRIO
+  // ========================================================
+
+  uploadedFiles[
+    key
+  ] =
     file;
 
 
-  // Marcamos atividade como concluída.
+
+  // ========================================================
+  // MARCAR CONCLUÍDA
+  // ========================================================
+
   if (
     !completedActivities[
       courseId
@@ -2698,19 +3447,23 @@ function handleFileUpload(
 
     completedActivities[
       courseId
-    ] = {};
+    ] =
+      {};
 
   }
 
 
   completedActivities[
     courseId
-  ][activityId] =
+  ][
+    activityId
+  ] =
     true;
 
 
+
   // ========================================================
-  // ATUALIZAR ARQUIVO VISUAL
+  // CONTAINER VISUAL
   // ========================================================
 
   const uploadedFileContainer =
@@ -2740,8 +3493,9 @@ function handleFileUpload(
   }
 
 
+
   // ========================================================
-  // ATUALIZAR CARD
+  // VISUAL DA ATIVIDADE
   // ========================================================
 
   updateActivityStatus(
@@ -2750,8 +3504,9 @@ function handleFileUpload(
   );
 
 
+
   // ========================================================
-  // ATUALIZAR PROGRESSO
+  // PROGRESSO
   // ========================================================
 
   updateCourseProgress();
@@ -2759,14 +3514,16 @@ function handleFileUpload(
 
   renderUserTrainings();
 
+
+  renderCatalog();
+
+
   updateSummary();
 
 }
 
-
-
 // ==========================================================
-// HTML DO ARQUIVO SELECIONADO
+// CRIAR HTML DO ARQUIVO ENVIADO
 // ==========================================================
 
 function createUploadedFileHTML(
@@ -2777,58 +3534,99 @@ function createUploadedFileHTML(
 
   return `
 
-    <div class="uploaded-file-icon">
-
-      <i
-        class="
-          fa-solid
-          fa-file
-        "
-      ></i>
-
-    </div>
-
-
     <div class="uploaded-file-info">
 
-      <strong>
 
-        ${escapeHTML(file.name)}
+      <div class="uploaded-file-icon">
 
-      </strong>
+        <i class="fa-solid fa-file"></i>
 
-      <span>
-        Arquivo anexado
-      </span>
+      </div>
+
+
+      <div class="uploaded-file-text">
+
+        <strong>
+
+          ${escapeHTML(
+            file.name
+          )}
+
+        </strong>
+
+
+        <span>
+
+          ${formatFileSize(
+            file.size
+          )}
+
+        </span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="remove-file-button"
+        onclick="
+          removeFile(
+            '${courseId}',
+            '${activityId}'
+          )
+        "
+        title="Remover arquivo"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
 
     </div>
 
-
-    <button
-      type="button"
-
-      class="remove-file"
-
-      title="Remover arquivo"
-
-      onclick="
-        removeFile(
-          ${courseId},
-          ${activityId}
-        )
-      "
-    >
-
-      <i
-        class="
-          fa-solid
-          fa-trash
-        "
-      ></i>
-
-    </button>
-
   `;
+
+}
+
+
+
+// ==========================================================
+// FORMATAR TAMANHO DO ARQUIVO
+// ==========================================================
+
+function formatFileSize(
+  bytes
+) {
+
+  if (
+    !bytes ||
+    bytes <= 0
+  ) {
+
+    return "0 KB";
+
+  }
+
+
+  const kilobytes =
+    bytes / 1024;
+
+
+  if (
+    kilobytes < 1024
+  ) {
+
+    return `${kilobytes.toFixed(1)} KB`;
+
+  }
+
+
+  const megabytes =
+    kilobytes / 1024;
+
+
+  return `${megabytes.toFixed(1)} MB`;
 
 }
 
@@ -2847,79 +3645,77 @@ function removeFile(
     `${courseId}_${activityId}`;
 
 
-  // Apagamos arquivo da memória.
+  // ========================================================
+  // REMOVER ARQUIVO TEMPORÁRIO
+  // ========================================================
+
   delete uploadedFiles[
     key
   ];
 
 
-  // Volta para pendente.
-  completedActivities[
-    courseId
-  ][activityId] =
-    false;
 
-
-  // Limpamos input.
-  const input =
-    document.getElementById(
-      `file_${courseId}_${activityId}`
-    );
-
+  // ========================================================
+  // MARCAR ATIVIDADE COMO PENDENTE
+  // ========================================================
 
   if (
-    input
+    completedActivities[
+      courseId
+    ]
   ) {
 
-    input.value =
-      "";
+    completedActivities[
+      courseId
+    ][
+      activityId
+    ] =
+      false;
 
   }
 
 
-  // Limpamos visual.
-  const uploadedFileContainer =
-    document.getElementById(
-      `uploadedFile_${courseId}_${activityId}`
+
+  // ========================================================
+  // BUSCAR CURSO
+  // ========================================================
+
+  const course =
+    courses.find(
+      item =>
+        String(item.id) ===
+        String(courseId)
     );
 
 
   if (
-    uploadedFileContainer
+    course
   ) {
 
-    uploadedFileContainer.innerHTML =
-      "";
+    renderCourseActivities(
+      course
+    );
 
 
-    uploadedFileContainer
-      .classList
-      .remove(
-        "show"
-      );
+    updateCourseProgress();
+
+
+    renderUserTrainings();
+
+
+    renderCatalog();
+
+
+    updateSummary();
 
   }
-
-
-  updateActivityStatus(
-    courseId,
-    activityId
-  );
-
-
-  updateCourseProgress();
-
-
-  renderUserTrainings();
-
-  updateSummary();
 
 }
 
 
 
 // ==========================================================
-// ATUALIZAR VISUAL DA ATIVIDADE
+// ATUALIZAR STATUS VISUAL DA ATIVIDADE
 // ==========================================================
 
 function updateActivityStatus(
@@ -2929,30 +3725,41 @@ function updateActivityStatus(
 
   const card =
     document.querySelector(
-      `[data-activity="${activityId}"]`
+      `
+        .activity-card[
+          data-activity="${activityId}"
+        ]
+      `
+        .replace(
+          /\s+/g,
+          ""
+        )
     );
 
 
-  if (!card) {
+  if (
+    !card
+  ) {
 
     return;
 
   }
 
 
-  const status =
-    card.querySelector(
-      ".activity-status"
-    );
-
 
   const completed =
 
     completedActivities[
       courseId
-    ][activityId]
+    ]
+    ?.[
+      activityId
+    ]
 
-    === true;
+    ===
+
+    true;
+
 
 
   if (
@@ -2963,19 +3770,30 @@ function updateActivityStatus(
       "completed"
     );
 
-
-    status.textContent =
-      "Concluída";
-
   } else {
 
     card.classList.remove(
       "completed"
     );
 
+  }
+
+
+
+  const status =
+    card.querySelector(
+      ".activity-status"
+    );
+
+
+  if (
+    status
+  ) {
 
     status.textContent =
-      "Pendente";
+      completed
+        ? "Concluída"
+        : "Pendente";
 
   }
 
@@ -2999,19 +3817,23 @@ function updateCourseProgress() {
   }
 
 
+
   const course =
     courses.find(
       item =>
-        Number(item.id) ===
-        Number(currentCourseId)
+        String(item.id) ===
+        String(currentCourseId)
     );
 
 
-  if (!course) {
+  if (
+    !course
+  ) {
 
     return;
 
   }
+
 
 
   const progress =
@@ -3020,48 +3842,72 @@ function updateCourseProgress() {
     );
 
 
+
   // ========================================================
   // TEXTO
   // ========================================================
 
-  document
-    .getElementById(
+  const text =
+    document.getElementById(
       "courseProgressText"
-    )
-    .textContent =
+    );
 
+
+  if (
+    text
+  ) {
+
+    text.textContent =
       `${progress.completed} de ${progress.total} atividades concluídas`;
 
+  }
+
+
 
   // ========================================================
-  // PORCENTAGEM
+  // PERCENTUAL
   // ========================================================
 
-  document
-    .getElementById(
+  const percentage =
+    document.getElementById(
       "courseProgressPercentage"
-    )
-    .textContent =
+    );
 
+
+  if (
+    percentage
+  ) {
+
+    percentage.textContent =
       `${progress.percentage}%`;
+
+  }
+
 
 
   // ========================================================
   // BARRA
   // ========================================================
 
-  document
-    .getElementById(
+  const fill =
+    document.getElementById(
       "courseProgressFill"
-    )
-    .style
-    .width =
+    );
 
+
+  if (
+    fill
+  ) {
+
+    fill.style.width =
       `${progress.percentage}%`;
+
+  }
+
 
 
   // ========================================================
-  // MENSAGEM FINAL
+  // MENSAGEM DE CONCLUSÃO
   // ========================================================
 
   const completedMessage =
@@ -3071,21 +3917,34 @@ function updateCourseProgress() {
 
 
   if (
-    progress.total > 0
-    &&
-    progress.percentage ===
-    100
+    completedMessage
   ) {
 
-    completedMessage.classList.add(
-      "show"
-    );
+    const finished =
 
-  } else {
+      progress.total > 0
 
-    completedMessage.classList.remove(
-      "show"
-    );
+      &&
+
+      progress.completed ===
+      progress.total;
+
+
+    if (
+      finished
+    ) {
+
+      completedMessage.classList.add(
+        "show"
+      );
+
+    } else {
+
+      completedMessage.classList.remove(
+        "show"
+      );
+
+    }
 
   }
 
@@ -3094,92 +3953,44 @@ function updateCourseProgress() {
 
 
 // ==========================================================
-// CONTADORES DO RESUMO
-// ==========================================================
-//
-// Como não temos usuários reais ainda:
-//
-// Obrigatórios:
-// funciona.
-//
-// Em andamento:
-// calculado com progresso temporário.
-//
-// Concluídos:
-// calculado com progresso temporário.
-//
-// Carga horária:
-// soma cursos concluídos temporariamente.
-//
+// ATUALIZAR RESUMO
 // ==========================================================
 
 function updateSummary() {
 
+  if (
+    !currentUser
+  ) {
+
+    return;
+
+  }
+
+
+
   const userCourses =
     getUserCourses();
+
 
 
   // ========================================================
   // OBRIGATÓRIOS
   // ========================================================
 
-  const mandatory =
+  const mandatoryCourses =
     userCourses.filter(
-      course => {
-
-        if (
-          course.requirement !==
-          "Obrigatório"
-        ) {
-
-          return false;
-
-        }
-
-
-        return (
-          getCourseProgress(
-            course
-          ).percentage < 100
-        );
-
-      }
+      course =>
+        course.requirement ===
+        "Obrigatório"
     );
 
-
-  // ========================================================
-  // EM ANDAMENTO
-  // ========================================================
-
-  const inProgress =
-    userCourses.filter(
-      course => {
-
-        const percentage =
-          getCourseProgress(
-            course
-          ).percentage;
-
-
-        return (
-
-          percentage > 0
-
-          &&
-
-          percentage < 100
-
-        );
-
-      }
-    );
 
 
   // ========================================================
   // CONCLUÍDOS
   // ========================================================
 
-  const completed =
+  const completedCourses =
     userCourses.filter(
       course => {
 
@@ -3195,8 +4006,8 @@ function updateSummary() {
 
           &&
 
-          progress.percentage ===
-          100
+          progress.completed ===
+          progress.total
 
         );
 
@@ -3204,27 +4015,63 @@ function updateSummary() {
     );
 
 
+
+  // ========================================================
+  // EM ANDAMENTO
+  // ========================================================
+
+  const inProgressCourses =
+    userCourses.filter(
+      course => {
+
+        const progress =
+          getCourseProgress(
+            course
+          );
+
+
+        return (
+
+          progress.completed > 0
+
+          &&
+
+          progress.completed <
+          progress.total
+
+        );
+
+      }
+    );
+
+
+
   // ========================================================
   // HORAS CONCLUÍDAS
   // ========================================================
+  //
+  // TEMPORÁRIO:
+  //
+  // Consideramos a carga horária completa
+  // quando todas as atividades forem concluídas.
+  //
+  // Depois essa informação dependerá da aprovação
+  // do Admin.
+  //
+  // ========================================================
 
-  const hours =
-    completed.reduce(
+  const totalCompletedHours =
+    completedCourses.reduce(
       (
         total,
         course
       ) => {
 
         return (
-
-          total
-
-          +
-
+          total +
           Number(
             course.hours || 0
           )
-
         );
 
       },
@@ -3232,53 +4079,86 @@ function updateSummary() {
     );
 
 
+
   // ========================================================
-  // ATUALIZAR HTML
+  // EXIBIR CONTADORES
   // ========================================================
 
-  document
-    .getElementById(
+  const mandatoryCount =
+    document.getElementById(
       "mandatoryCount"
-    )
-    .textContent =
-      mandatory.length;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    mandatoryCount
+  ) {
+
+    mandatoryCount.textContent =
+      mandatoryCourses.length;
+
+  }
+
+
+
+  const inProgressCount =
+    document.getElementById(
       "inProgressCount"
-    )
-    .textContent =
-      inProgress.length;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    inProgressCount
+  ) {
+
+    inProgressCount.textContent =
+      inProgressCourses.length;
+
+  }
+
+
+
+  const completedCount =
+    document.getElementById(
       "completedCount"
-    )
-    .textContent =
-      completed.length;
+    );
 
 
-  document
-    .getElementById(
+  if (
+    completedCount
+  ) {
+
+    completedCount.textContent =
+      completedCourses.length;
+
+  }
+
+
+
+  const totalHours =
+    document.getElementById(
       "totalHours"
-    )
-    .textContent =
-      `${hours}h`;
+    );
+
+
+  if (
+    totalHours
+  ) {
+
+    totalHours.textContent =
+      `${totalCompletedHours}h`;
+
+  }
 
 }
 
 
 
 // ==========================================================
-// MATERIAL DO ADMIN
+// AVISO DO MATERIAL
 // ==========================================================
 //
-// Como ainda não utilizamos Supabase Storage,
-// o arquivo do Admin não pode ser realmente baixado.
-//
-// Por enquanto exibimos um aviso.
+// Ainda não temos download real pelo Supabase Storage.
 //
 // ==========================================================
 
@@ -3289,48 +4169,65 @@ function showMaterialNotice(
   const course =
     courses.find(
       item =>
-        Number(item.id) ===
-        Number(currentCourseId)
+        String(item.id) ===
+        String(currentCourseId)
     );
 
 
-  if (!course) {
+  if (
+    !course
+  ) {
 
     return;
 
   }
+
 
 
   const activity =
     course.activities.find(
       item =>
-        Number(item.id) ===
-        Number(activityId)
+        String(item.id) ===
+        String(activityId)
     );
 
 
-  if (!activity) {
+  if (
+    !activity
+  ) {
 
     return;
 
   }
 
 
+
+  if (
+    !activity.resource
+  ) {
+
+    alert(
+      "Nenhum material foi disponibilizado para esta atividade."
+    );
+
+
+    return;
+
+  }
+
+
+
   alert(
 
-    "Material cadastrado:\n\n"
+    "Nesta etapa do projeto o material está registrado como:\n\n"
 
     +
 
-    (
-      activity.resource
-      ||
-      "Arquivo sem nome."
-    )
+    activity.resource
 
     +
 
-    "\n\nO download real será implementado quando conectarmos o Supabase Storage."
+    "\n\nO download real será conectado ao Supabase Storage posteriormente."
 
   );
 
@@ -3339,26 +4236,26 @@ function showMaterialNotice(
 
 
 // ==========================================================
-// FECHAR AO CLICAR FORA DO MODAL
+// CLICAR FORA DO MODAL
 // ==========================================================
 
-const modalOverlay =
+const courseModal =
   document.getElementById(
     "courseModal"
   );
 
 
 if (
-  modalOverlay
+  courseModal
 ) {
 
-  modalOverlay.addEventListener(
+  courseModal.addEventListener(
     "click",
     event => {
 
       if (
         event.target ===
-        modalOverlay
+        courseModal
       ) {
 
         closeCourseModal();
@@ -3395,32 +4292,60 @@ document.addEventListener(
 
 
 // ==========================================================
-// INICIALIZAÇÃO
+// LOGOUT
+// ==========================================================
+//
+// Essa parte agora utiliza exatamente
+// a mesma sessão usada na tela de Férias.
+//
 // ==========================================================
 
-async function initializeTrainingPage() {
-
-  console.log(
-    "Iniciando tela de treinamentos..."
+const logoutButton =
+  document.getElementById(
+    "logoutButton"
   );
 
 
-  // ========================================================
-  // EXIBIR USUÁRIO
-  // ========================================================
+if (
+  logoutButton
+) {
 
-  renderCurrentUser();
+  logoutButton.addEventListener(
+    "click",
+    () => {
+
+      const confirmed =
+        confirm(
+          "Deseja sair do Evolua+?"
+        );
 
 
-  // ========================================================
-  // BUSCAR CURSOS
-  // ========================================================
+      if (
+        !confirmed
+      ) {
 
-  await loadCourses();
+        return;
+
+      }
 
 
-  console.log(
-    "Tela de treinamentos carregada."
+
+      // ====================================================
+      // APAGAR SESSÃO
+      // ====================================================
+
+      clearSession();
+
+
+
+      // ====================================================
+      // VOLTAR AO LOGIN
+      // ====================================================
+
+      window.location.href =
+        "/login/";
+
+    }
   );
 
 }
@@ -3428,7 +4353,92 @@ async function initializeTrainingPage() {
 
 
 // ==========================================================
-// EXECUTAR APÓS HTML CARREGAR
+// INICIALIZAÇÃO
+// ==========================================================
+//
+// FLUXO:
+//
+// /treinamentos/
+//       ↓
+// existe access_token?
+//       ↓
+// existe usuario_logado?
+//       ↓
+// perfil = colaborador?
+//       ↓
+// SIM
+//       ↓
+// mostra usuário real
+//       ↓
+// carrega cursos
+//
+// ==========================================================
+
+async function initializeTrainingPage() {
+
+  console.log(
+    "Iniciando tela de Treinamentos..."
+  );
+
+
+
+  // ========================================================
+  // VALIDAR SESSÃO
+  // ========================================================
+
+  const validSession =
+    validateUserSession();
+
+
+  if (
+    !validSession
+  ) {
+
+    return;
+
+  }
+
+
+
+  // ========================================================
+  // MOSTRAR USUÁRIO REAL
+  // ========================================================
+
+  renderCurrentUser();
+
+
+
+  console.log(
+    "Colaborador autenticado:",
+    currentUser.name
+  );
+
+
+  console.log(
+    "Setor do colaborador:",
+    currentUser.sector
+  );
+
+
+
+  // ========================================================
+  // CARREGAR CURSOS
+  // ========================================================
+
+  await loadCourses();
+
+
+
+  console.log(
+    "Tela de Treinamentos carregada com sucesso."
+  );
+
+}
+
+
+
+// ==========================================================
+// INICIAR QUANDO O HTML ESTIVER PRONTO
 // ==========================================================
 
 document.addEventListener(

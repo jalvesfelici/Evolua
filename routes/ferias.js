@@ -3,20 +3,39 @@
 // ROTAS DE FÉRIAS
 // ==========================================================
 //
-// RESPONSABILIDADES:
+// REGRAS:
 //
-// COLABORADOR
-// - consultar o próprio período de férias;
-// - consultar as próprias solicitações;
-// - solicitar férias.
+// 1. O Admin cadastra o período aquisitivo.
 //
-// ADMIN
-// - consultar período de um colaborador;
-// - cadastrar/alterar período inicial;
-// - visualizar solicitações;
-// - aprovar/reprovar solicitações.
+// 2. Enquanto o período não terminar:
+//
+//    dias_direito = 0
+//    status = em_aquisicao
+//
+// 3. Depois que o período terminar:
+//
+//    dias_direito = 30
+//
+// 4. Saldo:
+//
+//    dias_disponiveis =
+//      dias_direito - dias_usados
+//
+// 5. Admin de setor:
+//    somente funcionários do próprio setor.
+//
+// 6. Colaborador:
+//    somente as próprias férias.
+//
+// 7. Solicitações:
+//
+//    pendente
+//    aprovada
+//    aprovada_com_ressalvas
+//    recusada
 //
 // ==========================================================
+
 
 
 // ==========================================================
@@ -24,19 +43,30 @@
 // ==========================================================
 
 const express =
-  require("express");
+  require(
+    "express"
+  );
 
 
 const router =
   express.Router();
 
 
+
+// Cliente normal.
+//
+// Utilizado para validar o token do usuário.
 const supabase =
   require(
     "../config/supabase"
   );
 
 
+
+// Cliente administrativo.
+//
+// Utilizado no backend para acessar as tabelas
+// com segurança através da Service Role.
 const supabaseAdmin =
   require(
     "../config/supabaseAdmin"
@@ -45,16 +75,35 @@ const supabaseAdmin =
 
 
 // ==========================================================
-// PEGAR TOKEN
+// CONSTANTES
 // ==========================================================
 
-function getBearerToken(req) {
+const DIAS_FERIAS_PADRAO =
+  30;
+
+
+
+// ==========================================================
+// PEGAR TOKEN BEARER
+// ==========================================================
+//
+// Esperamos:
+//
+// Authorization: Bearer TOKEN
+//
+// ==========================================================
+
+function getBearerToken(
+  req
+) {
 
   const authorization =
     req.headers.authorization;
 
 
-  if (!authorization) {
+  if (
+    !authorization
+  ) {
 
     return null;
 
@@ -62,12 +111,16 @@ function getBearerToken(req) {
 
 
   const parts =
-    authorization.split(" ");
+    authorization.split(
+      " "
+    );
 
 
   if (
-    parts.length !== 2 ||
-    parts[0].toLowerCase() !== "bearer"
+    parts.length !== 2
+    ||
+    parts[0].toLowerCase() !==
+      "bearer"
   ) {
 
     return null;
@@ -85,13 +138,23 @@ function getBearerToken(req) {
 // IDENTIFICAR USUÁRIO LOGADO
 // ==========================================================
 
-async function getLoggedUser(req) {
+async function getLoggedUser(
+  req
+) {
+
+  // ========================================================
+  // TOKEN
+  // ========================================================
 
   const token =
-    getBearerToken(req);
+    getBearerToken(
+      req
+    );
 
 
-  if (!token) {
+  if (
+    !token
+  ) {
 
     return {
 
@@ -106,23 +169,39 @@ async function getLoggedUser(req) {
   }
 
 
+
   // ========================================================
   // VALIDAR TOKEN NO SUPABASE AUTH
   // ========================================================
 
   const {
-    data: authData,
-    error: authError
+
+    data:
+      authData,
+
+    error:
+      authError
+
   } =
     await supabase
       .auth
-      .getUser(token);
+      .getUser(
+        token
+      );
+
 
 
   if (
-    authError ||
+    authError
+    ||
     !authData?.user
   ) {
+
+    console.error(
+      "Erro ao validar token:",
+      authError
+    );
+
 
     return {
 
@@ -137,16 +216,24 @@ async function getLoggedUser(req) {
   }
 
 
+
   // ========================================================
   // BUSCAR PERFIL DO USUÁRIO
   // ========================================================
 
   const {
-    data: usuario,
-    error: usuarioError
+
+    data:
+      usuario,
+
+    error:
+      usuarioError
+
   } =
     await supabaseAdmin
-      .from("usuario")
+      .from(
+        "usuario"
+      )
       .select(
         `
           id,
@@ -166,8 +253,10 @@ async function getLoggedUser(req) {
       .maybeSingle();
 
 
+
   if (
-    usuarioError ||
+    usuarioError
+    ||
     !usuario
   ) {
 
@@ -190,8 +279,14 @@ async function getLoggedUser(req) {
   }
 
 
+
+  // ========================================================
+  // USUÁRIO INATIVO
+  // ========================================================
+
   if (
-    usuario.ativo === false
+    usuario.ativo ===
+    false
   ) {
 
     return {
@@ -207,6 +302,7 @@ async function getLoggedUser(req) {
   }
 
 
+
   return {
 
     user:
@@ -219,10 +315,12 @@ async function getLoggedUser(req) {
 
 
 // ==========================================================
-// VERIFICAR ADMINISTRADOR
+// VERIFICAR SE É ADMIN
 // ==========================================================
 
-function isAdmin(usuario) {
+function isAdmin(
+  usuario
+) {
 
   return (
 
@@ -241,7 +339,447 @@ function isAdmin(usuario) {
 
 
 // ==========================================================
-// VERIFICAR SE ADMIN PODE GERENCIAR COLABORADOR
+// NORMALIZAR DATA
+// ==========================================================
+//
+// Trabalhamos com UTC para evitar problemas de:
+//
+// 2026-08-23
+//
+// virar:
+//
+// 2026-08-22
+//
+// por causa do timezone.
+//
+// ==========================================================
+
+function createUtcDate(
+  value
+) {
+
+  if (
+    !value
+  ) {
+
+    return null;
+
+  }
+
+
+  const dateOnly =
+    String(
+      value
+    )
+      .substring(
+        0,
+        10
+      );
+
+
+  const date =
+    new Date(
+      `${dateOnly}T00:00:00.000Z`
+    );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  return date;
+
+}
+
+
+
+// ==========================================================
+// HOJE EM UTC
+// ==========================================================
+
+function getTodayUtc() {
+
+  const now =
+    new Date();
+
+
+  return new Date(
+
+    Date.UTC(
+
+      now.getUTCFullYear(),
+
+      now.getUTCMonth(),
+
+      now.getUTCDate()
+
+    )
+
+  );
+
+}
+
+
+
+// ==========================================================
+// CALCULAR QUANTIDADE DE DIAS
+// ==========================================================
+//
+// Exemplo:
+//
+// 01/09
+// até
+// 10/09
+//
+// = 10 dias.
+//
+// ==========================================================
+
+function calculateDaysBetween(
+  inicio,
+  fim
+) {
+
+  if (
+    !inicio
+    ||
+    !fim
+  ) {
+
+    return 0;
+
+  }
+
+
+  if (
+    fim <
+    inicio
+  ) {
+
+    return 0;
+
+  }
+
+
+  const difference =
+
+    fim.getTime()
+
+    -
+
+    inicio.getTime();
+
+
+  return (
+
+    Math.floor(
+
+      difference /
+      86400000
+
+    )
+
+    +
+
+    1
+
+  );
+
+}
+
+
+
+// ==========================================================
+// CALCULAR SITUAÇÃO DO PERÍODO
+// ==========================================================
+//
+// IMPORTANTE:
+//
+// O banco guarda as datas e os dias usados.
+//
+// A regra de negócio é calculada pelo backend.
+//
+// ==========================================================
+
+function calculateVacationPeriod(
+  periodo
+) {
+
+  if (
+    !periodo
+  ) {
+
+    return null;
+
+  }
+
+
+
+  const periodoFim =
+    createUtcDate(
+      periodo.periodo_fim
+    );
+
+
+  const hoje =
+    getTodayUtc();
+
+
+
+  // ========================================================
+  // PERÍODO INVÁLIDO
+  // ========================================================
+
+  if (
+    !periodoFim
+  ) {
+
+    return {
+
+      ...periodo,
+
+      dias_direito:
+        0,
+
+      dias_usados:
+        Number(
+          periodo.dias_usados || 0
+        ),
+
+      dias_disponiveis:
+        0,
+
+      status_calculado:
+        "invalido",
+
+      periodo_concluido:
+        false
+
+    };
+
+  }
+
+
+
+  // ========================================================
+  // PERÍODO CONCLUÍDO?
+  // ========================================================
+  //
+  // Regra atual:
+  //
+  // hoje > periodo_fim
+  //
+  // Ou seja:
+  //
+  // se o período terminar em 31/12,
+  // os 30 dias ficam disponíveis a partir de 01/01.
+  //
+  // ========================================================
+
+  const periodoConcluido =
+
+    hoje >
+    periodoFim;
+
+
+
+  // ========================================================
+  // DIAS DE DIREITO
+  // ========================================================
+
+  const diasDireito =
+
+    periodoConcluido
+
+      ? DIAS_FERIAS_PADRAO
+
+      : 0;
+
+
+
+  // ========================================================
+  // DIAS JÁ UTILIZADOS
+  // ========================================================
+
+  const diasUsados =
+
+    Math.max(
+
+      Number(
+        periodo.dias_usados || 0
+      ),
+
+      0
+
+    );
+
+
+
+  // ========================================================
+  // SALDO
+  // ========================================================
+
+  const diasDisponiveis =
+
+    Math.max(
+
+      diasDireito -
+      diasUsados,
+
+      0
+
+    );
+
+
+
+  // ========================================================
+  // STATUS
+  // ========================================================
+
+  let statusCalculado =
+    "em_aquisicao";
+
+
+  if (
+    periodoConcluido
+    &&
+    diasDisponiveis > 0
+  ) {
+
+    statusCalculado =
+      "disponivel";
+
+  }
+
+
+  if (
+    periodoConcluido
+    &&
+    diasDisponiveis === 0
+  ) {
+
+    statusCalculado =
+      "utilizado";
+
+  }
+
+
+
+  return {
+
+    ...periodo,
+
+    dias_direito:
+      diasDireito,
+
+    dias_usados:
+      diasUsados,
+
+    dias_disponiveis:
+      diasDisponiveis,
+
+    status_calculado:
+      statusCalculado,
+
+    periodo_concluido:
+      periodoConcluido
+
+  };
+
+}
+
+
+
+// ==========================================================
+// SINCRONIZAR PERÍODO NO BANCO
+// ==========================================================
+//
+// Apesar de o cálculo poder ser feito em tempo real,
+// também mantemos:
+//
+// dias_direito
+// status
+//
+// atualizados na tabela.
+//
+// ==========================================================
+
+async function synchronizeVacationPeriod(
+  periodoCalculado
+) {
+
+  if (
+    !periodoCalculado
+    ||
+    !periodoCalculado.id
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+
+    error
+
+  } =
+    await supabaseAdmin
+      .from(
+        "periodos_ferias"
+      )
+      .update({
+
+        dias_direito:
+          periodoCalculado
+            .dias_direito,
+
+        status:
+          periodoCalculado
+            .status_calculado
+
+      })
+      .eq(
+        "id",
+        periodoCalculado.id
+      );
+
+
+  if (
+    error
+  ) {
+
+    // Não derrubamos toda a requisição
+    // porque o cálculo já está correto em memória.
+
+    console.error(
+      "Não foi possível sincronizar o período:",
+      error
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// VALIDAR PERMISSÃO SOBRE COLABORADOR
+// ==========================================================
+//
+// admin_principal
+// → qualquer setor.
+//
+// admin_setor
+// → somente próprio setor.
+//
 // ==========================================================
 
 async function validateEmployeePermission(
@@ -250,11 +788,17 @@ async function validateEmployeePermission(
 ) {
 
   const {
-    data: colaborador,
+
+    data:
+      colaborador,
+
     error
+
   } =
     await supabaseAdmin
-      .from("usuario")
+      .from(
+        "usuario"
+      )
       .select(
         `
           id,
@@ -274,8 +818,10 @@ async function validateEmployeePermission(
       .maybeSingle();
 
 
+
   if (
-    error ||
+    error
+    ||
     !colaborador
   ) {
 
@@ -292,6 +838,11 @@ async function validateEmployeePermission(
   }
 
 
+
+  // ========================================================
+  // PRECISA SER COLABORADOR
+  // ========================================================
+
   if (
     colaborador.perfil !==
     "colaborador"
@@ -300,7 +851,7 @@ async function validateEmployeePermission(
     return {
 
       error:
-        "Períodos de férias só podem ser cadastrados para colaboradores.",
+        "Férias só podem ser configuradas para colaboradores.",
 
       status:
         400
@@ -310,8 +861,33 @@ async function validateEmployeePermission(
   }
 
 
-  // Admin de setor só pode mexer
-  // nos colaboradores do próprio setor.
+
+  // ========================================================
+  // COLABORADOR INATIVO
+  // ========================================================
+
+  if (
+    colaborador.ativo ===
+    false
+  ) {
+
+    return {
+
+      error:
+        "O colaborador está inativo.",
+
+      status:
+        400
+
+    };
+
+  }
+
+
+
+  // ========================================================
+  // ADMIN DE SETOR
+  // ========================================================
 
   if (
     admin.perfil ===
@@ -326,7 +902,7 @@ async function validateEmployeePermission(
     return {
 
       error:
-        "Você não pode gerenciar férias de outro setor.",
+        "Você só pode administrar férias dos colaboradores do seu próprio setor.",
 
       status:
         403
@@ -334,6 +910,7 @@ async function validateEmployeePermission(
     };
 
   }
+
 
 
   return {
@@ -350,26 +927,43 @@ async function validateEmployeePermission(
 // GET /api/ferias/minhas
 // ==========================================================
 //
-// COLABORADOR:
+// Retorna:
 //
-// Busca seu período atual.
+// usuario
+// periodo
+//
+// Se o período tiver terminado,
+// os 30 dias são liberados automaticamente.
 //
 // ==========================================================
 
 router.get(
   "/minhas",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -380,17 +974,53 @@ router.get(
       }
 
 
+
       const usuario =
         authResult.user;
 
 
+
+      // ====================================================
+      // SOMENTE COLABORADOR
+      // ====================================================
+
+      if (
+        usuario.perfil !==
+        "colaborador"
+      ) {
+
+        return res
+          .status(403)
+          .json({
+
+            error:
+              "Esta consulta é destinada aos colaboradores."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // PERÍODO MAIS RECENTE
+      // ====================================================
+
       const {
-        data: periodo,
+
+        data:
+          periodo,
+
         error
+
       } =
         await supabaseAdmin
-          .from("periodos_ferias")
-          .select("*")
+          .from(
+            "periodos_ferias"
+          )
+          .select(
+            "*"
+          )
           .eq(
             "usuario_id",
             usuario.id
@@ -398,18 +1028,23 @@ router.get(
           .order(
             "periodo_inicio",
             {
+
               ascending:
                 false
+
             }
           )
           .limit(1)
           .maybeSingle();
 
 
-      if (error) {
+
+      if (
+        error
+      ) {
 
         console.error(
-          "Erro ao buscar férias:",
+          "Erro ao carregar férias:",
           error
         );
 
@@ -426,7 +1061,14 @@ router.get(
       }
 
 
-      if (!periodo) {
+
+      // ====================================================
+      // AINDA NÃO POSSUI PERÍODO
+      // ====================================================
+
+      if (
+        !periodo
+      ) {
 
         return res.json({
 
@@ -440,35 +1082,39 @@ router.get(
       }
 
 
-      const diasDisponiveis =
-        Number(
-          periodo.dias_direito
-        ) -
-        Number(
-          periodo.dias_usados
+
+      // ====================================================
+      // CALCULAR
+      // ====================================================
+
+      const periodoCalculado =
+        calculateVacationPeriod(
+          periodo
         );
+
+
+      await synchronizeVacationPeriod(
+        periodoCalculado
+      );
+
 
 
       return res.json({
 
         usuario,
 
-        periodo: {
-
-          ...periodo,
-
-          dias_disponiveis:
-            diasDisponiveis
-
-        }
+        periodo:
+          periodoCalculado
 
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
-        "Erro em GET /api/ferias/minhas:",
+        "Erro GET /api/ferias/minhas:",
         error
       );
 
@@ -478,7 +1124,7 @@ router.get(
         .json({
 
           error:
-            "Erro interno ao carregar férias."
+            "Erro interno ao carregar as férias."
 
         });
 
@@ -493,26 +1139,34 @@ router.get(
 // GET /api/ferias/solicitacoes
 // ==========================================================
 //
-// COLABORADOR:
-//
-// Retorna somente suas solicitações.
+// Colaborador consulta somente
+// as próprias solicitações.
 //
 // ==========================================================
 
 router.get(
   "/solicitacoes",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -523,19 +1177,48 @@ router.get(
       }
 
 
+
       const usuario =
         authResult.user;
 
 
+
+      // ====================================================
+      // SOMENTE COLABORADOR
+      // ====================================================
+
+      if (
+        usuario.perfil !==
+        "colaborador"
+      ) {
+
+        return res
+          .status(403)
+          .json({
+
+            error:
+              "Esta consulta é destinada aos colaboradores."
+
+          });
+
+      }
+
+
+
       const {
+
         data,
+
         error
+
       } =
         await supabaseAdmin
           .from(
             "solicitacoes_ferias"
           )
-          .select("*")
+          .select(
+            "*"
+          )
           .eq(
             "usuario_id",
             usuario.id
@@ -543,16 +1226,21 @@ router.get(
           .order(
             "created_at",
             {
+
               ascending:
                 false
+
             }
           );
 
 
-      if (error) {
+
+      if (
+        error
+      ) {
 
         console.error(
-          "Erro ao buscar solicitações:",
+          "Erro ao carregar solicitações:",
           error
         );
 
@@ -562,11 +1250,12 @@ router.get(
           .json({
 
             error:
-              "Não foi possível buscar as solicitações."
+              "Não foi possível carregar as solicitações."
 
           });
 
       }
+
 
 
       return res.json(
@@ -574,9 +1263,12 @@ router.get(
       );
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
+        "Erro GET /api/ferias/solicitacoes:",
         error
       );
 
@@ -595,32 +1287,54 @@ router.get(
   }
 );
 
-
-
 // ==========================================================
 // POST /api/ferias/solicitacoes
 // ==========================================================
 //
 // COLABORADOR:
 //
-// Solicita férias.
+// Cria uma nova solicitação de férias.
+//
+// REGRAS:
+//
+// - somente colaborador;
+// - precisa possuir período cadastrado;
+// - período aquisitivo precisa estar concluído;
+// - precisa possuir saldo;
+// - quantidade solicitada não pode ultrapassar o saldo;
+// - datas precisam ser válidas;
+// - não permitimos solicitação duplicada pendente
+//   para exatamente o mesmo período.
 //
 // ==========================================================
 
 router.post(
   "/solicitacoes",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -634,6 +1348,11 @@ router.post(
       const usuario =
         authResult.user;
 
+
+
+      // ====================================================
+      // SOMENTE COLABORADOR
+      // ====================================================
 
       if (
         usuario.perfil !==
@@ -652,6 +1371,11 @@ router.post(
       }
 
 
+
+      // ====================================================
+      // DADOS RECEBIDOS
+      // ====================================================
+
       const {
 
         data_inicio,
@@ -664,8 +1388,14 @@ router.post(
         req.body;
 
 
+
+      // ====================================================
+      // CAMPOS OBRIGATÓRIOS
+      // ====================================================
+
       if (
-        !data_inicio ||
+        !data_inicio
+        ||
         !data_fim
       ) {
 
@@ -674,39 +1404,35 @@ router.post(
           .json({
 
             error:
-              "Informe a data de início e término."
+              "Informe a data de início e a data de término."
 
           });
 
       }
 
 
+
       // ====================================================
-      // CALCULAR DIAS
+      // NORMALIZAR DATAS
       // ====================================================
 
       const inicio =
-        new Date(
-          `${data_inicio}T00:00:00Z`
+        createUtcDate(
+          data_inicio
         );
 
 
       const fim =
-        new Date(
-          `${data_fim}T00:00:00Z`
+        createUtcDate(
+          data_fim
         );
 
 
+
       if (
-        Number.isNaN(
-          inicio.getTime()
-        )
+        !inicio
         ||
-        Number.isNaN(
-          fim.getTime()
-        )
-        ||
-        fim < inicio
+        !fim
       ) {
 
         return res
@@ -714,62 +1440,152 @@ router.post(
           .json({
 
             error:
-              "Período informado é inválido."
+              "Uma ou mais datas informadas são inválidas."
 
           });
 
       }
 
 
-      const quantidadeDias =
-        Math.floor(
 
-          (
-            fim.getTime() -
-            inicio.getTime()
-          )
+      // ====================================================
+      // DATA FINAL NÃO PODE SER ANTERIOR
+      // ====================================================
 
-          /
+      if (
+        fim <
+        inicio
+      ) {
 
-          86400000
+        return res
+          .status(400)
+          .json({
 
-        ) + 1;
+            error:
+              "A data de término não pode ser anterior à data de início."
+
+          });
+
+      }
+
 
 
       // ====================================================
-      // PERÍODO ATUAL
+      // NÃO PERMITIR FÉRIAS NO PASSADO
+      // ====================================================
+
+      const hoje =
+        getTodayUtc();
+
+
+      if (
+        inicio <
+        hoje
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "A data de início das férias não pode estar no passado."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // QUANTIDADE DE DIAS
+      // ====================================================
+
+      const quantidadeDias =
+        calculateDaysBetween(
+          inicio,
+          fim
+        );
+
+
+      if (
+        quantidadeDias <= 0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "A quantidade de dias solicitada é inválida."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // BUSCAR PERÍODO DE FÉRIAS
       // ====================================================
 
       const {
-        data: periodo,
-        error: periodoError
+
+        data:
+          periodo,
+
+        error:
+          periodoError
+
       } =
         await supabaseAdmin
           .from(
             "periodos_ferias"
           )
-          .select("*")
+          .select(
+            "*"
+          )
           .eq(
             "usuario_id",
             usuario.id
           )
-          .eq(
-            "status",
-            "disponivel"
-          )
           .order(
             "periodo_inicio",
             {
+
               ascending:
                 false
+
             }
           )
           .limit(1)
           .maybeSingle();
 
 
+
       if (
-        periodoError ||
+        periodoError
+      ) {
+
+        console.error(
+          "Erro ao buscar período de férias:",
+          periodoError
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível verificar seu período de férias."
+
+          });
+
+      }
+
+
+
+      if (
         !periodo
       ) {
 
@@ -778,25 +1594,37 @@ router.post(
           .json({
 
             error:
-              "Nenhum período de férias disponível."
+              "Nenhum período de férias foi cadastrado para você."
 
           });
 
       }
 
 
-      const diasDisponiveis =
-        Number(
-          periodo.dias_direito
-        ) -
-        Number(
-          periodo.dias_usados
+
+      // ====================================================
+      // CALCULAR SITUAÇÃO ATUAL DO PERÍODO
+      // ====================================================
+
+      const periodoCalculado =
+        calculateVacationPeriod(
+          periodo
         );
 
 
+      await synchronizeVacationPeriod(
+        periodoCalculado
+      );
+
+
+
+      // ====================================================
+      // PERÍODO AINDA NÃO CONCLUÍDO
+      // ====================================================
+
       if (
-        quantidadeDias >
-        diasDisponiveis
+        !periodoCalculado
+          .periodo_concluido
       ) {
 
         return res
@@ -804,11 +1632,137 @@ router.post(
           .json({
 
             error:
-              `Você possui somente ${diasDisponiveis} dias disponíveis.`
+              "Seu período aquisitivo ainda não foi concluído."
 
           });
 
       }
+
+
+
+      // ====================================================
+      // SEM SALDO
+      // ====================================================
+
+      if (
+        periodoCalculado
+          .dias_disponiveis <= 0
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Você não possui saldo de férias disponível."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // SALDO INSUFICIENTE
+      // ====================================================
+
+      if (
+        quantidadeDias >
+        periodoCalculado
+          .dias_disponiveis
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              `Você possui somente ${periodoCalculado.dias_disponiveis} dias disponíveis.`
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // EVITAR SOLICITAÇÃO DUPLICADA PENDENTE
+      // ====================================================
+
+      const {
+
+        data:
+          solicitacaoDuplicada,
+
+        error:
+          duplicateError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "solicitacoes_ferias"
+          )
+          .select(
+            "id"
+          )
+          .eq(
+            "usuario_id",
+            usuario.id
+          )
+          .eq(
+            "status",
+            "pendente"
+          )
+          .eq(
+            "data_inicio",
+            data_inicio
+          )
+          .eq(
+            "data_fim",
+            data_fim
+          )
+          .maybeSingle();
+
+
+
+      if (
+        duplicateError
+      ) {
+
+        console.error(
+          "Erro ao verificar solicitação duplicada:",
+          duplicateError
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível validar a solicitação."
+
+          });
+
+      }
+
+
+
+      if (
+        solicitacaoDuplicada
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Já existe uma solicitação pendente para esse mesmo período."
+
+          });
+
+      }
+
 
 
       // ====================================================
@@ -816,8 +1770,13 @@ router.post(
       // ====================================================
 
       const {
-        data,
-        error
+
+        data:
+          solicitacao,
+
+        error:
+          insertError
+
       } =
         await supabaseAdmin
           .from(
@@ -839,7 +1798,11 @@ router.post(
               quantidadeDias,
 
             observacoes:
-              observacoes || null,
+              observacoes
+              ? String(
+                  observacoes
+                ).trim()
+              : null,
 
             status:
               "pendente"
@@ -849,11 +1812,14 @@ router.post(
           .single();
 
 
-      if (error) {
+
+      if (
+        insertError
+      ) {
 
         console.error(
           "Erro ao criar solicitação:",
-          error
+          insertError
         );
 
 
@@ -862,11 +1828,15 @@ router.post(
           .json({
 
             error:
-              "Não foi possível criar a solicitação."
+              "Não foi possível enviar a solicitação.",
+
+            details:
+              insertError.message
 
           });
 
       }
+
 
 
       return res
@@ -876,15 +1846,17 @@ router.post(
           message:
             "Solicitação enviada com sucesso.",
 
-          solicitacao:
-            data
+          solicitacao
 
         });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
+        "Erro POST /api/ferias/solicitacoes:",
         error
       );
 
@@ -911,27 +1883,38 @@ router.post(
 //
 // ADMIN:
 //
-// Busca o período mais recente de um colaborador.
-//
-// Usaremos esta rota ao clicar no botão
-// "Férias" da tabela de funcionários.
+// Consulta o período mais recente
+// de um determinado colaborador.
 //
 // ==========================================================
 
 router.get(
   "/admin/periodos/:usuarioId",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -946,8 +1929,15 @@ router.get(
         authResult.user;
 
 
+
+      // ====================================================
+      // PRECISA SER ADMIN
+      // ====================================================
+
       if (
-        !isAdmin(admin)
+        !isAdmin(
+          admin
+        )
       ) {
 
         return res
@@ -962,9 +1952,15 @@ router.get(
       }
 
 
+
       const usuarioId =
         req.params.usuarioId;
 
+
+
+      // ====================================================
+      // PERMISSÃO SOBRE COLABORADOR
+      // ====================================================
 
       const permission =
         await validateEmployeePermission(
@@ -973,7 +1969,9 @@ router.get(
         );
 
 
-      if (permission.error) {
+      if (
+        permission.error
+      ) {
 
         return res
           .status(
@@ -989,15 +1987,26 @@ router.get(
       }
 
 
+
+      // ====================================================
+      // BUSCAR PERÍODO MAIS RECENTE
+      // ====================================================
+
       const {
-        data: periodo,
+
+        data:
+          periodo,
+
         error
+
       } =
         await supabaseAdmin
           .from(
             "periodos_ferias"
           )
-          .select("*")
+          .select(
+            "*"
+          )
           .eq(
             "usuario_id",
             usuarioId
@@ -1005,18 +2014,23 @@ router.get(
           .order(
             "periodo_inicio",
             {
+
               ascending:
                 false
+
             }
           )
           .limit(1)
           .maybeSingle();
 
 
-      if (error) {
+
+      if (
+        error
+      ) {
 
         console.error(
-          "Erro ao buscar período:",
+          "Erro ao buscar período do colaborador:",
           error
         );
 
@@ -1033,33 +2047,64 @@ router.get(
       }
 
 
+
+      // ====================================================
+      // AINDA NÃO POSSUI PERÍODO
+      // ====================================================
+
+      if (
+        !periodo
+      ) {
+
+        return res.json({
+
+          colaborador:
+            permission
+              .colaborador,
+
+          periodo:
+            null
+
+        });
+
+      }
+
+
+
+      // ====================================================
+      // CALCULAR ESTADO ATUAL
+      // ====================================================
+
+      const periodoCalculado =
+        calculateVacationPeriod(
+          periodo
+        );
+
+
+      await synchronizeVacationPeriod(
+        periodoCalculado
+      );
+
+
+
       return res.json({
 
         colaborador:
-          permission.colaborador,
+          permission
+            .colaborador,
 
         periodo:
-          periodo || null,
-
-        dias_disponiveis:
-          periodo
-            ? (
-                Number(
-                  periodo.dias_direito
-                )
-                -
-                Number(
-                  periodo.dias_usados
-                )
-              )
-            : 0
+          periodoCalculado
 
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
+        "Erro GET /api/ferias/admin/periodos/:usuarioId:",
         error
       );
 
@@ -1069,7 +2114,7 @@ router.get(
         .json({
 
           error:
-            "Erro interno ao carregar período de férias."
+            "Erro interno ao buscar o período de férias."
 
         });
 
@@ -1086,32 +2131,50 @@ router.get(
 //
 // ADMIN:
 //
-// CADASTRA OU ATUALIZA O PERÍODO INICIAL.
+// Cadastra ou atualiza os dados básicos
+// do período de férias.
 //
-// Dados enviados:
+// ADMIN INFORMA:
 //
-// periodo_inicio
-// periodo_fim
+// - periodo_inicio
+// - periodo_fim
+// - dias_usados
+// - data_vencimento
+//
+// BACKEND CALCULA:
+//
 // dias_direito
-// dias_usados
-// data_vencimento
+// status
 //
 // ==========================================================
 
 router.put(
   "/admin/periodos/:usuarioId",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -1126,8 +2189,15 @@ router.put(
         authResult.user;
 
 
+
+      // ====================================================
+      // PRECISA SER ADMIN
+      // ====================================================
+
       if (
-        !isAdmin(admin)
+        !isAdmin(
+          admin
+        )
       ) {
 
         return res
@@ -1142,9 +2212,15 @@ router.put(
       }
 
 
+
       const usuarioId =
         req.params.usuarioId;
 
+
+
+      // ====================================================
+      // PERMISSÃO
+      // ====================================================
 
       const permission =
         await validateEmployeePermission(
@@ -1153,7 +2229,9 @@ router.put(
         );
 
 
-      if (permission.error) {
+      if (
+        permission.error
+      ) {
 
         return res
           .status(
@@ -1169,13 +2247,16 @@ router.put(
       }
 
 
+
+      // ====================================================
+      // DADOS
+      // ====================================================
+
       const {
 
         periodo_inicio,
 
         periodo_fim,
-
-        dias_direito,
 
         dias_usados,
 
@@ -1185,15 +2266,19 @@ router.put(
         req.body;
 
 
+
       // ====================================================
-      // CAMPOS OBRIGATÓRIOS
+      // VALIDAÇÃO DOS CAMPOS
       // ====================================================
 
       if (
-        !periodo_inicio ||
-        !periodo_fim ||
-        dias_direito === undefined ||
-        dias_usados === undefined ||
+        !periodo_inicio
+        ||
+        !periodo_fim
+        ||
+        dias_usados ===
+          undefined
+        ||
         !data_vencimento
       ) {
 
@@ -1202,89 +2287,65 @@ router.put(
           .json({
 
             error:
-              "Preencha todas as informações do período de férias."
+              "Preencha todos os dados do período de férias."
 
           });
 
       }
 
-
-      const diasDireito =
-        Number(
-          dias_direito
-        );
-
-
-      const diasUsados =
-        Number(
-          dias_usados
-        );
 
 
       // ====================================================
-      // VALIDAÇÕES
+      // DATAS
+      // ====================================================
+
+      const inicio =
+        createUtcDate(
+          periodo_inicio
+        );
+
+
+      const fim =
+        createUtcDate(
+          periodo_fim
+        );
+
+
+      const vencimento =
+        createUtcDate(
+          data_vencimento
+        );
+
+
+
+      if (
+        !inicio
+        ||
+        !fim
+        ||
+        !vencimento
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Uma ou mais datas informadas são inválidas."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // FIM >= INÍCIO
       // ====================================================
 
       if (
-        !Number.isInteger(
-          diasDireito
-        )
-        ||
-        diasDireito <= 0
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Dias de direito inválidos."
-
-          });
-
-      }
-
-
-      if (
-        !Number.isInteger(
-          diasUsados
-        )
-        ||
-        diasUsados < 0
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Dias utilizados inválidos."
-
-          });
-
-      }
-
-
-      if (
-        diasUsados >
-        diasDireito
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            error:
-              "Os dias utilizados não podem ser maiores que os dias de direito."
-
-          });
-
-      }
-
-
-      if (
-        periodo_fim <
-        periodo_inicio
+        fim <
+        inicio
       ) {
 
         return res
@@ -1299,55 +2360,124 @@ router.put(
       }
 
 
+
       // ====================================================
-      // VERIFICAR PERÍODO EXISTENTE
+      // VENCIMENTO >= FIM
       // ====================================================
 
-      const {
-        data: periodoExistente,
-        error: searchError
-      } =
-        await supabaseAdmin
-          .from(
-            "periodos_ferias"
-          )
-          .select(
-            "id"
-          )
-          .eq(
-            "usuario_id",
-            usuarioId
-          )
-          .order(
-            "periodo_inicio",
-            {
-              ascending:
-                false
-            }
-          )
-          .limit(1)
-          .maybeSingle();
-
-
-      if (searchError) {
+      if (
+        vencimento <
+        fim
+      ) {
 
         return res
-          .status(500)
+          .status(400)
           .json({
 
             error:
-              "Não foi possível verificar o período existente.",
-
-            details:
-              searchError.message
+              "A data de vencimento não pode ser anterior ao fim do período aquisitivo."
 
           });
 
       }
 
 
+
       // ====================================================
-      // DADOS QUE SERÃO SALVOS
+      // DIAS USADOS
+      // ====================================================
+
+      const usedDays =
+        Number(
+          dias_usados
+        );
+
+
+      if (
+        !Number.isInteger(
+          usedDays
+        )
+        ||
+        usedDays < 0
+        ||
+        usedDays >
+          DIAS_FERIAS_PADRAO
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "A quantidade de dias utilizados deve estar entre 0 e 30."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // CALCULAR DIREITO AUTOMATICAMENTE
+      // ====================================================
+
+      const hoje =
+        getTodayUtc();
+
+
+      const periodoConcluido =
+
+        hoje >
+        fim;
+
+
+      const diasDireito =
+
+        periodoConcluido
+
+          ? DIAS_FERIAS_PADRAO
+
+          : 0;
+
+
+
+      // ====================================================
+      // STATUS
+      // ====================================================
+
+      let status =
+        "em_aquisicao";
+
+
+      if (
+        periodoConcluido
+        &&
+        usedDays <
+          DIAS_FERIAS_PADRAO
+      ) {
+
+        status =
+          "disponivel";
+
+      }
+
+
+      if (
+        periodoConcluido
+        &&
+        usedDays >=
+          DIAS_FERIAS_PADRAO
+      ) {
+
+        status =
+          "utilizado";
+
+      }
+
+
+
+      // ====================================================
+      // DADOS A SEREM SALVOS
       // ====================================================
 
       const vacationData = {
@@ -1363,23 +2493,84 @@ router.put(
           diasDireito,
 
         dias_usados:
-          diasUsados,
+          usedDays,
 
         data_vencimento,
 
-        status:
-          diasUsados < diasDireito
-            ? "disponivel"
-            : "utilizado"
+        status
 
       };
 
 
-      let periodoSalvo;
+
+      // ====================================================
+      // BUSCAR PERÍODO EXISTENTE
+      // ====================================================
+
+      const {
+
+        data:
+          periodoExistente,
+
+        error:
+          searchError
+
+      } =
+        await supabaseAdmin
+          .from(
+            "periodos_ferias"
+          )
+          .select(
+            "id"
+          )
+          .eq(
+            "usuario_id",
+            usuarioId
+          )
+          .order(
+            "periodo_inicio",
+            {
+
+              ascending:
+                false
+
+            }
+          )
+          .limit(1)
+          .maybeSingle();
+
+
+
+      if (
+        searchError
+      ) {
+
+        console.error(
+          "Erro ao verificar período existente:",
+          searchError
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível verificar o período existente."
+
+          });
+
+      }
+
+
+
+      let periodoSalvo =
+        null;
+
 
 
       // ====================================================
-      // ATUALIZAR
+      // ATUALIZAR PERÍODO EXISTENTE
       // ====================================================
 
       if (
@@ -1387,8 +2578,11 @@ router.put(
       ) {
 
         const {
+
           data,
+
           error
+
         } =
           await supabaseAdmin
             .from(
@@ -1405,10 +2599,13 @@ router.put(
             .single();
 
 
-        if (error) {
+
+        if (
+          error
+        ) {
 
           console.error(
-            "Erro ao atualizar férias:",
+            "Erro ao atualizar período de férias:",
             error
           );
 
@@ -1434,15 +2631,19 @@ router.put(
       }
 
 
+
       // ====================================================
-      // CRIAR
+      // CRIAR PRIMEIRO PERÍODO
       // ====================================================
 
       else {
 
         const {
+
           data,
+
           error
+
         } =
           await supabaseAdmin
             .from(
@@ -1455,10 +2656,13 @@ router.put(
             .single();
 
 
-        if (error) {
+
+        if (
+          error
+        ) {
 
           console.error(
-            "Erro ao cadastrar férias:",
+            "Erro ao cadastrar período de férias:",
             error
           );
 
@@ -1484,46 +2688,50 @@ router.put(
       }
 
 
+
       // ====================================================
-      // SALDO CALCULADO
+      // CALCULAR RESPOSTA FINAL
       // ====================================================
 
-      const diasDisponiveis =
-        Number(
-          periodoSalvo.dias_direito
-        )
-        -
-        Number(
-          periodoSalvo.dias_usados
+      const periodoCalculado =
+        calculateVacationPeriod(
+          periodoSalvo
         );
 
+
+
+      // ====================================================
+      // RESPOSTA
+      // ====================================================
 
       return res.json({
 
         message:
+
           periodoExistente
+
             ? "Período de férias atualizado com sucesso."
+
             : "Período de férias cadastrado com sucesso.",
 
+
         colaborador:
-          permission.colaborador,
+          permission
+            .colaborador,
 
-        periodo: {
 
-          ...periodoSalvo,
-
-          dias_disponiveis:
-            diasDisponiveis
-
-        }
+        periodo:
+          periodoCalculado
 
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
-        "Erro ao salvar período de férias:",
+        "Erro PUT /api/ferias/admin/periodos/:usuarioId:",
         error
       );
 
@@ -1533,7 +2741,7 @@ router.put(
         .json({
 
           error:
-            "Erro interno ao salvar período de férias."
+            "Erro interno ao salvar o período de férias."
 
         });
 
@@ -1542,34 +2750,49 @@ router.put(
   }
 );
 
-
-
 // ==========================================================
 // GET /api/ferias/admin/solicitacoes
 // ==========================================================
 //
 // ADMIN:
 //
-// Admin principal vê tudo.
+// Retorna somente solicitações pendentes.
 //
-// Admin de setor vê somente o próprio setor.
+// admin_principal:
+// → pode visualizar todas.
+//
+// admin_setor:
+// → vê somente colaboradores do próprio setor.
 //
 // ==========================================================
 
 router.get(
   "/admin/solicitacoes",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -1580,12 +2803,20 @@ router.get(
       }
 
 
+
       const admin =
         authResult.user;
 
 
+
+      // ====================================================
+      // PRECISA SER ADMIN
+      // ====================================================
+
       if (
-        !isAdmin(admin)
+        !isAdmin(
+          admin
+        )
       ) {
 
         return res
@@ -1600,9 +2831,17 @@ router.get(
       }
 
 
+
+      // ====================================================
+      // BUSCAR SOLICITAÇÕES PENDENTES
+      // ====================================================
+
       const {
+
         data,
+
         error
+
       } =
         await supabaseAdmin
           .from(
@@ -1615,23 +2854,36 @@ router.get(
                 id,
                 nome,
                 matricula,
+                email,
                 cargo,
-                setor
+                setor,
+                perfil,
+                ativo
               )
             `
+          )
+          .eq(
+            "status",
+            "pendente"
           )
           .order(
             "created_at",
             {
+
               ascending:
                 false
+
             }
           );
 
 
-      if (error) {
+
+      if (
+        error
+      ) {
 
         console.error(
+          "Erro ao buscar solicitações de férias:",
           error
         );
 
@@ -1641,16 +2893,27 @@ router.get(
           .json({
 
             error:
-              "Não foi possível buscar as solicitações."
+              "Não foi possível buscar as solicitações de férias."
 
           });
 
       }
 
 
+
       let solicitacoes =
         data || [];
 
+
+
+      // ====================================================
+      // ADMIN DE SETOR
+      // ====================================================
+      //
+      // Só pode visualizar solicitações
+      // dos colaboradores do próprio setor.
+      //
+      // ====================================================
 
       if (
         admin.perfil ===
@@ -1659,14 +2922,43 @@ router.get(
 
         solicitacoes =
           solicitacoes.filter(
+            solicitacao => {
 
-            item =>
-              item.usuario?.setor ===
-              admin.setor
+              return (
 
+                solicitacao.usuario
+                  ?.setor ===
+                admin.setor
+
+              );
+
+            }
           );
 
       }
+
+
+
+      // ====================================================
+      // IGNORAR USUÁRIOS QUE NÃO SÃO COLABORADORES
+      // ====================================================
+
+      solicitacoes =
+        solicitacoes.filter(
+          solicitacao => {
+
+            return (
+
+              solicitacao.usuario
+              &&
+              solicitacao.usuario.perfil ===
+                "colaborador"
+
+            );
+
+          }
+        );
+
 
 
       return res.json(
@@ -1674,9 +2966,12 @@ router.get(
       );
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
+        "Erro GET /api/ferias/admin/solicitacoes:",
         error
       );
 
@@ -1686,7 +2981,7 @@ router.get(
         .json({
 
           error:
-            "Erro interno ao buscar solicitações."
+            "Erro interno ao buscar as solicitações."
 
         });
 
@@ -1700,21 +2995,59 @@ router.get(
 // ==========================================================
 // PATCH /api/ferias/admin/solicitacoes/:id
 // ==========================================================
+//
+// ADMIN:
+//
+// Responde uma solicitação.
+//
+// STATUS PERMITIDOS:
+//
+// aprovada
+// aprovada_com_ressalvas
+// recusada
+//
+// REGRAS:
+//
+// - somente Admin;
+// - Admin de setor só responde seu próprio setor;
+// - solicitação precisa estar pendente;
+// - recusa precisa de observação;
+// - ressalva precisa de observação;
+// - aprovação consome saldo;
+// - aprovação com ressalvas também consome saldo;
+// - recusa NÃO consome saldo;
+// - registra quem avaliou;
+// - registra quando foi avaliada.
+//
+// ==========================================================
 
 router.patch(
   "/admin/solicitacoes/:id",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
+      // ====================================================
+      // AUTENTICAÇÃO
+      // ====================================================
+
       const authResult =
-        await getLoggedUser(req);
+        await getLoggedUser(
+          req
+        );
 
 
-      if (authResult.error) {
+      if (
+        authResult.error
+      ) {
 
         return res
-          .status(authResult.status)
+          .status(
+            authResult.status
+          )
           .json({
 
             error:
@@ -1725,12 +3058,20 @@ router.patch(
       }
 
 
+
       const admin =
         authResult.user;
 
 
+
+      // ====================================================
+      // PRECISA SER ADMIN
+      // ====================================================
+
       if (
-        !isAdmin(admin)
+        !isAdmin(
+          admin
+        )
       ) {
 
         return res
@@ -1745,26 +3086,47 @@ router.patch(
       }
 
 
-      const solicitacaoId =
-        Number(
-          req.params.id
-        );
 
+      const solicitacaoId =
+        req.params.id;
+
+
+
+      // ====================================================
+      // DADOS
+      // ====================================================
 
       const {
 
         status,
 
-        motivo_reprovacao
+        observacao_admin
 
       } =
         req.body;
 
 
+
+      // ====================================================
+      // STATUS PERMITIDOS
+      // ====================================================
+
+      const allowedStatus = [
+
+        "aprovada",
+
+        "aprovada_com_ressalvas",
+
+        "recusada"
+
+      ];
+
+
+
       if (
-        status !== "aprovada"
-        &&
-        status !== "reprovada"
+        !allowedStatus.includes(
+          status
+        )
       ) {
 
         return res
@@ -1772,16 +3134,66 @@ router.patch(
           .json({
 
             error:
-              "Status inválido."
+              "Status da solicitação inválido."
 
           });
 
       }
 
 
+
+      // ====================================================
+      // OBSERVAÇÃO
+      // ====================================================
+
+      const adminObservation =
+        String(
+          observacao_admin || ""
+        ).trim();
+
+
+
+      if (
+        (
+          status ===
+            "recusada"
+
+          ||
+
+          status ===
+            "aprovada_com_ressalvas"
+        )
+
+        &&
+
+        !adminObservation
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "Informe uma observação para esta decisão."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // BUSCAR SOLICITAÇÃO
+      // ====================================================
+
       const {
-        data: solicitacao,
-        error
+
+        data:
+          solicitacao,
+
+        error:
+          solicitacaoError
+
       } =
         await supabaseAdmin
           .from(
@@ -1792,7 +3204,13 @@ router.patch(
               *,
               usuario:usuario_id (
                 id,
-                setor
+                nome,
+                matricula,
+                email,
+                cargo,
+                setor,
+                perfil,
+                ativo
               )
             `
           )
@@ -1803,8 +3221,31 @@ router.patch(
           .maybeSingle();
 
 
+
       if (
-        error ||
+        solicitacaoError
+      ) {
+
+        console.error(
+          "Erro ao buscar solicitação:",
+          solicitacaoError
+        );
+
+
+        return res
+          .status(500)
+          .json({
+
+            error:
+              "Não foi possível carregar a solicitação."
+
+          });
+
+      }
+
+
+
+      if (
         !solicitacao
       ) {
 
@@ -1819,6 +3260,35 @@ router.patch(
 
       }
 
+
+
+      // ====================================================
+      // USUÁRIO PRECISA SER COLABORADOR
+      // ====================================================
+
+      if (
+        !solicitacao.usuario
+        ||
+        solicitacao.usuario.perfil !==
+          "colaborador"
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            error:
+              "A solicitação não pertence a um colaborador válido."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // SOLICITAÇÃO JÁ ANALISADA
+      // ====================================================
 
       if (
         solicitacao.status !==
@@ -1837,14 +3307,20 @@ router.patch(
       }
 
 
+
+      // ====================================================
+      // ADMIN DE SETOR
+      // ====================================================
+
       if (
         admin.perfil ===
           "admin_setor"
 
         &&
 
-        solicitacao.usuario?.setor !==
-          admin.setor
+        solicitacao.usuario
+          .setor !==
+        admin.setor
       ) {
 
         return res
@@ -1852,40 +3328,96 @@ router.patch(
           .json({
 
             error:
-              "Você não pode analisar solicitações de outro setor."
+              "Você só pode analisar solicitações de colaboradores do seu próprio setor."
 
           });
 
       }
 
 
+
       // ====================================================
-      // APROVAÇÃO
+      // APROVAÇÃO CONSOME SALDO
       // ====================================================
+
+      const approved =
+
+        status ===
+          "aprovada"
+
+        ||
+
+        status ===
+          "aprovada_com_ressalvas";
+
+
+
+      // ====================================================
+      // VARIÁVEIS DE CONTROLE
+      // ====================================================
+
+      let periodoAtualizado =
+        null;
+
+
 
       if (
-        status ===
-        "aprovada"
+        approved
       ) {
 
+        // ==================================================
+        // BUSCAR PERÍODO DA SOLICITAÇÃO
+        // ==================================================
+
         const {
-          data: periodo,
-          error: periodoError
+
+          data:
+            periodo,
+
+          error:
+            periodoError
+
         } =
           await supabaseAdmin
             .from(
               "periodos_ferias"
             )
-            .select("*")
+            .select(
+              "*"
+            )
             .eq(
               "id",
-              solicitacao.periodo_ferias_id
+              solicitacao
+                .periodo_ferias_id
             )
             .maybeSingle();
 
 
+
         if (
-          periodoError ||
+          periodoError
+        ) {
+
+          console.error(
+            "Erro ao buscar período:",
+            periodoError
+          );
+
+
+          return res
+            .status(500)
+            .json({
+
+              error:
+                "Não foi possível carregar o período de férias."
+
+            });
+
+        }
+
+
+
+        if (
           !periodo
         ) {
 
@@ -1901,19 +3433,19 @@ router.patch(
         }
 
 
-        const novoTotalUsado =
-          Number(
-            periodo.dias_usados
-          )
-          +
-          Number(
-            solicitacao.quantidade_dias
-          );
 
+        // ==================================================
+        // VERIFICAR SE PERÍODO PERTENCE AO COLABORADOR
+        // ==================================================
 
         if (
-          novoTotalUsado >
-          periodo.dias_direito
+          String(
+            periodo.usuario_id
+          )
+          !==
+          String(
+            solicitacao.usuario_id
+          )
         ) {
 
           return res
@@ -1921,30 +3453,170 @@ router.patch(
             .json({
 
               error:
-                "O colaborador não possui saldo suficiente."
+                "O período de férias não pertence ao colaborador da solicitação."
 
             });
 
         }
 
 
+
+        // ==================================================
+        // CALCULAR PERÍODO ATUAL
+        // ==================================================
+
+        const periodoCalculado =
+          calculateVacationPeriod(
+            periodo
+          );
+
+
+
+        if (
+          !periodoCalculado
+            .periodo_concluido
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                "O período aquisitivo ainda não foi concluído."
+
+            });
+
+        }
+
+
+
+        // ==================================================
+        // QUANTIDADE SOLICITADA
+        // ==================================================
+
+        const requestedDays =
+          Number(
+            solicitacao
+              .quantidade_dias || 0
+          );
+
+
+
+        if (
+          !Number.isInteger(
+            requestedDays
+          )
+          ||
+          requestedDays <= 0
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                "A quantidade de dias da solicitação é inválida."
+
+            });
+
+        }
+
+
+
+        // ==================================================
+        // VERIFICAR SALDO ATUAL
+        // ==================================================
+
+        if (
+          requestedDays >
+          periodoCalculado
+            .dias_disponiveis
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                `O colaborador possui somente ${periodoCalculado.dias_disponiveis} dias disponíveis.`
+
+            });
+
+        }
+
+
+
+        // ==================================================
+        // NOVO TOTAL UTILIZADO
+        // ==================================================
+
+        const novoTotalUsado =
+
+          Number(
+            periodoCalculado
+              .dias_usados
+          )
+
+          +
+
+          requestedDays;
+
+
+
+        if (
+          novoTotalUsado >
+          DIAS_FERIAS_PADRAO
+        ) {
+
+          return res
+            .status(400)
+            .json({
+
+              error:
+                "A aprovação ultrapassaria o limite de 30 dias de férias."
+
+            });
+
+        }
+
+
+
+        // ==================================================
+        // NOVO STATUS DO PERÍODO
+        // ==================================================
+
         const novoStatusPeriodo =
+
           novoTotalUsado >=
-          periodo.dias_direito
+          DIAS_FERIAS_PADRAO
 
             ? "utilizado"
 
             : "disponivel";
 
 
+
+        // ==================================================
+        // ATUALIZAR SALDO
+        // ==================================================
+
         const {
-          error: updatePeriodoError
+
+          data:
+            periodoUpdate,
+
+          error:
+            updatePeriodoError
+
         } =
           await supabaseAdmin
             .from(
               "periodos_ferias"
             )
             .update({
+
+              dias_direito:
+                DIAS_FERIAS_PADRAO,
 
               dias_usados:
                 novoTotalUsado,
@@ -1956,25 +3628,45 @@ router.patch(
             .eq(
               "id",
               periodo.id
-            );
+            )
+            .select()
+            .single();
+
 
 
         if (
           updatePeriodoError
         ) {
 
+          console.error(
+            "Erro ao atualizar saldo:",
+            updatePeriodoError
+          );
+
+
           return res
             .status(500)
             .json({
 
               error:
-                "Não foi possível atualizar o saldo."
+                "Não foi possível atualizar o saldo de férias.",
+
+              details:
+                updatePeriodoError.message
 
             });
 
         }
 
+
+
+        periodoAtualizado =
+          calculateVacationPeriod(
+            periodoUpdate
+          );
+
       }
+
 
 
       // ====================================================
@@ -1982,8 +3674,13 @@ router.patch(
       // ====================================================
 
       const {
-        data: updated,
-        error: updateError
+
+        data:
+          solicitacaoAtualizada,
+
+        error:
+          updateError
+
       } =
         await supabaseAdmin
           .from(
@@ -1993,10 +3690,12 @@ router.patch(
 
             status,
 
-            motivo_reprovacao:
-              status ===
-                "reprovada"
-                ? motivo_reprovacao || null
+            observacao_admin:
+
+              adminObservation
+
+                ? adminObservation
+
                 : null,
 
             avaliado_por:
@@ -2011,42 +3710,105 @@ router.patch(
             "id",
             solicitacaoId
           )
+          .eq(
+            "status",
+            "pendente"
+          )
           .select()
-          .single();
+          .maybeSingle();
+
 
 
       if (
         updateError
       ) {
 
+        console.error(
+          "Erro ao atualizar solicitação:",
+          updateError
+        );
+
+
         return res
           .status(500)
           .json({
 
             error:
-              "Não foi possível atualizar a solicitação."
+              "Não foi possível responder a solicitação.",
+
+            details:
+              updateError.message
 
           });
 
       }
 
 
+
+      // ====================================================
+      // PROTEÇÃO CONTRA CONCORRÊNCIA
+      // ====================================================
+      //
+      // Se dois cliques chegarem praticamente juntos,
+      // apenas um deles conseguirá alterar
+      // status = pendente.
+      //
+      // ====================================================
+
+      if (
+        !solicitacaoAtualizada
+      ) {
+
+        return res
+          .status(409)
+          .json({
+
+            error:
+              "Esta solicitação já foi analisada por outro processo."
+
+          });
+
+      }
+
+
+
+      // ====================================================
+      // SUCESSO
+      // ====================================================
+
       return res.json({
 
         message:
-          status === "aprovada"
-            ? "Férias aprovadas com sucesso."
-            : "Solicitação reprovada.",
+
+          status ===
+          "aprovada"
+
+            ? "Solicitação aprovada com sucesso."
+
+            : status ===
+              "aprovada_com_ressalvas"
+
+              ? "Solicitação aprovada com ressalvas."
+
+              : "Solicitação recusada.",
+
 
         solicitacao:
-          updated
+          solicitacaoAtualizada,
+
+
+        periodo:
+          periodoAtualizado
 
       });
 
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
+        "Erro PATCH /api/ferias/admin/solicitacoes/:id:",
         error
       );
 
@@ -2056,7 +3818,7 @@ router.patch(
         .json({
 
           error:
-            "Erro interno ao analisar solicitação."
+            "Erro interno ao analisar a solicitação."
 
         });
 
@@ -2068,7 +3830,7 @@ router.patch(
 
 
 // ==========================================================
-// EXPORTAR
+// EXPORTAR ROTAS
 // ==========================================================
 
 module.exports =
