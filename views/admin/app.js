@@ -14,7 +14,8 @@
 // 6. Treinamentos
 // 7. Avaliações
 // 8. Certificados
-// 9. Dashboard
+// 9. Feedbacks
+// 10. Dashboard
 //
 // ==========================================================
 
@@ -51,7 +52,8 @@ const accessToken =
   );
 
 
-let loggedAdmin = null;
+let loggedAdmin =
+  null;
 
 
 
@@ -67,7 +69,9 @@ try {
     );
 
 
-  if (storedUser) {
+  if (
+    storedUser
+  ) {
 
     loggedAdmin =
       JSON.parse(
@@ -76,7 +80,9 @@ try {
 
   }
 
-} catch (error) {
+} catch (
+  error
+) {
 
   console.error(
     "Erro ao recuperar usuário salvo:",
@@ -149,7 +155,8 @@ function validateSession() {
 
 
   if (
-    loggedAdmin.ativo === false
+    loggedAdmin.ativo ===
+    false
   ) {
 
     clearSession();
@@ -186,7 +193,9 @@ function getAuthHeaders(
   };
 
 
-  if (includeJson) {
+  if (
+    includeJson
+  ) {
 
     headers[
       "Content-Type"
@@ -211,7 +220,8 @@ function handleUnauthorized(
 ) {
 
   if (
-    response.status !== 401
+    response.status !==
+    401
   ) {
 
     return false;
@@ -249,7 +259,9 @@ async function getResponseData(
 
     return await response.json();
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     return {};
 
@@ -265,24 +277,80 @@ async function getResponseData(
 // ==========================================================
 // ==========================================================
 
-let employees = [];
+let employees =
+  [];
 
-let courses = [];
 
-let vacationRequests = [];
+let courses =
+  [];
 
-let evaluations = [];
 
-let temporaryActivities = [];
+let vacationRequests =
+  [];
+
+
+let evaluations =
+  [];
+
+
+// ==========================================================
+// FEEDBACKS
+// ==========================================================
+//
+// feedbackRequests:
+//
+// Solicitações iniciadas pelos colaboradores.
+//
+// sentFeedbacks:
+//
+// Feedbacks iniciados pelo administrador.
+//
+// feedbackEmployees:
+//
+// Colaboradores disponíveis para receber feedback.
+//
+// currentFeedback:
+//
+// Feedback / solicitação atualmente aberto.
+//
+// ==========================================================
+
+let feedbackRequests =
+  [];
+
+
+let sentFeedbacks =
+  [];
+
+
+let feedbackEmployees =
+  [];
+
+
+let currentFeedback =
+  null;
+
+
+let activeFeedbackAdminTab =
+  "requests";
+
+
+
+let temporaryActivities =
+  [];
+
 
 let currentUserCreationProfile =
   "colaborador";
 
+
 let currentVacationRequest =
   null;
 
+
 let currentEvaluation =
   null;
+
 
 let coursePendingRemoval =
   null;
@@ -349,7 +417,8 @@ function getInitials(
 
 
   if (
-    parts.length === 0
+    parts.length ===
+    0
   ) {
 
     return "--";
@@ -358,7 +427,8 @@ function getInitials(
 
 
   if (
-    parts.length === 1
+    parts.length ===
+    1
   ) {
 
     return parts[0]
@@ -392,7 +462,9 @@ function formatDate(
   value
 ) {
 
-  if (!value) {
+  if (
+    !value
+  ) {
 
     return "-";
 
@@ -416,7 +488,8 @@ function formatDate(
 
 
   if (
-    parts.length !== 3
+    parts.length !==
+    3
   ) {
 
     return dateString;
@@ -440,7 +513,9 @@ function formatDateTime(
   value
 ) {
 
-  if (!value) {
+  if (
+    !value
+  ) {
 
     return "-";
 
@@ -467,12 +542,57 @@ function formatDateTime(
   return date.toLocaleString(
     "pt-BR",
     {
+
       dateStyle:
         "short",
 
       timeStyle:
         "short"
+
     }
+  );
+
+}
+
+
+
+// ==========================================================
+// LIMITAR TEXTO
+// ==========================================================
+//
+// Usado nos cards de Feedback.
+//
+// ==========================================================
+
+function truncateText(
+  value,
+  limit = 180
+) {
+
+  const text =
+    String(
+      value || ""
+    )
+      .trim();
+
+
+  if (
+    text.length <=
+    limit
+  ) {
+
+    return text;
+
+  }
+
+
+  return (
+    text.substring(
+      0,
+      limit
+    )
+    +
+    "..."
   );
 
 }
@@ -494,7 +614,9 @@ function showGlobalMessage(
     );
 
 
-  if (!element) {
+  if (
+    !element
+  ) {
 
     return;
 
@@ -542,7 +664,9 @@ function setCounterValue(
     );
 
 
-  if (element) {
+  if (
+    element
+  ) {
 
     element.textContent =
       String(
@@ -571,7 +695,9 @@ function openModal(
     );
 
 
-  if (!modal) {
+  if (
+    !modal
+  ) {
 
     return;
 
@@ -605,7 +731,9 @@ function closeModal(
     );
 
 
-  if (!modal) {
+  if (
+    !modal
+  ) {
 
     return;
 
@@ -623,7 +751,9 @@ function closeModal(
     );
 
 
-  if (!anotherModal) {
+  if (
+    !anotherModal
+  ) {
 
     document.body.classList.remove(
       "modal-open"
@@ -631,6 +761,10 @@ function closeModal(
 
   }
 
+
+  // ========================================================
+  // LIMPAR AVALIAÇÃO ATUAL
+  // ========================================================
 
   if (
     modalId ===
@@ -643,12 +777,36 @@ function closeModal(
   }
 
 
+  // ========================================================
+  // LIMPAR SOLICITAÇÃO DE FÉRIAS
+  // ========================================================
+
   if (
     modalId ===
     "vacationDecisionModal"
   ) {
 
     currentVacationRequest =
+      null;
+
+  }
+
+
+  // ========================================================
+  // LIMPAR FEEDBACK ATUAL
+  // ========================================================
+
+  if (
+    [
+      "feedbackRequestDetailsModal",
+      "sentFeedbackDetailsModal",
+      "answerFeedbackRequestModal"
+    ].includes(
+      modalId
+    )
+  ) {
+
+    currentFeedback =
       null;
 
   }
@@ -673,7 +831,8 @@ document
         event => {
 
           if (
-            event.target === modal
+            event.target ===
+            modal
           ) {
 
             closeModal(
@@ -714,7 +873,9 @@ document.addEventListener(
       );
 
 
-    if (openedModal) {
+    if (
+      openedModal
+    ) {
 
       closeModal(
         openedModal.id
@@ -735,7 +896,9 @@ document.addEventListener(
 
 function renderLoggedAdmin() {
 
-  if (!loggedAdmin) {
+  if (
+    !loggedAdmin
+  ) {
 
     return;
 
@@ -772,13 +935,21 @@ function renderLoggedAdmin() {
     );
 
 
+  const feedbackSector =
+    document.getElementById(
+      "feedbackAdminSector"
+    );
+
+
   const responsibleSector =
     document.getElementById(
       "courseResponsibleSector"
     );
 
 
-  if (name) {
+  if (
+    name
+  ) {
 
     name.textContent =
       loggedAdmin.nome
@@ -788,7 +959,9 @@ function renderLoggedAdmin() {
   }
 
 
-  if (role) {
+  if (
+    role
+  ) {
 
     role.textContent =
       loggedAdmin.cargo
@@ -805,7 +978,9 @@ function renderLoggedAdmin() {
   }
 
 
-  if (avatar) {
+  if (
+    avatar
+  ) {
 
     avatar.textContent =
       getInitials(
@@ -815,7 +990,9 @@ function renderLoggedAdmin() {
   }
 
 
-  if (sector) {
+  if (
+    sector
+  ) {
 
     sector.textContent =
       loggedAdmin.setor
@@ -825,7 +1002,9 @@ function renderLoggedAdmin() {
   }
 
 
-  if (vacationSector) {
+  if (
+    vacationSector
+  ) {
 
     vacationSector.textContent =
       loggedAdmin.setor
@@ -835,7 +1014,21 @@ function renderLoggedAdmin() {
   }
 
 
-  if (responsibleSector) {
+  if (
+    feedbackSector
+  ) {
+
+    feedbackSector.textContent =
+      loggedAdmin.setor
+      ||
+      "-";
+
+  }
+
+
+  if (
+    responsibleSector
+  ) {
 
     responsibleSector.value =
       loggedAdmin.setor
@@ -908,6 +1101,21 @@ const pageData = {
     subtitle:
       "Analise os treinamentos concluídos e enviados para o seu setor."
 
+  },
+
+
+  // ========================================================
+  // FEEDBACKS
+  // ========================================================
+
+  feedbacks: {
+
+    title:
+      "Feedbacks",
+
+    subtitle:
+      "Envie feedbacks e responda às solicitações dos colaboradores do seu setor."
+
   }
 
 };
@@ -928,7 +1136,9 @@ function changePage(
     ];
 
 
-  if (!data) {
+  if (
+    !data
+  ) {
 
     return;
 
@@ -973,7 +1183,9 @@ function changePage(
     );
 
 
-  if (page) {
+  if (
+    page
+  ) {
 
     page.classList.add(
       "active-page"
@@ -994,7 +1206,9 @@ function changePage(
     );
 
 
-  if (title) {
+  if (
+    title
+  ) {
 
     title.textContent =
       data.title;
@@ -1002,13 +1216,19 @@ function changePage(
   }
 
 
-  if (subtitle) {
+  if (
+    subtitle
+  ) {
 
     subtitle.textContent =
       data.subtitle;
 
   }
 
+
+  // ========================================================
+  // FÉRIAS
+  // ========================================================
 
   if (
     pageName ===
@@ -1020,6 +1240,10 @@ function changePage(
   }
 
 
+  // ========================================================
+  // TREINAMENTOS
+  // ========================================================
+
   if (
     pageName ===
     "trainings"
@@ -1030,12 +1254,30 @@ function changePage(
   }
 
 
+  // ========================================================
+  // AVALIAÇÕES
+  // ========================================================
+
   if (
     pageName ===
     "evaluations"
   ) {
 
     loadEvaluations();
+
+  }
+
+
+  // ========================================================
+  // FEEDBACKS
+  // ========================================================
+
+  if (
+    pageName ===
+    "feedbacks"
+  ) {
+
+    loadFeedbacksAdmin();
 
   }
 
@@ -1141,7 +1383,9 @@ async function loadEmployees() {
     );
 
 
-  if (tbody) {
+  if (
+    tbody
+  ) {
 
     tbody.innerHTML = `
 
@@ -1200,7 +1444,9 @@ async function loadEmployees() {
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -1218,7 +1464,9 @@ async function loadEmployees() {
         Array.isArray(
           result
         )
+
           ? result
+
           : []
       )
         .map(
@@ -1232,7 +1480,9 @@ async function loadEmployees() {
     updateDashboardCounters();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao carregar funcionários:",
@@ -1240,7 +1490,8 @@ async function loadEmployees() {
     );
 
 
-    employees = [];
+    employees =
+      [];
 
 
     renderEmployees();
@@ -1272,7 +1523,9 @@ function renderEmployees() {
     );
 
 
-  if (!tbody) {
+  if (
+    !tbody
+  ) {
 
     return;
 
@@ -1299,7 +1552,9 @@ function renderEmployees() {
     employees.filter(
       employee => {
 
-        if (!search) {
+        if (
+          !search
+        ) {
 
           return true;
 
@@ -1326,7 +1581,8 @@ function renderEmployees() {
 
 
   if (
-    filtered.length === 0
+    filtered.length ===
+    0
   ) {
 
     tbody.innerHTML = `
@@ -1393,30 +1649,38 @@ function renderEmployees() {
 
 
         <td>
+
           ${escapeHTML(
             employee.registration
           )}
+
         </td>
 
 
         <td>
+
           ${escapeHTML(
             employee.email
           )}
+
         </td>
 
 
         <td>
+
           ${escapeHTML(
             employee.role
           )}
+
         </td>
 
 
         <td>
+
           ${escapeHTML(
             employee.sector
           )}
+
         </td>
 
 
@@ -1427,7 +1691,9 @@ function renderEmployees() {
               status-badge
               ${
                 employee.active
+
                   ? "success"
+
                   : "danger"
               }
             "
@@ -1445,6 +1711,11 @@ function renderEmployees() {
         <td>
 
           <div class="employee-actions">
+
+
+            <!-- =================================================
+                 CONFIGURAR FÉRIAS
+            ================================================== -->
 
             <button
               type="button"
@@ -1517,7 +1788,13 @@ function populateSectorSelects() {
     );
 
 
-  if (employeeSector) {
+  // ========================================================
+  // SETOR DO USUÁRIO
+  // ========================================================
+
+  if (
+    employeeSector
+  ) {
 
     employeeSector.innerHTML =
       "";
@@ -1550,7 +1827,13 @@ function populateSectorSelects() {
   }
 
 
-  if (targetSector) {
+  // ========================================================
+  // SETOR DESTINO DO CURSO
+  // ========================================================
+
+  if (
+    targetSector
+  ) {
 
     targetSector.innerHTML = `
 
@@ -1641,14 +1924,18 @@ function openUserModal(
     );
 
 
-  if (form) {
+  if (
+    form
+  ) {
 
     form.reset();
 
   }
 
 
-  if (profileSelect) {
+  if (
+    profileSelect
+  ) {
 
     profileSelect.value =
       profile;
@@ -1656,12 +1943,18 @@ function openUserModal(
   }
 
 
+  // ========================================================
+  // NOVO ADMINISTRADOR
+  // ========================================================
+
   if (
     profile ===
     "admin_setor"
   ) {
 
-    if (title) {
+    if (
+      title
+    ) {
 
       title.textContent =
         "Novo administrador";
@@ -1669,7 +1962,9 @@ function openUserModal(
     }
 
 
-    if (description) {
+    if (
+      description
+    ) {
 
       description.textContent =
         "Crie um administrador e defina o setor pelo qual ele será responsável.";
@@ -1677,7 +1972,9 @@ function openUserModal(
     }
 
 
-    if (icon) {
+    if (
+      icon
+    ) {
 
       icon.className =
         "fa-solid fa-user-shield";
@@ -1685,7 +1982,9 @@ function openUserModal(
     }
 
 
-    if (sector) {
+    if (
+      sector
+    ) {
 
       sector.disabled =
         false;
@@ -1704,7 +2003,13 @@ function openUserModal(
 
   } else {
 
-    if (title) {
+    // ======================================================
+    // NOVO COLABORADOR
+    // ======================================================
+
+    if (
+      title
+    ) {
 
       title.textContent =
         "Novo funcionário";
@@ -1712,7 +2017,9 @@ function openUserModal(
     }
 
 
-    if (description) {
+    if (
+      description
+    ) {
 
       description.textContent =
         "Cadastre um colaborador para o seu próprio setor.";
@@ -1720,7 +2027,9 @@ function openUserModal(
     }
 
 
-    if (icon) {
+    if (
+      icon
+    ) {
 
       icon.className =
         "fa-solid fa-user-plus";
@@ -1728,7 +2037,9 @@ function openUserModal(
     }
 
 
-    if (sector) {
+    if (
+      sector
+    ) {
 
       sector.value =
         loggedAdmin?.setor
@@ -1909,7 +2220,9 @@ async function createEmployee(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       let message =
         result.error
@@ -1927,7 +2240,9 @@ async function createEmployee(
           .includes(
             "already"
           )
+
         ||
+
         String(
           message
         )
@@ -1966,7 +2281,9 @@ async function createEmployee(
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao criar usuário:",
@@ -2000,6 +2317,12 @@ async function createEmployee(
 // ==========================================================
 // ==========================================================
 
+// ==========================================================
+// ==========================================================
+// FÉRIAS - PERÍODO AQUISITIVO
+// ==========================================================
+// ==========================================================
+
 async function openVacationPeriodModal(
   employeeId
 ) {
@@ -2007,13 +2330,8 @@ async function openVacationPeriodModal(
   const employee =
     employees.find(
       item =>
-        String(
-          item.id
-        )
-        ===
-        String(
-          employeeId
-        )
+        String(item.id) ===
+        String(employeeId)
     );
 
 
@@ -2022,7 +2340,6 @@ async function openVacationPeriodModal(
     alert(
       "Funcionário não encontrado."
     );
-
 
     return;
 
@@ -2103,7 +2420,8 @@ async function openVacationPeriodModal(
 
 
     if (
-      response.status === 404
+      response.status ===
+      404
     ) {
 
       return;
@@ -2235,7 +2553,9 @@ function updateVacationPreview(
     );
 
 
-  let rights = 0;
+  let rights =
+    0;
+
 
   let status =
     "Aguardando dados";
@@ -2285,7 +2605,8 @@ function updateVacationPreview(
 
 
     if (
-      endDate < today
+      endDate <
+      today
     ) {
 
       rights =
@@ -2425,7 +2746,6 @@ document
         alert(
           "Preencha todas as datas."
         );
-
 
         return;
 
@@ -2658,7 +2978,8 @@ async function loadVacationRequests() {
     );
 
 
-    vacationRequests = [];
+    vacationRequests =
+      [];
 
 
     renderVacationRequests();
@@ -2713,7 +3034,8 @@ function renderVacationRequests() {
 
 
   if (
-    vacationRequests.length === 0
+    vacationRequests.length ===
+    0
   ) {
 
     if (list) {
@@ -3013,7 +3335,9 @@ function openVacationDecisionModal(
     );
 
 
-  if (!currentVacationRequest) {
+  if (
+    !currentVacationRequest
+  ) {
 
     return;
 
@@ -3078,11 +3402,13 @@ function openVacationDecisionModal(
       <div>
 
         <strong>
+
           ${escapeHTML(
             user.nome
             ||
             "Colaborador"
           )}
+
         </strong>
 
         <span>
@@ -3188,11 +3514,9 @@ function openVacationDecisionModal(
             <i class="fa-solid fa-comment"></i>
 
             <p>
-
               ${escapeHTML(
                 request.observacoes
               )}
-
             </p>
 
           </div>
@@ -3211,7 +3535,6 @@ function openVacationDecisionModal(
       <label>
         Observação do administrador
       </label>
-
 
       <textarea
         id="vacationAdminObservation"
@@ -3316,7 +3639,9 @@ async function answerVacationRequest(
   button
 ) {
 
-  if (!currentVacationRequest) {
+  if (
+    !currentVacationRequest
+  ) {
 
     return;
 
@@ -3336,8 +3661,11 @@ async function answerVacationRequest(
 
   if (
     (
-      status === "recusada"
+      status ===
+      "recusada"
+
       ||
+
       status ===
       "aprovada_com_ressalvas"
     )
@@ -3348,7 +3676,6 @@ async function answerVacationRequest(
     alert(
       "Informe uma observação para esta decisão."
     );
-
 
     return;
 
@@ -3418,7 +3745,9 @@ async function answerVacationRequest(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -3451,7 +3780,9 @@ async function answerVacationRequest(
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao responder férias:",
@@ -3552,7 +3883,8 @@ function mapApiCourse(
       "Recomendado",
 
     external:
-      course.curso_externo === true,
+      course.curso_externo ===
+      true,
 
     externalLink:
       course.link_externo
@@ -3560,7 +3892,8 @@ function mapApiCourse(
       "",
 
     active:
-      course.ativo !== false,
+      course.ativo !==
+      false,
 
     createdAt:
       course.created_at
@@ -3592,7 +3925,9 @@ async function loadCourses() {
     );
 
 
-  if (container) {
+  if (
+    container
+  ) {
 
     container.innerHTML = `
 
@@ -3645,7 +3980,9 @@ async function loadCourses() {
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -3683,7 +4020,9 @@ async function loadCourses() {
     updateDashboardCounters();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao carregar cursos:",
@@ -3691,7 +4030,8 @@ async function loadCourses() {
     );
 
 
-    courses = [];
+    courses =
+      [];
 
 
     renderCourses();
@@ -3726,7 +4066,9 @@ function populateTrainingAreaFilter() {
     );
 
 
-  if (!select) {
+  if (
+    !select
+  ) {
 
     return;
 
@@ -3844,7 +4186,8 @@ function getFilteredAdminCourses() {
       if (
         area
         &&
-        course.area !== area
+        course.area !==
+        area
       ) {
 
         return false;
@@ -3852,7 +4195,9 @@ function getFilteredAdminCourses() {
       }
 
 
-      if (!search) {
+      if (
+        !search
+      ) {
 
         return true;
 
@@ -3990,7 +4335,8 @@ function getAdminCourseIcon(
 
 
   if (
-    normalized === "rh"
+    normalized ===
+    "rh"
   ) {
 
     return "fa-people-group";
@@ -4016,7 +4362,9 @@ function renderCourses() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -4032,7 +4380,8 @@ function renderCourses() {
 
 
   if (
-    filtered.length === 0
+    filtered.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -4312,7 +4661,9 @@ function openCourseModal() {
     );
 
 
-  if (form) {
+  if (
+    form
+  ) {
 
     form.reset();
 
@@ -4325,7 +4676,9 @@ function openCourseModal() {
     );
 
 
-  if (responsible) {
+  if (
+    responsible
+  ) {
 
     responsible.value =
       loggedAdmin?.setor
@@ -4369,11 +4722,6 @@ function openCourseModal() {
 // ==========================================================
 // CURSO EXTERNO
 // ==========================================================
-//
-// Já chamado pelo onchange do HTML.
-// NÃO registramos outro listener.
-//
-// ==========================================================
 
 function toggleExternalCourse() {
 
@@ -4401,14 +4749,18 @@ function toggleExternalCourse() {
     );
 
 
-  if (!checkbox) {
+  if (
+    !checkbox
+  ) {
 
     return;
 
   }
 
 
-  if (checkbox.checked) {
+  if (
+    checkbox.checked
+  ) {
 
     externalArea
       ?.classList
@@ -4424,7 +4776,9 @@ function toggleExternalCourse() {
       );
 
 
-    if (externalLink) {
+    if (
+      externalLink
+    ) {
 
       externalLink.required =
         true;
@@ -4454,7 +4808,9 @@ function toggleExternalCourse() {
       );
 
 
-    if (externalLink) {
+    if (
+      externalLink
+    ) {
 
       externalLink.required =
         false;
@@ -4545,7 +4901,9 @@ function updateActivity(
     );
 
 
-  if (!activity) {
+  if (
+    !activity
+  ) {
 
     return;
 
@@ -4559,7 +4917,8 @@ function updateActivity(
 
 
   if (
-    field === "type"
+    field ===
+    "type"
   ) {
 
     activity.resource =
@@ -4586,7 +4945,9 @@ function renderActivityBuilder() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -4594,7 +4955,8 @@ function renderActivityBuilder() {
 
 
   if (
-    temporaryActivities.length === 0
+    temporaryActivities.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -4646,7 +5008,8 @@ function renderActivityBuilder() {
 
 
       if (
-        activity.type === "Link"
+        activity.type ===
+        "Link"
       ) {
 
         resourceField = `
@@ -4663,7 +5026,6 @@ function renderActivityBuilder() {
               Link de referência
             </label>
 
-
             <input
               type="url"
               value="${escapeHTML(
@@ -4678,7 +5040,8 @@ function renderActivityBuilder() {
         `;
 
       } else if (
-        activity.type === "Arquivo"
+        activity.type ===
+        "Arquivo"
       ) {
 
         resourceField = `
@@ -4694,7 +5057,6 @@ function renderActivityBuilder() {
             <label>
               Nome / orientação do material
             </label>
-
 
             <input
               type="text"
@@ -4725,7 +5087,6 @@ function renderActivityBuilder() {
               Orientação complementar
             </label>
 
-
             <textarea
               rows="3"
               placeholder="Opcional..."
@@ -4746,10 +5107,7 @@ function renderActivityBuilder() {
         <div class="activity-builder-header">
 
           <strong>
-
-            Atividade
-            ${index + 1}
-
+            Atividade ${index + 1}
           </strong>
 
 
@@ -4774,7 +5132,6 @@ function renderActivityBuilder() {
               Título
             </label>
 
-
             <input
               type="text"
               value="${escapeHTML(
@@ -4793,7 +5150,6 @@ function renderActivityBuilder() {
               Descrição
             </label>
 
-
             <textarea
               rows="3"
               placeholder="Explique o que o colaborador deve fazer..."
@@ -4811,7 +5167,6 @@ function renderActivityBuilder() {
               Tipo
             </label>
 
-
             <select
               data-activity-type="${activity.temporaryId}"
             >
@@ -4819,7 +5174,8 @@ function renderActivityBuilder() {
               <option
                 value="Texto"
                 ${
-                  activity.type === "Texto"
+                  activity.type ===
+                  "Texto"
                     ? "selected"
                     : ""
                 }
@@ -4831,7 +5187,8 @@ function renderActivityBuilder() {
               <option
                 value="Arquivo"
                 ${
-                  activity.type === "Arquivo"
+                  activity.type ===
+                  "Arquivo"
                     ? "selected"
                     : ""
                 }
@@ -4843,7 +5200,8 @@ function renderActivityBuilder() {
               <option
                 value="Link"
                 ${
-                  activity.type === "Link"
+                  activity.type ===
+                  "Link"
                     ? "selected"
                     : ""
                 }
@@ -4970,7 +5328,8 @@ function validateTemporaryActivities() {
 
   for (
     let index = 0;
-    index < temporaryActivities.length;
+    index <
+    temporaryActivities.length;
     index++
   ) {
 
@@ -5023,7 +5382,8 @@ function validateTemporaryActivities() {
 
 
     if (
-      activity.type === "Link"
+      activity.type ===
+      "Link"
     ) {
 
       const link =
@@ -5034,7 +5394,9 @@ function validateTemporaryActivities() {
         ).trim();
 
 
-      if (!link) {
+      if (
+        !link
+      ) {
 
         return {
 
@@ -5088,13 +5450,6 @@ function validateTemporaryActivities() {
 // ==========================================================
 // CRIAR CURSO
 // ==========================================================
-//
-// Já chamado pelo:
-// onsubmit="createCourse(event)"
-//
-// Não adicionamos outro listener.
-//
-// ==========================================================
 
 async function createCourse(
   event
@@ -5143,13 +5498,14 @@ async function createCourse(
       "Informe o link do curso externo."
     );
 
-
     return;
 
   }
 
 
-  if (external) {
+  if (
+    external
+  ) {
 
     try {
 
@@ -5163,7 +5519,6 @@ async function createCourse(
         "Informe um link externo válido."
       );
 
-
       return;
 
     }
@@ -5171,16 +5526,18 @@ async function createCourse(
   }
 
 
-  if (!external) {
+  if (
+    !external
+  ) {
 
     if (
-      temporaryActivities.length === 0
+      temporaryActivities.length ===
+      0
     ) {
 
       alert(
         "Adicione pelo menos uma atividade ao curso interno."
       );
-
 
       return;
 
@@ -5191,12 +5548,13 @@ async function createCourse(
       validateTemporaryActivities();
 
 
-    if (!validation.valid) {
+    if (
+      !validation.valid
+    ) {
 
       alert(
         validation.message
       );
-
 
       return;
 
@@ -5359,7 +5717,9 @@ async function createCourse(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -5392,7 +5752,9 @@ async function createCourse(
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao criar treinamento:",
@@ -5443,12 +5805,13 @@ function openCourseDetails(
     );
 
 
-  if (!course) {
+  if (
+    !course
+  ) {
 
     alert(
       "Treinamento não encontrado."
     );
-
 
     return;
 
@@ -5489,7 +5852,8 @@ function openCourseDetails(
 
 
             ${
-              course.activities.length === 0
+              course.activities.length ===
+              0
 
                 ? `
 
@@ -5515,6 +5879,7 @@ function openCourseDetails(
                           <strong>
 
                             ${index + 1}.
+
                             ${escapeHTML(
                               activity.titulo
                               ||
@@ -5748,7 +6113,9 @@ function prepareCourseRemoval(
     null;
 
 
-  if (!coursePendingRemoval) {
+  if (
+    !coursePendingRemoval
+  ) {
 
     return;
 
@@ -5775,7 +6142,9 @@ document
     "click",
     async event => {
 
-      if (!coursePendingRemoval) {
+      if (
+        !coursePendingRemoval
+      ) {
 
         return;
 
@@ -5837,7 +6206,9 @@ document
           );
 
 
-        if (!response.ok) {
+        if (
+          !response.ok
+        ) {
 
           throw new Error(
             result.error
@@ -5870,7 +6241,9 @@ document
         );
 
 
-      } catch (error) {
+      } catch (
+        error
+      ) {
 
         console.error(
           "Erro ao remover treinamento:",
@@ -5900,6 +6273,31 @@ document
 
 
 // ==========================================================
+// CANCELAR REMOÇÃO
+// ==========================================================
+
+document
+  .getElementById(
+    "cancelDeleteButton"
+  )
+  ?.addEventListener(
+    "click",
+    () => {
+
+      coursePendingRemoval =
+        null;
+
+
+      closeModal(
+        "confirmationModal"
+      );
+
+    }
+  );
+
+
+
+// ==========================================================
 // CURSOS NO DASHBOARD
 // ==========================================================
 
@@ -5911,7 +6309,9 @@ function renderDashboardCourses() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -5935,7 +6335,8 @@ function renderDashboardCourses() {
 
 
   if (
-    latest.length === 0
+    latest.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -6032,19 +6433,11 @@ function renderDashboardCourses() {
 // AVALIAÇÕES
 // ==========================================================
 // ==========================================================
-//
-// ROTA CORRETA:
-//
-// GET /api/treinamentos/admin/avaliacoes
-//
-// O backend retorna:
-//
-// {
-//   inscricao,
-//   usuario,
-//   curso
-// }
-//
+
+// ==========================================================
+// ==========================================================
+// AVALIAÇÕES
+// ==========================================================
 // ==========================================================
 
 function mapApiEvaluation(
@@ -6122,7 +6515,8 @@ function mapApiEvaluation(
       "",
 
     external:
-      course.curso_externo === true,
+      course.curso_externo ===
+      true,
 
     status:
       enrollment.status
@@ -6154,7 +6548,9 @@ async function loadEvaluations() {
     );
 
 
-  if (container) {
+  if (
+    container
+  ) {
 
     container.innerHTML = `
 
@@ -6207,7 +6603,9 @@ async function loadEvaluations() {
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -6242,7 +6640,9 @@ async function loadEvaluations() {
     updateDashboardCounters();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao carregar avaliações:",
@@ -6250,7 +6650,8 @@ async function loadEvaluations() {
     );
 
 
-    evaluations = [];
+    evaluations =
+      [];
 
 
     renderEvaluations();
@@ -6274,7 +6675,7 @@ async function loadEvaluations() {
 
 
 // ==========================================================
-// RENDERIZAR FILA DE AVALIAÇÕES
+// RENDERIZAR AVALIAÇÕES
 // ==========================================================
 
 function renderEvaluations() {
@@ -6285,7 +6686,9 @@ function renderEvaluations() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -6297,7 +6700,8 @@ function renderEvaluations() {
 
 
   if (
-    evaluations.length === 0
+    evaluations.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -6502,7 +6906,9 @@ function renderDashboardEvaluations() {
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -6514,7 +6920,8 @@ function renderDashboardEvaluations() {
 
 
   if (
-    evaluations.length === 0
+    evaluations.length ===
+    0
   ) {
 
     container.innerHTML = `
@@ -6604,16 +7011,7 @@ function renderDashboardEvaluations() {
 
 
 // ==========================================================
-// ==========================================================
 // ABRIR AVALIAÇÃO
-// ==========================================================
-// ==========================================================
-//
-// Aqui buscamos os detalhes completos.
-//
-// GET
-// /api/treinamentos/admin/avaliacoes/:inscricaoId
-//
 // ==========================================================
 
 async function openEvaluationModal(
@@ -6626,7 +7024,9 @@ async function openEvaluationModal(
     );
 
 
-  if (!container) {
+  if (
+    !container
+  ) {
 
     return;
 
@@ -6687,7 +7087,9 @@ async function openEvaluationModal(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -6740,7 +7142,9 @@ async function openEvaluationModal(
     renderEvaluationModal();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao abrir avaliação:",
@@ -6802,12 +7206,14 @@ function getEvaluationActivity(
 
 
 // ==========================================================
-// RENDERIZAR MODAL DE AVALIAÇÃO
+// RENDERIZAR MODAL
 // ==========================================================
 
 function renderEvaluationModal() {
 
-  if (!currentEvaluation) {
+  if (
+    !currentEvaluation
+  ) {
 
     return;
 
@@ -6817,7 +7223,8 @@ function renderEvaluationModal() {
   if (
     currentEvaluation
       .course
-      ?.curso_externo === true
+      ?.curso_externo ===
+    true
   ) {
 
     renderExternalEvaluationModal();
@@ -6835,9 +7242,7 @@ function renderEvaluationModal() {
 
 
 // ==========================================================
-// ==========================================================
 // CURSO INTERNO
-// ==========================================================
 // ==========================================================
 
 function renderInternalEvaluationModal() {
@@ -6925,11 +7330,13 @@ function renderInternalEvaluationModal() {
       <div class="evaluation-profile-info">
 
         <strong>
+
           ${escapeHTML(
             user.nome
             ||
             "Colaborador"
           )}
+
         </strong>
 
 
@@ -6965,11 +7372,13 @@ function renderInternalEvaluationModal() {
         </span>
 
         <strong>
+
           ${escapeHTML(
             course.titulo
             ||
             "-"
           )}
+
         </strong>
 
       </div>
@@ -7001,11 +7410,13 @@ function renderInternalEvaluationModal() {
         </span>
 
         <strong>
+
           ${escapeHTML(
             course.setor_responsavel
             ||
             "-"
           )}
+
         </strong>
 
       </div>
@@ -7018,9 +7429,11 @@ function renderInternalEvaluationModal() {
         </span>
 
         <strong>
+
           ${formatDateTime(
             enrollment.enviado_em
           )}
+
         </strong>
 
       </div>
@@ -7069,7 +7482,6 @@ function renderInternalEvaluationModal() {
       <label>
         Observação geral
       </label>
-
 
       <textarea
         id="evaluationGeneralObservation"
@@ -7202,7 +7614,6 @@ function createEvaluationActivityHTML(
 
         <i class="fa-solid fa-link"></i>
 
-
         <a
           href="${escapeHTML(
             delivery.resposta_link
@@ -7234,15 +7645,15 @@ function createEvaluationActivityHTML(
 
         <i class="fa-solid fa-file"></i>
 
-
         <span>
+
           ${escapeHTML(
             delivery.arquivo_nome
             ||
             "Arquivo enviado"
           )}
-        </span>
 
+        </span>
 
         <a
           href="${escapeHTML(
@@ -7251,9 +7662,7 @@ function createEvaluationActivityHTML(
           target="_blank"
           rel="noopener noreferrer"
         >
-
           Abrir arquivo
-
         </a>
 
       </div>
@@ -7263,14 +7672,14 @@ function createEvaluationActivityHTML(
   }
 
 
-  if (!responseHTML) {
+  if (
+    !responseHTML
+  ) {
 
     responseHTML = `
 
       <div class="submission-text">
-
         Nenhum conteúdo disponível.
-
       </div>
 
     `;
@@ -7283,11 +7692,18 @@ function createEvaluationActivityHTML(
     <article
       class="
         submission-item
+
         ${
-          delivery.status === "ok"
+          delivery.status ===
+          "ok"
+
             ? "approved"
-            : delivery.status === "nao_ok"
+
+            : delivery.status ===
+              "nao_ok"
+
               ? "rejected"
+
               : ""
         }
       "
@@ -7301,6 +7717,7 @@ function createEvaluationActivityHTML(
           <strong>
 
             ${index + 1}.
+
             ${escapeHTML(
               activity.titulo
               ||
@@ -7311,11 +7728,13 @@ function createEvaluationActivityHTML(
 
 
           <p>
+
             ${escapeHTML(
               activity.descricao
               ||
               ""
             )}
+
           </p>
 
         </div>
@@ -7351,8 +7770,10 @@ function createEvaluationActivityHTML(
             class="
               activity-review-button
               ok
+
               ${
-                delivery.status === "ok"
+                delivery.status ===
+                "ok"
                   ? "selected"
                   : ""
               }
@@ -7373,8 +7794,10 @@ function createEvaluationActivityHTML(
             class="
               activity-review-button
               not-ok
+
               ${
-                delivery.status === "nao_ok"
+                delivery.status ===
+                "nao_ok"
                   ? "selected"
                   : ""
               }
@@ -7417,7 +7840,7 @@ function createEvaluationActivityHTML(
 
 
 // ==========================================================
-// EVENTOS DE AVALIAÇÃO DAS ATIVIDADES
+// EVENTOS DAS ATIVIDADES
 // ==========================================================
 
 function configureEvaluationActivityEvents() {
@@ -7456,7 +7879,9 @@ function configureEvaluationActivityEvents() {
                 );
 
 
-            if (!delivery) {
+            if (
+              !delivery
+            ) {
 
               return;
 
@@ -7502,7 +7927,8 @@ function configureEvaluationActivityEvents() {
 
 
             if (
-              status === "ok"
+              status ===
+              "ok"
             ) {
 
               card
@@ -7556,7 +7982,9 @@ function configureEvaluationActivityEvents() {
                 );
 
 
-            if (delivery) {
+            if (
+              delivery
+            ) {
 
               delivery.observacao_admin =
                 textarea.value;
@@ -7574,7 +8002,7 @@ function configureEvaluationActivityEvents() {
 
 
 // ==========================================================
-// SALVAR AVALIAÇÃO DE UMA ATIVIDADE
+// SALVAR AVALIAÇÃO DA ATIVIDADE
 // ==========================================================
 
 async function saveDeliveryEvaluation(
@@ -7632,7 +8060,9 @@ async function saveDeliveryEvaluation(
     );
 
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
 
     throw new Error(
       result.error
@@ -7658,7 +8088,9 @@ async function finishInternalEvaluation(
   button
 ) {
 
-  if (!currentEvaluation) {
+  if (
+    !currentEvaluation
+  ) {
 
     return;
 
@@ -7670,13 +8102,13 @@ async function finishInternalEvaluation(
 
 
   if (
-    deliveries.length === 0
+    deliveries.length ===
+    0
   ) {
 
     alert(
       "Não existem atividades para avaliar."
     );
-
 
     return;
 
@@ -7685,7 +8117,8 @@ async function finishInternalEvaluation(
 
   for (
     let index = 0;
-    index < deliveries.length;
+    index <
+    deliveries.length;
     index++
   ) {
 
@@ -7708,14 +8141,14 @@ async function finishInternalEvaluation(
         `Avalie a atividade ${index + 1} como OK ou Não OK.`
       );
 
-
       return;
 
     }
 
 
     if (
-      delivery.status === "nao_ok"
+      delivery.status ===
+      "nao_ok"
       &&
       !String(
         delivery.observacao_admin
@@ -7727,7 +8160,6 @@ async function finishInternalEvaluation(
       alert(
         `Informe o motivo do "Não OK" na atividade ${index + 1}.`
       );
-
 
       return;
 
@@ -7745,7 +8177,8 @@ async function finishInternalEvaluation(
 
 
   if (
-    finalStatus === "aprovado"
+    finalStatus ===
+    "aprovado"
     &&
     hasRejected
   ) {
@@ -7754,7 +8187,6 @@ async function finishInternalEvaluation(
       'Todas as atividades precisam estar marcadas como "OK" para aprovar o treinamento.'
     );
 
-
     return;
 
   }
@@ -7762,7 +8194,7 @@ async function finishInternalEvaluation(
 
   if (
     finalStatus ===
-      "correcao_solicitada"
+    "correcao_solicitada"
     &&
     !hasRejected
   ) {
@@ -7770,7 +8202,6 @@ async function finishInternalEvaluation(
     alert(
       'Marque pelo menos uma atividade como "Não OK" para solicitar correção.'
     );
-
 
     return;
 
@@ -7790,7 +8221,7 @@ async function finishInternalEvaluation(
 
   if (
     finalStatus ===
-      "correcao_solicitada"
+    "correcao_solicitada"
     &&
     !observation
   ) {
@@ -7798,7 +8229,6 @@ async function finishInternalEvaluation(
     alert(
       "Informe uma orientação geral para o colaborador."
     );
-
 
     return;
 
@@ -7825,7 +8255,7 @@ async function finishInternalEvaluation(
   try {
 
     // ======================================================
-    // 1. SALVAR CADA ATIVIDADE
+    // SALVAR TODAS AS ATIVIDADES
     // ======================================================
 
     for (
@@ -7841,7 +8271,7 @@ async function finishInternalEvaluation(
 
 
     // ======================================================
-    // 2. SALVAR DECISÃO DO CURSO
+    // FINALIZAR A INSCRIÇÃO
     // ======================================================
 
     const response =
@@ -7889,7 +8319,9 @@ async function finishInternalEvaluation(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -7909,16 +8341,13 @@ async function finishInternalEvaluation(
       null;
 
 
-    // Depois da decisão, não está mais
-    // aguardando_avaliacao.
-    //
-    // Portanto desaparece automaticamente da fila.
     await loadEvaluations();
 
 
     showGlobalMessage(
 
-      finalStatus === "aprovado"
+      finalStatus ===
+      "aprovado"
 
         ? "Treinamento aprovado com sucesso."
 
@@ -7929,7 +8358,9 @@ async function finishInternalEvaluation(
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao concluir avaliação:",
@@ -8037,11 +8468,13 @@ function renderExternalEvaluationModal() {
       <div class="evaluation-profile-info">
 
         <strong>
+
           ${escapeHTML(
             user.nome
             ||
             "Colaborador"
           )}
+
         </strong>
 
 
@@ -8077,11 +8510,13 @@ function renderExternalEvaluationModal() {
         </span>
 
         <strong>
+
           ${escapeHTML(
             course.titulo
             ||
             "-"
           )}
+
         </strong>
 
       </div>
@@ -8113,11 +8548,13 @@ function renderExternalEvaluationModal() {
         </span>
 
         <strong>
+
           ${escapeHTML(
             course.setor_responsavel
             ||
             "-"
           )}
+
         </strong>
 
       </div>
@@ -8130,9 +8567,11 @@ function renderExternalEvaluationModal() {
         </span>
 
         <strong>
+
           ${formatDateTime(
             enrollment.enviado_em
           )}
+
         </strong>
 
       </div>
@@ -8145,7 +8584,6 @@ function renderExternalEvaluationModal() {
       <h4>
         Certificado enviado
       </h4>
-
 
       <p>
         Confira o documento antes de aprovar o treinamento.
@@ -8163,11 +8601,13 @@ function renderExternalEvaluationModal() {
 
 
                 <span>
+
                   ${escapeHTML(
                     certificate.arquivo_nome
                     ||
                     "Certificado"
                   )}
+
                 </span>
 
 
@@ -8216,7 +8656,6 @@ function renderExternalEvaluationModal() {
       <label>
         Observação
       </label>
-
 
       <textarea
         id="externalEvaluationObservation"
@@ -8305,7 +8744,9 @@ async function finishExternalEvaluation(
   button
 ) {
 
-  if (!currentEvaluation) {
+  if (
+    !currentEvaluation
+  ) {
 
     return;
 
@@ -8325,7 +8766,7 @@ async function finishExternalEvaluation(
 
   if (
     status ===
-      "correcao_solicitada"
+    "correcao_solicitada"
     &&
     !observation
   ) {
@@ -8333,7 +8774,6 @@ async function finishExternalEvaluation(
     alert(
       "Informe o motivo para solicitar um novo certificado."
     );
-
 
     return;
 
@@ -8403,7 +8843,9 @@ async function finishExternalEvaluation(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -8428,7 +8870,8 @@ async function finishExternalEvaluation(
 
     showGlobalMessage(
 
-      status === "aprovado"
+      status ===
+      "aprovado"
 
         ? "Curso externo aprovado com sucesso."
 
@@ -8439,7 +8882,9 @@ async function finishExternalEvaluation(
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao avaliar curso externo:",
@@ -8468,15 +8913,7 @@ async function finishExternalEvaluation(
 
 
 // ==========================================================
-// ==========================================================
 // PUBLICAR CERTIFICADO INTERNO
-// ==========================================================
-//
-// A rota que criamos recebe multipart/form-data.
-//
-// POST
-// /api/treinamentos/admin/avaliacoes/:inscricaoId/certificado
-//
 // ==========================================================
 
 async function publishCertificate(
@@ -8485,12 +8922,13 @@ async function publishCertificate(
   button = null
 ) {
 
-  if (!file) {
+  if (
+    !file
+  ) {
 
     alert(
       "Selecione o certificado."
     );
-
 
     return;
 
@@ -8513,7 +8951,9 @@ async function publishCertificate(
       : null;
 
 
-  if (button) {
+  if (
+    button
+  ) {
 
     button.disabled =
       true;
@@ -8567,7 +9007,9 @@ async function publishCertificate(
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       throw new Error(
         result.error
@@ -8586,7 +9028,9 @@ async function publishCertificate(
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
       "Erro ao publicar certificado:",
@@ -8601,7 +9045,9 @@ async function publishCertificate(
 
   } finally {
 
-    if (button) {
+    if (
+      button
+    ) {
 
       button.disabled =
         false;
@@ -8619,7 +9065,7 @@ async function publishCertificate(
 
 
 // ==========================================================
-// BOTÃO ATUALIZAR AVALIAÇÕES
+// ATUALIZAR AVALIAÇÕES
 // ==========================================================
 
 document
@@ -8629,6 +9075,2775 @@ document
   ?.addEventListener(
     "click",
     loadEvaluations
+  );
+
+
+
+// ==========================================================
+// ==========================================================
+// FEEDBACKS
+// ==========================================================
+// ==========================================================
+//
+// FLUXO 1:
+//
+// COLABORADOR
+//     ↓
+// solicita feedback
+//     ↓
+// ADMIN recebe
+//     ↓
+// responde
+//
+//
+// FLUXO 2:
+//
+// ADMIN
+//     ↓
+// envia feedback
+//     ↓
+// COLABORADOR recebe
+//     ↓
+// responde ou marca como ciente
+//
+// ==========================================================
+
+
+
+// ==========================================================
+// TIPO
+// ==========================================================
+
+function getFeedbackTypeLabel(
+  type
+) {
+
+  const labels = {
+
+    positivo:
+      "Positivo",
+
+    desenvolvimento:
+      "Desenvolvimento",
+
+    atencao:
+      "Atenção",
+
+    solicitacao:
+      "Solicitação"
+
+  };
+
+
+  return labels[
+    type
+  ]
+  ||
+  "Feedback";
+
+}
+
+
+
+// ==========================================================
+// CLASSE DO TIPO
+// ==========================================================
+
+function getFeedbackTypeClass(
+  type
+) {
+
+  const classes = {
+
+    positivo:
+      "positive",
+
+    desenvolvimento:
+      "development",
+
+    atencao:
+      "attention",
+
+    solicitacao:
+      "request"
+
+  };
+
+
+  return classes[
+    type
+  ]
+  ||
+  "development";
+
+}
+
+
+
+// ==========================================================
+// ÍCONE DO TIPO
+// ==========================================================
+
+function getFeedbackTypeIcon(
+  type
+) {
+
+  const icons = {
+
+    positivo:
+      "fa-thumbs-up",
+
+    desenvolvimento:
+      "fa-chart-line",
+
+    atencao:
+      "fa-triangle-exclamation",
+
+    solicitacao:
+      "fa-comment-dots"
+
+  };
+
+
+  return icons[
+    type
+  ]
+  ||
+  "fa-comments";
+
+}
+
+
+
+// ==========================================================
+// ASSUNTO
+// ==========================================================
+
+function getFeedbackSubjectLabel(
+  subject
+) {
+
+  const labels = {
+
+    desempenho_geral:
+      "Desempenho geral",
+
+    desempenho_tecnico:
+      "Desempenho técnico",
+
+    comunicacao:
+      "Comunicação",
+
+    organizacao:
+      "Organização",
+
+    produtividade:
+      "Produtividade",
+
+    relacionamento:
+      "Relacionamento",
+
+    desenvolvimento_profissional:
+      "Desenvolvimento profissional",
+
+    outro:
+      "Outro"
+
+  };
+
+
+  return labels[
+    subject
+  ]
+  ||
+  "Feedback";
+
+}
+
+
+
+// ==========================================================
+// STATUS
+// ==========================================================
+
+function getFeedbackStatusLabel(
+  status
+) {
+
+  const labels = {
+
+    pendente:
+      "Pendente",
+
+    visualizado:
+      "Visualizado",
+
+    aguardando_resposta:
+      "Aguardando resposta",
+
+    respondido:
+      "Respondido",
+
+    ciente:
+      "Ciente"
+
+  };
+
+
+  return labels[
+    status
+  ]
+  ||
+  status
+  ||
+  "-";
+
+}
+
+
+
+// ==========================================================
+// CLASSE DO STATUS
+// ==========================================================
+
+function getFeedbackStatusClass(
+  status
+) {
+
+  const classes = {
+
+    pendente:
+      "pending",
+
+    visualizado:
+      "viewed",
+
+    aguardando_resposta:
+      "waiting",
+
+    respondido:
+      "answered",
+
+    ciente:
+      "acknowledged"
+
+  };
+
+
+  return classes[
+    status
+  ]
+  ||
+  "viewed";
+
+}
+
+
+
+// ==========================================================
+// CARREGAR FEEDBACKS DO ADMIN
+// ==========================================================
+
+async function loadFeedbacksAdmin() {
+
+  const requestsList =
+    document.getElementById(
+      "feedbackRequestsList"
+    );
+
+
+  const sentList =
+    document.getElementById(
+      "feedbackSentList"
+    );
+
+
+  const loadingHTML = `
+
+    <div class="loading-state">
+
+      <i class="fa-solid fa-spinner fa-spin"></i>
+
+      <span>
+        Carregando feedbacks...
+      </span>
+
+    </div>
+
+  `;
+
+
+  if (
+    requestsList
+  ) {
+
+    requestsList.innerHTML =
+      loadingHTML;
+
+  }
+
+
+  if (
+    sentList
+  ) {
+
+    sentList.innerHTML =
+      loadingHTML;
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/feedbacks/admin",
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        result.error
+        ||
+        result.details
+        ||
+        "Não foi possível carregar os feedbacks."
+      );
+
+    }
+
+
+    const all =
+      Array.isArray(
+        result
+      )
+        ? result
+        : [];
+
+
+    feedbackRequests =
+      all.filter(
+        feedback =>
+          feedback.iniciado_por ===
+          "colaborador"
+      );
+
+
+    sentFeedbacks =
+      all.filter(
+        feedback =>
+          feedback.iniciado_por ===
+          "admin"
+      );
+
+
+    renderFeedbackAdmin();
+
+
+    updateFeedbackCounters();
+
+
+    updateDashboardCounters();
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao carregar feedbacks:",
+      error
+    );
+
+
+    feedbackRequests =
+      [];
+
+
+    sentFeedbacks =
+      [];
+
+
+    renderFeedbackAdmin();
+
+
+    updateFeedbackCounters();
+
+
+    updateDashboardCounters();
+
+
+    showGlobalMessage(
+      error.message,
+      "error"
+    );
+
+  }
+
+}
+
+
+
+// ==========================================================
+// CARREGAR COLABORADORES PARA FEEDBACK
+// ==========================================================
+
+async function loadFeedbackEmployees() {
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/feedbacks/admin/colaboradores",
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return false;
+
+    }
+
+
+    const result =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        result.error
+        ||
+        "Não foi possível carregar os colaboradores."
+      );
+
+    }
+
+
+    feedbackEmployees =
+      Array.isArray(
+        result
+      )
+        ? result
+        : [];
+
+
+    populateFeedbackEmployeeSelect();
+
+
+    return true;
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao carregar colaboradores para feedback:",
+      error
+    );
+
+
+    feedbackEmployees =
+      [];
+
+
+    populateFeedbackEmployeeSelect();
+
+
+    showGlobalMessage(
+      error.message,
+      "error"
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// PREENCHER SELECT
+// ==========================================================
+
+function populateFeedbackEmployeeSelect() {
+
+  const select =
+    document.getElementById(
+      "feedbackEmployee"
+    );
+
+
+  if (
+    !select
+  ) {
+
+    return;
+
+  }
+
+
+  select.innerHTML = `
+
+    <option value="">
+      Selecione um colaborador
+    </option>
+
+  `;
+
+
+  feedbackEmployees.forEach(
+    employee => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        employee.id;
+
+
+      option.textContent =
+        `${employee.nome} • ${employee.cargo || "Colaborador"}`;
+
+
+      select.appendChild(
+        option
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// ABAS
+// ==========================================================
+
+function switchFeedbackAdminTab(
+  tab
+) {
+
+  activeFeedbackAdminTab =
+    tab;
+
+
+  document
+    .querySelectorAll(
+      "[data-feedback-admin-tab]"
+    )
+    .forEach(
+      button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.feedbackAdminTab ===
+          tab
+        );
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "feedbackRequestsContent"
+    )
+    ?.classList
+    .toggle(
+      "active",
+      tab ===
+      "requests"
+    );
+
+
+  document
+    .getElementById(
+      "feedbackSentContent"
+    )
+    ?.classList
+    .toggle(
+      "active",
+      tab ===
+      "sent"
+    );
+
+
+  renderFeedbackAdmin();
+
+}
+
+
+
+// ==========================================================
+// EVENTOS DAS ABAS
+// ==========================================================
+
+document
+  .querySelectorAll(
+    "[data-feedback-admin-tab]"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          switchFeedbackAdminTab(
+            button.dataset.feedbackAdminTab
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+
+// ==========================================================
+// FILTRO
+// ==========================================================
+
+function getFilteredAdminFeedbacks(
+  list
+) {
+
+  const search =
+    document
+      .getElementById(
+        "feedbackAdminSearch"
+      )
+      ?.value
+      ?.trim()
+      ?.toLowerCase()
+    ||
+    "";
+
+
+  const status =
+    document
+      .getElementById(
+        "feedbackAdminStatusFilter"
+      )
+      ?.value
+    ||
+    "";
+
+
+  return list.filter(
+    feedback => {
+
+      if (
+        status
+        &&
+        feedback.status !==
+        status
+      ) {
+
+        return false;
+
+      }
+
+
+      if (
+        !search
+      ) {
+
+        return true;
+
+      }
+
+
+      return [
+
+        feedback.titulo,
+
+        feedback.mensagem,
+
+        feedback.resposta,
+
+        feedback.colaborador
+          ?.nome,
+
+        feedback.colaborador
+          ?.cargo,
+
+        getFeedbackSubjectLabel(
+          feedback.assunto
+        ),
+
+        getFeedbackTypeLabel(
+          feedback.tipo
+        )
+
+      ]
+        .join(
+          " "
+        )
+        .toLowerCase()
+        .includes(
+          search
+        );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// FILTROS
+// ==========================================================
+
+document
+  .getElementById(
+    "feedbackAdminSearch"
+  )
+  ?.addEventListener(
+    "input",
+    renderFeedbackAdmin
+  );
+
+
+document
+  .getElementById(
+    "feedbackAdminStatusFilter"
+  )
+  ?.addEventListener(
+    "change",
+    renderFeedbackAdmin
+  );
+
+
+
+// ==========================================================
+// RENDER PRINCIPAL
+// ==========================================================
+
+function renderFeedbackAdmin() {
+
+  renderFeedbackRequests();
+
+
+  renderSentFeedbacks();
+
+}
+
+
+
+// ==========================================================
+// SOLICITAÇÕES RECEBIDAS
+// ==========================================================
+
+function renderFeedbackRequests() {
+
+  const container =
+    document.getElementById(
+      "feedbackRequestsList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  const filtered =
+    getFilteredAdminFeedbacks(
+      feedbackRequests
+    );
+
+
+  if (
+    filtered.length ===
+    0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-inbox"></i>
+
+        <strong>
+          Nenhuma solicitação encontrada
+        </strong>
+
+        <span>
+          Quando um colaborador solicitar um feedback, o pedido aparecerá aqui.
+        </span>
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  filtered.forEach(
+    feedback => {
+
+      container.appendChild(
+        createAdminFeedbackCard(
+          feedback,
+          true
+        )
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// FEEDBACKS ENVIADOS
+// ==========================================================
+
+function renderSentFeedbacks() {
+
+  const container =
+    document.getElementById(
+      "feedbackSentList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  const filtered =
+    getFilteredAdminFeedbacks(
+      sentFeedbacks
+    );
+
+
+  if (
+    filtered.length ===
+    0
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-paper-plane"></i>
+
+        <strong>
+          Nenhum feedback enviado
+        </strong>
+
+        <span>
+          Os feedbacks enviados por você aparecerão aqui.
+        </span>
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  filtered.forEach(
+    feedback => {
+
+      container.appendChild(
+        createAdminFeedbackCard(
+          feedback,
+          false
+        )
+      );
+
+    }
+  );
+
+}
+
+
+
+// ==========================================================
+// CARD DE FEEDBACK
+// ==========================================================
+
+function createAdminFeedbackCard(
+  feedback,
+  isRequest
+) {
+
+  const card =
+    document.createElement(
+      "article"
+    );
+
+
+  card.className =
+    "feedback-admin-card";
+
+
+  if (
+    isRequest
+    &&
+    !feedback.visualizado_em
+  ) {
+
+    card.classList.add(
+      "unread"
+    );
+
+  }
+
+
+  const employee =
+    feedback.colaborador
+    ||
+    {};
+
+
+  const type =
+    isRequest
+      ? "solicitacao"
+      : feedback.tipo;
+
+
+  const typeClass =
+    getFeedbackTypeClass(
+      type
+    );
+
+
+  card.innerHTML = `
+
+    <div class="feedback-admin-avatar">
+
+      ${escapeHTML(
+        getInitials(
+          employee.nome
+        )
+      )}
+
+    </div>
+
+
+    <div class="feedback-admin-card-content">
+
+      <div class="feedback-admin-card-top">
+
+        <h3>
+
+          ${escapeHTML(
+            feedback.titulo
+            ||
+            "Feedback"
+          )}
+
+        </h3>
+
+
+        ${
+          isRequest
+
+            ? `
+
+                <span class="feedback-subject-badge">
+
+                  ${escapeHTML(
+                    getFeedbackSubjectLabel(
+                      feedback.assunto
+                    )
+                  )}
+
+                </span>
+
+              `
+
+            : `
+
+                <span
+                  class="
+                    feedback-type-badge
+                    ${typeClass}
+                  "
+                >
+
+                  ${escapeHTML(
+                    getFeedbackTypeLabel(
+                      feedback.tipo
+                    )
+                  )}
+
+                </span>
+
+              `
+        }
+
+
+        <span
+          class="
+            status-badge
+            ${getFeedbackStatusClass(
+              feedback.status
+            )}
+          "
+        >
+
+          ${escapeHTML(
+            getFeedbackStatusLabel(
+              feedback.status
+            )
+          )}
+
+        </span>
+
+      </div>
+
+
+      <p class="feedback-admin-card-description">
+
+        ${escapeHTML(
+          truncateText(
+            feedback.mensagem,
+            180
+          )
+        )}
+
+      </p>
+
+
+      <div class="feedback-admin-card-meta">
+
+        <span>
+
+          <i class="fa-solid fa-user"></i>
+
+          ${escapeHTML(
+            employee.nome
+            ||
+            "Colaborador"
+          )}
+
+        </span>
+
+
+        <span>
+
+          <i class="fa-solid fa-briefcase"></i>
+
+          ${escapeHTML(
+            employee.cargo
+            ||
+            "-"
+          )}
+
+        </span>
+
+
+        <span>
+
+          <i class="fa-regular fa-calendar"></i>
+
+          ${formatDateTime(
+            feedback.created_at
+          )}
+
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="feedback-admin-card-actions">
+
+      <button
+        type="button"
+        class="secondary-button"
+        data-admin-feedback-open="${feedback.id}"
+      >
+
+        <i class="fa-regular fa-eye"></i>
+
+        Ver detalhes
+
+      </button>
+
+    </div>
+
+  `;
+
+
+  card
+    .querySelector(
+      `[data-admin-feedback-open="${feedback.id}"]`
+    )
+    .addEventListener(
+      "click",
+      () => {
+
+        if (
+          isRequest
+        ) {
+
+          openFeedbackRequestDetails(
+            feedback.id
+          );
+
+        } else {
+
+          openSentFeedbackDetails(
+            feedback.id
+          );
+
+        }
+
+      }
+    );
+
+
+  return card;
+
+}
+
+
+
+// ==========================================================
+// CONTADORES
+// ==========================================================
+
+function updateFeedbackCounters() {
+
+  const pendingRequests =
+    feedbackRequests.filter(
+      feedback =>
+        [
+          "pendente",
+          "visualizado"
+        ].includes(
+          feedback.status
+        )
+    ).length;
+
+
+  const waitingEmployee =
+    sentFeedbacks.filter(
+      feedback =>
+        feedback.status ===
+        "aguardando_resposta"
+    ).length;
+
+
+  const answered =
+    [
+      ...feedbackRequests,
+      ...sentFeedbacks
+    ]
+      .filter(
+        feedback =>
+          [
+            "respondido",
+            "ciente"
+          ].includes(
+            feedback.status
+          )
+      )
+      .length;
+
+
+  setCounterValue(
+    "feedbackPendingRequestsCount",
+    pendingRequests
+  );
+
+
+  setCounterValue(
+    "feedbackWaitingEmployeeCount",
+    waitingEmployee
+  );
+
+
+  setCounterValue(
+    "feedbackAnsweredCount",
+    answered
+  );
+
+
+  setCounterValue(
+    "feedbackRequestsTabCounter",
+    feedbackRequests.length
+  );
+
+
+  setCounterValue(
+    "feedbackSentTabCounter",
+    sentFeedbacks.length
+  );
+
+
+  setCounterValue(
+    "feedbackMenuCounter",
+    pendingRequests
+  );
+
+
+  setCounterValue(
+    "dashboardFeedbacks",
+    pendingRequests
+  );
+
+}
+
+
+
+// ==========================================================
+// NOVO FEEDBACK
+// ==========================================================
+
+async function openNewFeedbackModal() {
+
+  const form =
+    document.getElementById(
+      "newFeedbackForm"
+    );
+
+
+  if (
+    form
+  ) {
+
+    form.reset();
+
+  }
+
+
+  const select =
+    document.getElementById(
+      "feedbackEmployee"
+    );
+
+
+  if (
+    select
+  ) {
+
+    select.innerHTML = `
+
+      <option value="">
+        Carregando colaboradores...
+      </option>
+
+    `;
+
+  }
+
+
+  openModal(
+    "newFeedbackModal"
+  );
+
+
+  await loadFeedbackEmployees();
+
+}
+
+
+
+// ==========================================================
+// BOTÃO NOVO FEEDBACK
+// ==========================================================
+
+document
+  .getElementById(
+    "newFeedbackButton"
+  )
+  ?.addEventListener(
+    "click",
+    openNewFeedbackModal
+  );
+
+
+
+// ==========================================================
+// ENVIAR NOVO FEEDBACK
+// ==========================================================
+
+document
+  .getElementById(
+    "newFeedbackForm"
+  )
+  ?.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      const button =
+        document.getElementById(
+          "submitNewFeedbackButton"
+        );
+
+
+      if (
+        button.disabled
+      ) {
+
+        return;
+
+      }
+
+
+      const payload = {
+
+        colaborador_id:
+          document.getElementById(
+            "feedbackEmployee"
+          ).value,
+
+        tipo:
+          document.getElementById(
+            "feedbackType"
+          ).value,
+
+        titulo:
+          document
+            .getElementById(
+              "feedbackTitle"
+            )
+            .value
+            .trim(),
+
+        mensagem:
+          document
+            .getElementById(
+              "feedbackMessage"
+            )
+            .value
+            .trim(),
+
+        exige_resposta:
+          document.getElementById(
+            "feedbackRequiresResponse"
+          ).checked
+
+      };
+
+
+      if (
+        !payload.colaborador_id
+        ||
+        !payload.tipo
+        ||
+        !payload.titulo
+        ||
+        !payload.mensagem
+      ) {
+
+        alert(
+          "Preencha todos os campos obrigatórios."
+        );
+
+        return;
+
+      }
+
+
+      const original =
+        button.innerHTML;
+
+
+      button.disabled =
+        true;
+
+
+      button.innerHTML = `
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        Enviando...
+
+      `;
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/feedbacks/admin",
+            {
+
+              method:
+                "POST",
+
+              headers:
+                getAuthHeaders(
+                  true
+                ),
+
+              body:
+                JSON.stringify(
+                  payload
+                )
+
+            }
+          );
+
+
+        if (
+          handleUnauthorized(
+            response
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        const result =
+          await getResponseData(
+            response
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            result.error
+            ||
+            result.details
+            ||
+            "Não foi possível enviar o feedback."
+          );
+
+        }
+
+
+        closeModal(
+          "newFeedbackModal"
+        );
+
+
+        await loadFeedbacksAdmin();
+
+
+        switchFeedbackAdminTab(
+          "sent"
+        );
+
+
+        showGlobalMessage(
+          result.message
+          ||
+          "Feedback enviado com sucesso.",
+          "success"
+        );
+
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+          "Erro ao enviar feedback:",
+          error
+        );
+
+
+        alert(
+          error.message
+        );
+
+
+      } finally {
+
+        button.disabled =
+          false;
+
+
+        button.innerHTML =
+          original;
+
+      }
+
+    }
+  );
+
+
+
+// ==========================================================
+// DETALHES DA SOLICITAÇÃO
+// ==========================================================
+
+async function openFeedbackRequestDetails(
+  feedbackId
+) {
+
+  const container =
+    document.getElementById(
+      "feedbackRequestDetailsContent"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="loading-state">
+
+      <i class="fa-solid fa-spinner fa-spin"></i>
+
+      <span>
+        Carregando solicitação...
+      </span>
+
+    </div>
+
+  `;
+
+
+  openModal(
+    "feedbackRequestDetailsModal"
+  );
+
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/feedbacks/admin/${feedbackId}`,
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const feedback =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        feedback.error
+        ||
+        "Não foi possível abrir a solicitação."
+      );
+
+    }
+
+
+    currentFeedback =
+      feedback;
+
+
+    updateAdminFeedbackLocal(
+      feedback
+    );
+
+
+    updateFeedbackCounters();
+
+
+    renderFeedbackAdmin();
+
+
+    renderFeedbackRequestDetails(
+      feedback
+    );
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao abrir solicitação de feedback:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-triangle-exclamation"></i>
+
+        <strong>
+          Não foi possível abrir a solicitação
+        </strong>
+
+        <span>
+          ${escapeHTML(
+            error.message
+          )}
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// RENDER DA SOLICITAÇÃO
+// ==========================================================
+
+function renderFeedbackRequestDetails(
+  feedback
+) {
+
+  const container =
+    document.getElementById(
+      "feedbackRequestDetailsContent"
+    );
+
+
+  const employee =
+    feedback.colaborador
+    ||
+    {};
+
+
+  let responseHTML =
+    "";
+
+
+  let actions =
+    "";
+
+
+  if (
+    feedback.resposta
+  ) {
+
+    responseHTML = `
+
+      <div class="feedback-response-box">
+
+        <span>
+          Sua resposta
+        </span>
+
+        <p>
+
+          ${escapeHTML(
+            feedback.resposta
+          )}
+
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    [
+      "pendente",
+      "visualizado"
+    ].includes(
+      feedback.status
+    )
+  ) {
+
+    actions = `
+
+      <div class="feedback-detail-actions">
+
+        <button
+          type="button"
+          class="primary-button"
+          id="answerCurrentFeedbackRequestButton"
+        >
+
+          <i class="fa-solid fa-reply"></i>
+
+          Responder solicitação
+
+        </button>
+
+      </div>
+
+    `;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="feedback-detail-header">
+
+      <div class="feedback-detail-type">
+
+        <span class="feedback-subject-badge">
+
+          ${escapeHTML(
+            getFeedbackSubjectLabel(
+              feedback.assunto
+            )
+          )}
+
+        </span>
+
+      </div>
+
+
+      <h2>
+
+        ${escapeHTML(
+          feedback.titulo
+          ||
+          "Solicitação de feedback"
+        )}
+
+      </h2>
+
+    </div>
+
+
+    <div class="feedback-detail-profile">
+
+      <div class="feedback-detail-profile-avatar">
+
+        ${escapeHTML(
+          getInitials(
+            employee.nome
+          )
+        )}
+
+      </div>
+
+
+      <div class="feedback-detail-profile-info">
+
+        <strong>
+
+          ${escapeHTML(
+            employee.nome
+            ||
+            "Colaborador"
+          )}
+
+        </strong>
+
+        <span>
+
+          ${escapeHTML(
+            employee.cargo
+            ||
+            ""
+          )}
+
+          •
+
+          ${escapeHTML(
+            employee.setor
+            ||
+            ""
+          )}
+
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="feedback-detail-meta">
+
+      <span>
+
+        <i class="fa-regular fa-calendar"></i>
+
+        ${formatDateTime(
+          feedback.created_at
+        )}
+
+      </span>
+
+
+      <span
+        class="
+          status-badge
+          ${getFeedbackStatusClass(
+            feedback.status
+          )}
+        "
+      >
+
+        ${escapeHTML(
+          getFeedbackStatusLabel(
+            feedback.status
+          )
+        )}
+
+      </span>
+
+    </div>
+
+
+    <div
+      class="feedback-message-box"
+      style="margin-top:14px;"
+    >
+
+      <span>
+        Solicitação do colaborador
+      </span>
+
+      <p>
+
+        ${escapeHTML(
+          feedback.mensagem
+          ||
+          ""
+        )}
+
+      </p>
+
+    </div>
+
+
+    ${responseHTML}
+
+
+    ${actions}
+
+  `;
+
+
+  document
+    .getElementById(
+      "answerCurrentFeedbackRequestButton"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+
+        openAnswerFeedbackRequestModal(
+          feedback
+        );
+
+      }
+    );
+
+}
+
+
+
+// ==========================================================
+// MODAL DE RESPOSTA
+// ==========================================================
+
+function openAnswerFeedbackRequestModal(
+  feedback
+) {
+
+  const employee =
+    feedback.colaborador
+    ||
+    {};
+
+
+  document.getElementById(
+    "answerFeedbackRequestId"
+  ).value =
+    feedback.id;
+
+
+  document.getElementById(
+    "answerFeedbackRequestText"
+  ).value =
+    "";
+
+
+  const context =
+    document.getElementById(
+      "feedbackRequestContext"
+    );
+
+
+  if (
+    context
+  ) {
+
+    context.innerHTML = `
+
+      <strong>
+
+        ${escapeHTML(
+          employee.nome
+          ||
+          "Colaborador"
+        )}
+
+        •
+
+        ${escapeHTML(
+          getFeedbackSubjectLabel(
+            feedback.assunto
+          )
+        )}
+
+      </strong>
+
+
+      <p>
+
+        ${escapeHTML(
+          truncateText(
+            feedback.mensagem,
+            350
+          )
+        )}
+
+      </p>
+
+    `;
+
+  }
+
+
+  openModal(
+    "answerFeedbackRequestModal"
+  );
+
+}
+
+
+
+// ==========================================================
+// RESPONDER SOLICITAÇÃO
+// ==========================================================
+
+document
+  .getElementById(
+    "answerFeedbackRequestForm"
+  )
+  ?.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      const feedbackId =
+        document.getElementById(
+          "answerFeedbackRequestId"
+        ).value;
+
+
+      const answer =
+        document
+          .getElementById(
+            "answerFeedbackRequestText"
+          )
+          .value
+          .trim();
+
+
+      if (
+        !feedbackId
+        ||
+        !answer
+      ) {
+
+        alert(
+          "Informe a resposta do feedback."
+        );
+
+        return;
+
+      }
+
+
+      const button =
+        document.getElementById(
+          "submitFeedbackRequestAnswerButton"
+        );
+
+
+      if (
+        button.disabled
+      ) {
+
+        return;
+
+      }
+
+
+      const original =
+        button.innerHTML;
+
+
+      button.disabled =
+        true;
+
+
+      button.innerHTML = `
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        Enviando...
+
+      `;
+
+
+      try {
+
+        const response =
+          await fetch(
+            `/api/feedbacks/admin/${feedbackId}/responder`,
+            {
+
+              method:
+                "PATCH",
+
+              headers:
+                getAuthHeaders(
+                  true
+                ),
+
+              body:
+                JSON.stringify({
+
+                  resposta:
+                    answer
+
+                })
+
+            }
+          );
+
+
+        if (
+          handleUnauthorized(
+            response
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        const result =
+          await getResponseData(
+            response
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            result.error
+            ||
+            result.details
+            ||
+            "Não foi possível responder à solicitação."
+          );
+
+        }
+
+
+        closeModal(
+          "answerFeedbackRequestModal"
+        );
+
+
+        closeModal(
+          "feedbackRequestDetailsModal"
+        );
+
+
+        currentFeedback =
+          null;
+
+
+        await loadFeedbacksAdmin();
+
+
+        showGlobalMessage(
+          result.message
+          ||
+          "Solicitação respondida com sucesso.",
+          "success"
+        );
+
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+          "Erro ao responder solicitação de feedback:",
+          error
+        );
+
+
+        alert(
+          error.message
+        );
+
+
+      } finally {
+
+        button.disabled =
+          false;
+
+
+        button.innerHTML =
+          original;
+
+      }
+
+    }
+  );
+
+
+
+// ==========================================================
+// DETALHES DO FEEDBACK ENVIADO
+// ==========================================================
+
+async function openSentFeedbackDetails(
+  feedbackId
+) {
+
+  const container =
+    document.getElementById(
+      "sentFeedbackDetailsContent"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="loading-state">
+
+      <i class="fa-solid fa-spinner fa-spin"></i>
+
+      <span>
+        Carregando feedback...
+      </span>
+
+    </div>
+
+  `;
+
+
+  openModal(
+    "sentFeedbackDetailsModal"
+  );
+
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/feedbacks/admin/${feedbackId}`,
+        {
+
+          method:
+            "GET",
+
+          headers:
+            getAuthHeaders()
+
+        }
+      );
+
+
+    if (
+      handleUnauthorized(
+        response
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    const feedback =
+      await getResponseData(
+        response
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        feedback.error
+        ||
+        "Não foi possível abrir o feedback."
+      );
+
+    }
+
+
+    currentFeedback =
+      feedback;
+
+
+    updateAdminFeedbackLocal(
+      feedback
+    );
+
+
+    renderFeedbackAdmin();
+
+
+    updateFeedbackCounters();
+
+
+    renderSentFeedbackDetails(
+      feedback
+    );
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Erro ao abrir feedback enviado:",
+      error
+    );
+
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <i class="fa-solid fa-triangle-exclamation"></i>
+
+        <strong>
+          Não foi possível abrir o feedback
+        </strong>
+
+        <span>
+
+          ${escapeHTML(
+            error.message
+          )}
+
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+
+// ==========================================================
+// RENDER FEEDBACK ENVIADO
+// ==========================================================
+
+function renderSentFeedbackDetails(
+  feedback
+) {
+
+  const container =
+    document.getElementById(
+      "sentFeedbackDetailsContent"
+    );
+
+
+  const employee =
+    feedback.colaborador
+    ||
+    {};
+
+
+  const typeClass =
+    getFeedbackTypeClass(
+      feedback.tipo
+    );
+
+
+  let notice =
+    "";
+
+
+  if (
+    feedback.status ===
+    "aguardando_resposta"
+  ) {
+
+    notice = `
+
+      <div class="feedback-action-notice waiting">
+
+        <i class="fa-regular fa-clock"></i>
+
+        <span>
+          Este feedback está aguardando uma resposta do colaborador.
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    feedback.status ===
+    "respondido"
+  ) {
+
+    notice = `
+
+      <div class="feedback-action-notice success">
+
+        <i class="fa-solid fa-circle-check"></i>
+
+        <span>
+          O colaborador respondeu a este feedback.
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    feedback.status ===
+    "ciente"
+  ) {
+
+    notice = `
+
+      <div class="feedback-action-notice success">
+
+        <i class="fa-solid fa-check"></i>
+
+        <span>
+          O colaborador confirmou ciência deste feedback.
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="feedback-detail-header">
+
+      <div class="feedback-detail-type">
+
+        <span
+          class="
+            feedback-type-badge
+            ${typeClass}
+          "
+        >
+
+          ${escapeHTML(
+            getFeedbackTypeLabel(
+              feedback.tipo
+            )
+          )}
+
+        </span>
+
+      </div>
+
+
+      <h2>
+
+        ${escapeHTML(
+          feedback.titulo
+          ||
+          "Feedback"
+        )}
+
+      </h2>
+
+    </div>
+
+
+    <div class="feedback-detail-profile">
+
+      <div class="feedback-detail-profile-avatar">
+
+        ${escapeHTML(
+          getInitials(
+            employee.nome
+          )
+        )}
+
+      </div>
+
+
+      <div class="feedback-detail-profile-info">
+
+        <strong>
+
+          ${escapeHTML(
+            employee.nome
+            ||
+            "Colaborador"
+          )}
+
+        </strong>
+
+        <span>
+
+          ${escapeHTML(
+            employee.cargo
+            ||
+            ""
+          )}
+
+          •
+
+          ${escapeHTML(
+            employee.setor
+            ||
+            ""
+          )}
+
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="feedback-detail-meta">
+
+      <span>
+
+        <i class="fa-regular fa-calendar"></i>
+
+        ${formatDateTime(
+          feedback.created_at
+        )}
+
+      </span>
+
+
+      <span
+        class="
+          status-badge
+          ${getFeedbackStatusClass(
+            feedback.status
+          )}
+        "
+      >
+
+        ${escapeHTML(
+          getFeedbackStatusLabel(
+            feedback.status
+          )
+        )}
+
+      </span>
+
+    </div>
+
+
+    <div
+      class="feedback-message-box"
+      style="margin-top:14px;"
+    >
+
+      <span>
+        Feedback enviado
+      </span>
+
+      <p>
+
+        ${escapeHTML(
+          feedback.mensagem
+          ||
+          ""
+        )}
+
+      </p>
+
+    </div>
+
+
+    ${
+      feedback.resposta
+
+        ? `
+
+            <div class="employee-feedback-response">
+
+              <span>
+                Resposta do colaborador
+              </span>
+
+              <p>
+
+                ${escapeHTML(
+                  feedback.resposta
+                )}
+
+              </p>
+
+            </div>
+
+          `
+
+        : ""
+    }
+
+
+    ${notice}
+
+
+    <div class="feedback-requirement ${
+      feedback.exige_resposta
+        ? "required"
+        : "optional"
+    }">
+
+      <i class="fa-solid ${
+        feedback.exige_resposta
+          ? "fa-reply"
+          : "fa-check"
+      }"></i>
+
+
+      ${
+        feedback.exige_resposta
+          ? "Resposta do colaborador solicitada"
+          : "Apenas ciência do colaborador necessária"
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+
+// ==========================================================
+// ATUALIZAR FEEDBACK LOCAL
+// ==========================================================
+
+function updateAdminFeedbackLocal(
+  updated
+) {
+
+  feedbackRequests =
+    feedbackRequests.map(
+      feedback => {
+
+        if (
+          String(
+            feedback.id
+          )
+          ===
+          String(
+            updated.id
+          )
+        ) {
+
+          return {
+
+            ...feedback,
+
+            ...updated
+
+          };
+
+        }
+
+
+        return feedback;
+
+      }
+    );
+
+
+  sentFeedbacks =
+    sentFeedbacks.map(
+      feedback => {
+
+        if (
+          String(
+            feedback.id
+          )
+          ===
+          String(
+            updated.id
+          )
+        ) {
+
+          return {
+
+            ...feedback,
+
+            ...updated
+
+          };
+
+        }
+
+
+        return feedback;
+
+      }
+    );
+
+}
+
+
+
+// ==========================================================
+// ATUALIZAR FEEDBACKS
+// ==========================================================
+
+document
+  .getElementById(
+    "refreshFeedbackAdminButton"
+  )
+  ?.addEventListener(
+    "click",
+    loadFeedbacksAdmin
   );
 
 
@@ -8666,8 +11881,20 @@ function updateDashboardCounters() {
     vacationRequests.length;
 
 
+  const pendingFeedbacks =
+    feedbackRequests.filter(
+      feedback =>
+        [
+          "pendente",
+          "visualizado"
+        ].includes(
+          feedback.status
+        )
+    ).length;
+
+
   // ========================================================
-  // CARDS DO DASHBOARD
+  // DASHBOARD
   // ========================================================
 
   setCounterValue(
@@ -8694,6 +11921,12 @@ function updateDashboardCounters() {
   );
 
 
+  setCounterValue(
+    "dashboardFeedbacks",
+    pendingFeedbacks
+  );
+
+
   // ========================================================
   // SIDEBAR
   // ========================================================
@@ -8710,8 +11943,14 @@ function updateDashboardCounters() {
   );
 
 
+  setCounterValue(
+    "feedbackMenuCounter",
+    pendingFeedbacks
+  );
+
+
   // ========================================================
-  // PÁGINA DE FÉRIAS
+  // FÉRIAS
   // ========================================================
 
   setCounterValue(
@@ -8737,7 +11976,9 @@ function logout() {
     );
 
 
-  if (!confirmed) {
+  if (
+    !confirmed
+  ) {
 
     return;
 
@@ -8814,13 +12055,12 @@ async function initializeAdmin() {
 
 
   // ========================================================
-  // 5. CARREGAR INFORMAÇÕES
+  // 5. CARREGAR TODOS OS MÓDULOS
   // ========================================================
   //
-  // Promise.all permite carregar os quatro módulos
-  // paralelamente.
+  // Feedbacks agora entra junto aos demais módulos.
   //
-  // Cada função possui tratamento próprio de erro.
+  // Cada função trata seus próprios erros.
   //
   // ========================================================
 
@@ -8832,9 +12072,14 @@ async function initializeAdmin() {
 
     loadVacationRequests(),
 
-    loadEvaluations()
+    loadEvaluations(),
+
+    loadFeedbacksAdmin()
 
   ]);
+
+
+  updateFeedbackCounters();
 
 
   updateDashboardCounters();
@@ -8937,6 +12182,30 @@ window.openEvaluationModal =
 
 window.publishCertificate =
   publishCertificate;
+
+
+// ==========================================================
+// FEEDBACKS
+// ==========================================================
+
+window.openNewFeedbackModal =
+  openNewFeedbackModal;
+
+
+window.openFeedbackRequestDetails =
+  openFeedbackRequestDetails;
+
+
+window.openSentFeedbackDetails =
+  openSentFeedbackDetails;
+
+
+window.switchFeedbackAdminTab =
+  switchFeedbackAdminTab;
+
+
+window.loadFeedbacksAdmin =
+  loadFeedbacksAdmin;
 
 
 window.logout =

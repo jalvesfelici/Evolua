@@ -56,7 +56,11 @@ const PORT =
 // ==========================================================
 //
 // Necessário para receber dados enviados pelo frontend
-// através de POST, PUT e PATCH.
+// através de:
+//
+// POST
+// PUT
+// PATCH
 //
 // ==========================================================
 
@@ -77,7 +81,8 @@ app.use(
 // ├── login/
 // ├── admin/
 // ├── treinamentos/
-// └── ferias/
+// ├── ferias/
+// └── feedbacks/
 //
 // Dessa forma:
 //
@@ -85,8 +90,9 @@ app.use(
 // /admin/
 // /treinamentos/
 // /ferias/
+// /feedbacks/
 //
-// ficam disponíveis no navegador.
+// ficam disponíveis diretamente no navegador.
 //
 // ==========================================================
 
@@ -241,8 +247,6 @@ app.use(
 //
 // /api/treinamentos
 //
-// Exemplos:
-//
 // COLABORADOR:
 //
 // GET
@@ -292,6 +296,105 @@ const treinamentosRoutes =
 app.use(
   "/api/treinamentos",
   treinamentosRoutes
+);
+
+
+
+// ==========================================================
+// FEEDBACKS
+// ==========================================================
+//
+// Arquivo:
+//
+// routes/feedbacks.js
+//
+// Base:
+//
+// /api/feedbacks
+//
+//
+// ----------------------------------------------------------
+// COLABORADOR
+// ----------------------------------------------------------
+//
+// GET
+// /api/feedbacks
+//
+// Lista:
+// - feedbacks recebidos;
+// - solicitações feitas pelo colaborador.
+//
+//
+// GET
+// /api/feedbacks/:id
+//
+// Abre os detalhes de um feedback.
+//
+//
+// POST
+// /api/feedbacks/solicitacoes
+//
+// Cria uma solicitação de feedback.
+//
+//
+// PATCH
+// /api/feedbacks/:id/responder
+//
+// Responde um feedback enviado pelo Admin.
+//
+//
+// PATCH
+// /api/feedbacks/:id/ciente
+//
+// Marca um feedback ou resposta como ciente.
+//
+//
+// ----------------------------------------------------------
+// ADMIN
+// ----------------------------------------------------------
+//
+// GET
+// /api/feedbacks/admin
+//
+// Lista:
+// - solicitações recebidas;
+// - feedbacks enviados.
+//
+//
+// GET
+// /api/feedbacks/admin/colaboradores
+//
+// Lista colaboradores ativos do próprio setor.
+//
+//
+// POST
+// /api/feedbacks/admin
+//
+// Envia um novo feedback.
+//
+//
+// GET
+// /api/feedbacks/admin/:id
+//
+// Abre um feedback / solicitação.
+//
+//
+// PATCH
+// /api/feedbacks/admin/:id/responder
+//
+// Responde solicitação feita pelo colaborador.
+//
+// ==========================================================
+
+const feedbacksRoutes =
+  require(
+    "./routes/feedbacks"
+  );
+
+
+app.use(
+  "/api/feedbacks",
+  feedbacksRoutes
 );
 
 
@@ -405,6 +508,36 @@ app.get(
 
 
 // ==========================================================
+// FEEDBACKS
+// ==========================================================
+//
+// Quando criarmos:
+//
+// views/feedbacks/index.html
+//
+// teremos:
+//
+// http://localhost:3000/feedbacks/
+//
+// ==========================================================
+
+app.get(
+  "/feedbacks",
+  (
+    req,
+    res
+  ) => {
+
+    res.redirect(
+      "/feedbacks/"
+    );
+
+  }
+);
+
+
+
+// ==========================================================
 // STATUS DA API
 // ==========================================================
 //
@@ -442,7 +575,13 @@ app.get(
 //
 // IMPORTANTE:
 //
-// Precisa ficar DEPOIS de todas as rotas reais.
+// Precisa continuar DEPOIS de todas as APIs reais.
+//
+// Caso contrário:
+//
+// /api/feedbacks
+//
+// seria interceptado antes de chegar ao feedbacks.js.
 //
 // ==========================================================
 
@@ -473,11 +612,11 @@ app.use(
 //
 // Garante que erros inesperados retornem JSON.
 //
-// Isso evita erros no frontend como:
+// Evita problemas como:
 //
 // Unexpected token '<'
 //
-// quando response.json() recebe HTML.
+// quando o frontend espera JSON.
 //
 // ==========================================================
 
@@ -504,6 +643,7 @@ app.use(
       );
 
     }
+
 
 
     // ======================================================
@@ -554,9 +694,11 @@ app.listen(
       "=============================================="
     );
 
+
     console.log(
       "EVOLUA+ - Portal de Gestão de Carreira"
     );
+
 
     console.log(
       "=============================================="
@@ -589,6 +731,11 @@ app.listen(
 
 
     console.log(
+      `Feedbacks: http://localhost:${PORT}/feedbacks/`
+    );
+
+
+    console.log(
       "----------------------------------------------"
     );
 
@@ -615,6 +762,11 @@ app.listen(
 
     console.log(
       `API Treinamentos: http://localhost:${PORT}/api/treinamentos`
+    );
+
+
+    console.log(
+      `API Feedbacks: http://localhost:${PORT}/api/feedbacks`
     );
 
 

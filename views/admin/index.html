@@ -218,6 +218,32 @@
 
 
 
+      <!-- FEEDBACKS -->
+
+      <button
+        type="button"
+        class="menu-item"
+        data-page="feedbacks"
+      >
+
+        <i class="fa-solid fa-comments"></i>
+
+        <span>
+          Feedbacks
+        </span>
+
+
+        <span
+          class="menu-counter"
+          id="feedbackMenuCounter"
+        >
+          0
+        </span>
+
+      </button>
+
+
+
       <!-- DIVISOR -->
 
       <div class="menu-divider">
@@ -517,6 +543,37 @@
 
         </article>
 
+
+
+        <!-- FEEDBACKS -->
+
+        <article class="summary-card">
+
+          <div class="summary-icon purple">
+
+            <i class="fa-solid fa-comments"></i>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Feedbacks
+            </span>
+
+            <strong id="dashboardFeedbacks">
+              0
+            </strong>
+
+            <small>
+              Solicitações pendentes
+            </small>
+
+          </div>
+
+        </article>
+
       </div>
 
 
@@ -784,6 +841,37 @@
 
           </button>
 
+
+
+          <!-- FEEDBACKS -->
+
+          <button
+            type="button"
+            class="quick-action"
+            onclick="changePage('feedbacks')"
+          >
+
+            <div class="quick-icon purple">
+
+              <i class="fa-solid fa-comments"></i>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Gerenciar feedbacks
+              </strong>
+
+              <span>
+                Responder solicitações e enviar feedbacks
+              </span>
+
+            </div>
+
+          </button>
+
         </div>
 
       </section>
@@ -846,10 +934,6 @@
     >
 
 
-      <!-- =================================================
-           TOOLBAR
-      ================================================== -->
-
       <div class="section-toolbar">
 
 
@@ -869,9 +953,6 @@
 
         <div class="toolbar-user-actions">
 
-
-          <!-- NOVO ADMIN -->
-
           <button
             type="button"
             class="outline-button toolbar-button"
@@ -884,9 +965,6 @@
 
           </button>
 
-
-
-          <!-- NOVO FUNCIONÁRIO -->
 
           <button
             type="button"
@@ -905,10 +983,6 @@
       </div>
 
 
-
-      <!-- =================================================
-           TABELA
-      ================================================== -->
 
       <section class="panel">
 
@@ -1012,10 +1086,6 @@
     >
 
 
-      <!-- =================================================
-           RESUMO DE FÉRIAS
-      ================================================== -->
-
       <div class="vacation-admin-summary">
 
         <article class="mini-summary-card">
@@ -1046,10 +1116,6 @@
       </div>
 
 
-
-      <!-- =================================================
-           SOLICITAÇÕES
-      ================================================== -->
 
       <section class="panel">
 
@@ -1118,10 +1184,6 @@
     >
 
 
-      <!-- =================================================
-           TOOLBAR
-      ================================================== -->
-
       <div class="section-toolbar">
 
 
@@ -1170,10 +1232,6 @@
 
 
 
-      <!-- =================================================
-           INFORMAÇÃO
-      ================================================== -->
-
       <div class="information-banner">
 
         <i class="fa-solid fa-circle-info"></i>
@@ -1195,10 +1253,6 @@
 
 
 
-      <!-- =================================================
-           GRID
-      ================================================== -->
-
       <div
         class="admin-training-grid"
         id="adminTrainingGrid"
@@ -1218,9 +1272,7 @@
 
     </section>
 
-
-
-    <!-- =====================================================
+        <!-- =====================================================
          =====================================================
          AVALIAÇÕES
          =====================================================
@@ -1232,11 +1284,7 @@
     >
 
 
-      <!-- =================================================
-           CABEÇALHO
-      ================================================== -->
-
-      <div class="evaluation-page-header">
+      <div class="section-toolbar">
 
         <div>
 
@@ -1245,7 +1293,7 @@
           </h2>
 
           <p>
-            Você recebe aqui todas as conclusões de cursos cujo setor responsável seja o seu.
+            Analise os treinamentos concluídos e enviados para o seu setor.
           </p>
 
         </div>
@@ -1267,10 +1315,6 @@
 
 
 
-      <!-- =================================================
-           AVISO
-      ================================================== -->
-
       <div class="information-banner">
 
         <i class="fa-solid fa-circle-info"></i>
@@ -1279,11 +1323,11 @@
         <div>
 
           <strong>
-            Quem aparece nesta fila?
+            Regra das avaliações
           </strong>
 
           <span>
-            O setor do colaborador não importa. A avaliação é enviada ao setor responsável pelo treinamento.
+            Você recebe avaliações de qualquer colaborador que tenha concluído um curso cujo setor responsável seja o seu.
           </span>
 
         </div>
@@ -1291,10 +1335,6 @@
       </div>
 
 
-
-      <!-- =================================================
-           LISTA
-      ================================================== -->
 
       <div
         class="evaluation-list"
@@ -1315,6 +1355,359 @@
 
     </section>
 
+
+
+    <!-- =====================================================
+         =====================================================
+         FEEDBACKS
+         =====================================================
+    ====================================================== -->
+
+    <section
+      class="page-section"
+      id="feedbacksPage"
+    >
+
+
+      <!-- =================================================
+           RESUMO
+      ================================================== -->
+
+      <div class="feedback-admin-summary">
+
+
+        <!-- SOLICITAÇÕES PENDENTES -->
+
+        <article class="mini-summary-card">
+
+          <span>
+            Solicitações pendentes
+          </span>
+
+          <strong id="feedbackPendingRequestsCount">
+            0
+          </strong>
+
+        </article>
+
+
+
+        <!-- AGUARDANDO COLABORADOR -->
+
+        <article class="mini-summary-card">
+
+          <span>
+            Aguardando colaborador
+          </span>
+
+          <strong id="feedbackWaitingEmployeeCount">
+            0
+          </strong>
+
+        </article>
+
+
+
+        <!-- RESPONDIDOS -->
+
+        <article class="mini-summary-card">
+
+          <span>
+            Respondidos
+          </span>
+
+          <strong id="feedbackAnsweredCount">
+            0
+          </strong>
+
+        </article>
+
+
+
+        <!-- SETOR -->
+
+        <article class="mini-summary-card">
+
+          <span>
+            Setor responsável
+          </span>
+
+          <strong id="feedbackAdminSector">
+            -
+          </strong>
+
+        </article>
+
+      </div>
+
+
+
+      <!-- =================================================
+           PAINEL PRINCIPAL
+      ================================================== -->
+
+      <section class="panel">
+
+
+        <!-- ===============================================
+             CABEÇALHO
+        ================================================ -->
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>
+              Feedbacks
+            </h2>
+
+            <p>
+              Responda solicitações dos colaboradores e envie novos feedbacks para sua equipe.
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="primary-button"
+            id="newFeedbackButton"
+          >
+
+            <i class="fa-solid fa-plus"></i>
+
+            Novo feedback
+
+          </button>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             ABAS
+        ================================================ -->
+
+        <div class="feedback-admin-tabs">
+
+
+          <!-- SOLICITAÇÕES RECEBIDAS -->
+
+          <button
+            type="button"
+            class="feedback-admin-tab active"
+            data-feedback-admin-tab="requests"
+            id="feedbackRequestsTabButton"
+          >
+
+            <i class="fa-solid fa-inbox"></i>
+
+            Solicitações recebidas
+
+
+            <span
+              class="tab-counter"
+              id="feedbackRequestsTabCounter"
+            >
+              0
+            </span>
+
+          </button>
+
+
+
+          <!-- FEEDBACKS ENVIADOS -->
+
+          <button
+            type="button"
+            class="feedback-admin-tab"
+            data-feedback-admin-tab="sent"
+            id="feedbackSentTabButton"
+          >
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            Feedbacks enviados
+
+
+            <span
+              class="tab-counter"
+              id="feedbackSentTabCounter"
+            >
+              0
+            </span>
+
+          </button>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             TOOLBAR
+        ================================================ -->
+
+        <div class="feedback-admin-toolbar">
+
+
+          <div class="search-box">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+              type="text"
+              id="feedbackAdminSearch"
+              placeholder="Pesquisar feedback..."
+            >
+
+          </div>
+
+
+
+          <select id="feedbackAdminStatusFilter">
+
+            <option value="">
+              Todos os status
+            </option>
+
+            <option value="pendente">
+              Pendente
+            </option>
+
+            <option value="visualizado">
+              Visualizado
+            </option>
+
+            <option value="aguardando_resposta">
+              Aguardando resposta
+            </option>
+
+            <option value="respondido">
+              Respondido
+            </option>
+
+            <option value="ciente">
+              Ciente
+            </option>
+
+          </select>
+
+
+
+          <button
+            type="button"
+            class="outline-button"
+            id="refreshFeedbackAdminButton"
+          >
+
+            <i class="fa-solid fa-rotate"></i>
+
+            Atualizar
+
+          </button>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             CONTEÚDO - SOLICITAÇÕES RECEBIDAS
+        ================================================ -->
+
+        <div
+          class="feedback-admin-tab-content active"
+          id="feedbackRequestsContent"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <h3>
+                Solicitações recebidas
+              </h3>
+
+              <p>
+                Pedidos de feedback feitos pelos colaboradores do seu setor.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="feedback-admin-list"
+            id="feedbackRequestsList"
+          >
+
+            <div class="loading-state">
+
+              <i class="fa-solid fa-spinner fa-spin"></i>
+
+              <span>
+                Carregando solicitações...
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             CONTEÚDO - FEEDBACKS ENVIADOS
+        ================================================ -->
+
+        <div
+          class="feedback-admin-tab-content"
+          id="feedbackSentContent"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <h3>
+                Feedbacks enviados
+              </h3>
+
+              <p>
+                Histórico dos feedbacks enviados aos colaboradores do seu setor.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="feedback-admin-list"
+            id="feedbackSentList"
+          >
+
+            <div class="loading-state">
+
+              <i class="fa-solid fa-spinner fa-spin"></i>
+
+              <span>
+                Carregando feedbacks...
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </section>
+
+
+
   </main>
 
 
@@ -1330,49 +1723,49 @@
     id="employeeModal"
   >
 
-    <div class="modal large-modal">
+    <div class="modal standard-modal">
+
+
+      <!-- FECHAR -->
+
+      <button
+        type="button"
+        class="close-modal"
+        onclick="closeModal('employeeModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
 
 
       <!-- CABEÇALHO -->
 
       <div class="modal-header">
 
-        <div class="modal-title">
+        <div class="modal-title-icon">
 
-          <div class="modal-icon">
-
-            <i
-              class="fa-solid fa-user-plus"
-              id="employeeModalIcon"
-            ></i>
-
-          </div>
-
-
-          <div>
-
-            <h2 id="employeeModalTitle">
-              Novo funcionário
-            </h2>
-
-            <p id="employeeModalDescription">
-              Cadastre um colaborador.
-            </p>
-
-          </div>
+          <i
+            class="fa-solid fa-user-plus"
+            id="employeeModalIcon"
+          ></i>
 
         </div>
 
 
-        <button
-          type="button"
-          class="close-button"
-          onclick="closeModal('employeeModal')"
-        >
+        <div>
 
-          <i class="fa-solid fa-xmark"></i>
+          <h2 id="employeeModalTitle">
+            Novo funcionário
+          </h2>
 
-        </button>
+
+          <p id="employeeModalDescription">
+            Cadastre um colaborador para o seu próprio setor.
+          </p>
+
+        </div>
 
       </div>
 
@@ -1385,148 +1778,138 @@
         onsubmit="createEmployee(event)"
       >
 
-        <div class="form-grid">
 
+        <!-- PERFIL -->
 
-          <!-- NOME -->
-
-          <div class="form-group full">
-
-            <label>
-              Nome completo
-            </label>
-
-            <input
-              type="text"
-              id="employeeName"
-              required
-            >
-
-          </div>
+        <input
+          type="hidden"
+          id="employeeProfile"
+          value="colaborador"
+        >
 
 
 
-          <!-- MATRÍCULA -->
+        <!-- NOME -->
 
-          <div class="form-group">
+        <div class="form-group">
 
-            <label>
-              Matrícula
-            </label>
-
-            <input
-              type="text"
-              id="employeeRegistration"
-              placeholder="Ex.: 20260001"
-              required
-            >
-
-          </div>
+          <label for="employeeName">
+            Nome completo
+          </label>
 
 
-
-          <!-- EMAIL -->
-
-          <div class="form-group">
-
-            <label>
-              E-mail
-            </label>
-
-            <input
-              type="email"
-              id="employeeEmail"
-              placeholder="usuario@empresa.com"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- CARGO -->
-
-          <div class="form-group">
-
-            <label>
-              Cargo
-            </label>
-
-            <input
-              type="text"
-              id="employeeRole"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- SETOR -->
-
-          <div class="form-group">
-
-            <label>
-              Setor
-            </label>
-
-            <select
-              id="employeeSector"
-              required
-            >
-            </select>
-
-          </div>
-
-
-
-          <!-- PERFIL -->
-
-          <div class="form-group">
-
-            <label>
-              Perfil
-            </label>
-
-            <select
-              id="employeeProfile"
-              disabled
-            >
-
-              <option value="colaborador">
-                Colaborador
-              </option>
-
-              <option value="admin_setor">
-                Administrador de setor
-              </option>
-
-            </select>
-
-          </div>
-
-
-
-          <!-- SENHA -->
-
-          <div class="form-group full">
-
-            <label>
-              Senha inicial
-            </label>
-
-            <input
-              type="password"
-              id="employeePassword"
-              placeholder="Mínimo 6 caracteres"
-              required
-            >
-
-          </div>
+          <input
+            type="text"
+            id="employeeName"
+            placeholder="Digite o nome completo"
+            required
+          >
 
         </div>
 
 
+
+        <!-- MATRÍCULA -->
+
+        <div class="form-group">
+
+          <label for="employeeRegistration">
+            Matrícula
+          </label>
+
+
+          <input
+            type="text"
+            id="employeeRegistration"
+            placeholder="Ex.: 000123"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- EMAIL -->
+
+        <div class="form-group">
+
+          <label for="employeeEmail">
+            E-mail
+          </label>
+
+
+          <input
+            type="email"
+            id="employeeEmail"
+            placeholder="nome@empresa.com"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- SENHA -->
+
+        <div class="form-group">
+
+          <label for="employeePassword">
+            Senha inicial
+          </label>
+
+
+          <input
+            type="password"
+            id="employeePassword"
+            placeholder="Defina a senha inicial"
+            minlength="6"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- CARGO -->
+
+        <div class="form-group">
+
+          <label for="employeeRole">
+            Cargo
+          </label>
+
+
+          <input
+            type="text"
+            id="employeeRole"
+            placeholder="Ex.: Desenvolvedor Júnior"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- SETOR -->
+
+        <div class="form-group">
+
+          <label for="employeeSector">
+            Setor
+          </label>
+
+
+          <select
+            id="employeeSector"
+            required
+          >
+          </select>
+
+        </div>
+
+
+
+        <!-- AÇÕES -->
 
         <div class="modal-actions">
 
@@ -1545,9 +1928,9 @@
             id="employeeSubmitButton"
           >
 
-            <span id="employeeSubmitText">
-              Criar usuário
-            </span>
+            <i class="fa-solid fa-check"></i>
+
+            Criar usuário
 
           </button>
 
@@ -1563,7 +1946,7 @@
 
   <!-- =====================================================
        =====================================================
-       MODAL - PERÍODO DE FÉRIAS
+       MODAL - CONFIGURAR PERÍODO DE FÉRIAS
        =====================================================
   ====================================================== -->
 
@@ -1573,6 +1956,7 @@
   >
 
     <div class="modal standard-modal">
+
 
       <button
         type="button"
@@ -1598,14 +1982,29 @@
         <div>
 
           <h2>
-            Período de férias
+            Configurar férias
           </h2>
 
-          <p id="vacationEmployeeName">
-            Configure o período aquisitivo do colaborador.
+
+          <p>
+            Defina o período aquisitivo e os dados atuais do colaborador.
           </p>
 
         </div>
+
+      </div>
+
+
+
+      <div class="employee-modal-highlight">
+
+        <span>
+          Funcionário
+        </span>
+
+        <strong id="vacationEmployeeName">
+          -
+        </strong>
 
       </div>
 
@@ -1628,9 +2027,10 @@
 
           <div class="form-group">
 
-            <label>
+            <label for="vacationPeriodStart">
               Início do período aquisitivo
             </label>
+
 
             <input
               type="date"
@@ -1646,9 +2046,10 @@
 
           <div class="form-group">
 
-            <label>
+            <label for="vacationPeriodEnd">
               Fim do período aquisitivo
             </label>
+
 
             <input
               type="date"
@@ -1664,9 +2065,10 @@
 
           <div class="form-group">
 
-            <label>
+            <label for="vacationUsedDays">
               Dias já utilizados
             </label>
+
 
             <input
               type="number"
@@ -1685,9 +2087,10 @@
 
           <div class="form-group">
 
-            <label>
+            <label for="vacationExpirationDate">
               Data de vencimento
             </label>
+
 
             <input
               type="date"
@@ -1701,47 +2104,47 @@
 
 
 
-        <!-- RESUMO -->
+        <!-- PREVIEW -->
 
-        <div
-          class="vacation-period-preview"
-          id="vacationPeriodPreview"
-        >
+        <div class="vacation-preview-grid">
 
-          <div>
+
+          <div class="vacation-preview-card">
 
             <span>
-              Direito atual
+              Direito
             </span>
 
             <strong id="vacationPreviewRights">
-              -
+              0 dias
             </strong>
 
           </div>
 
 
-          <div>
+
+          <div class="vacation-preview-card">
 
             <span>
-              Saldo disponível
+              Saldo
             </span>
 
             <strong id="vacationPreviewBalance">
-              -
+              0 dias
             </strong>
 
           </div>
 
 
-          <div>
+
+          <div class="vacation-preview-card">
 
             <span>
               Status
             </span>
 
             <strong id="vacationPreviewStatus">
-              -
+              Aguardando dados
             </strong>
 
           </div>
@@ -1785,7 +2188,7 @@
 
   <!-- =====================================================
        =====================================================
-       MODAL - RESPONDER FÉRIAS
+       MODAL - DECISÃO DE FÉRIAS
        =====================================================
   ====================================================== -->
 
@@ -1794,7 +2197,8 @@
     id="vacationDecisionModal"
   >
 
-    <div class="modal standard-modal">
+    <div class="modal vacation-decision-modal">
+
 
       <button
         type="button"
@@ -1808,6 +2212,17 @@
 
 
       <div id="vacationDecisionContent">
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando solicitação...
+          </span>
+
+        </div>
+
       </div>
 
     </div>
@@ -1818,7 +2233,7 @@
 
   <!-- =====================================================
        =====================================================
-       MODAL - NOVO TREINAMENTO
+       MODAL - NOVO CURSO
        =====================================================
   ====================================================== -->
 
@@ -1828,6 +2243,7 @@
   >
 
     <div class="modal large-modal">
+
 
       <button
         type="button"
@@ -1841,10 +2257,6 @@
 
 
 
-      <!-- =================================================
-           CABEÇALHO
-      ================================================== -->
-
       <div class="modal-header">
 
         <div class="modal-title-icon">
@@ -1857,11 +2269,12 @@
         <div>
 
           <h2>
-            Criar treinamento
+            Novo treinamento
           </h2>
 
+
           <p>
-            Cadastre o curso, público e atividades.
+            Crie um treinamento interno ou cadastre um curso externo.
           </p>
 
         </div>
@@ -1876,278 +2289,287 @@
       >
 
 
-        <!-- =================================================
-             1. INFORMAÇÕES
-        ================================================== -->
+        <!-- TÍTULO -->
 
-        <div class="form-section">
+        <div class="form-group">
 
-          <div class="form-section-title">
-
-            <span>
-              1
-            </span>
-
-
-            <div>
-
-              <h3>
-                Informações do treinamento
-              </h3>
-
-              <p>
-                Dados principais que aparecerão para os colaboradores.
-              </p>
-
-            </div>
-
-          </div>
-
-
-
-          <div class="form-grid">
-
-
-            <!-- TÍTULO -->
-
-            <div class="form-group full">
-
-              <label>
-                Título do treinamento
-              </label>
-
-              <input
-                id="courseTitle"
-                type="text"
-                placeholder="Ex.: Excel Avançado"
-                required
-              >
-
-            </div>
-
-
-
-            <!-- DESCRIÇÃO -->
-
-            <div class="form-group full">
-
-              <label>
-                Descrição
-              </label>
-
-              <textarea
-                id="courseDescription"
-                rows="4"
-                placeholder="Descreva o objetivo do treinamento..."
-                required
-              ></textarea>
-
-            </div>
-
-
-
-            <!-- CARGA -->
-
-            <div class="form-group">
-
-              <label>
-                Carga horária
-              </label>
-
-
-              <div class="input-with-suffix">
-
-                <input
-                  id="courseHours"
-                  type="number"
-                  min="1"
-                  placeholder="8"
-                  required
-                >
-
-                <span>
-                  horas
-                </span>
-
-              </div>
-
-            </div>
-
-
-
-            <!-- ÁREA -->
-
-            <div class="form-group">
-
-              <label>
-                Área
-              </label>
-
-              <select
-                id="courseArea"
-                required
-              >
-
-                <option value="">
-                  Selecione
-                </option>
-
-                <option value="Tecnologia">
-                  Tecnologia
-                </option>
-
-                <option value="Desenvolvimento">
-                  Desenvolvimento
-                </option>
-
-                <option value="Comunicação">
-                  Comunicação
-                </option>
-
-                <option value="Liderança">
-                  Liderança
-                </option>
-
-                <option value="Compliance">
-                  Compliance
-                </option>
-
-                <option value="Financeiro">
-                  Financeiro
-                </option>
-
-                <option value="Logística">
-                  Logística
-                </option>
-
-                <option value="Administrativo">
-                  Administrativo
-                </option>
-
-                <option value="RH">
-                  RH
-                </option>
-
-                <option value="Marketing">
-                  Marketing
-                </option>
-
-                <option value="Operacional">
-                  Operacional
-                </option>
-
-              </select>
-
-            </div>
-
-
-
-            <!-- NÍVEL -->
-
-            <div class="form-group">
-
-              <label>
-                Nível
-              </label>
-
-              <select
-                id="courseLevel"
-                required
-              >
-
-                <option value="Básico">
-                  Básico
-                </option>
-
-                <option value="Intermediário">
-                  Intermediário
-                </option>
-
-                <option value="Avançado">
-                  Avançado
-                </option>
-
-              </select>
-
-            </div>
-
-
-
-            <!-- RESPONSÁVEL -->
-
-            <div class="form-group">
-
-              <label>
-                Setor responsável
-              </label>
-
-              <input
-                type="text"
-                id="courseResponsibleSector"
-                readonly
-              >
-
-              <small class="form-hint">
-                Definido automaticamente pelo seu setor.
-              </small>
-
-            </div>
-
-          </div>
-
-
-
-          <!-- CURSO EXTERNO -->
-
-          <label class="toggle-card">
-
-            <input
-              type="checkbox"
-              id="externalCourse"
-              onchange="toggleExternalCourse()"
-            >
-
-
-            <span class="toggle-switch">
-            </span>
-
-
-            <div>
-
-              <strong>
-                Curso externo
-              </strong>
-
-              <span>
-                O treinamento será realizado em outra plataforma.
-              </span>
-
-            </div>
-
+          <label for="courseTitle">
+            Título
           </label>
 
 
-
-          <!-- LINK -->
-
-          <div
-            class="external-link-area"
-            id="externalLinkArea"
+          <input
+            type="text"
+            id="courseTitle"
+            placeholder="Ex.: Segurança da Informação"
+            required
           >
 
-            <div class="form-group">
+        </div>
 
-              <label>
-                Link do curso externo
-              </label>
 
-              <input
-                type="url"
-                id="externalCourseLink"
-                placeholder="https://..."
-              >
 
-            </div>
+        <!-- DESCRIÇÃO -->
+
+        <div class="form-group">
+
+          <label for="courseDescription">
+            Descrição
+          </label>
+
+
+          <textarea
+            id="courseDescription"
+            rows="4"
+            placeholder="Descreva o objetivo e conteúdo do treinamento..."
+            required
+          ></textarea>
+
+        </div>
+
+
+
+        <!-- GRID -->
+
+        <div class="form-grid">
+
+
+          <!-- CARGA HORÁRIA -->
+
+          <div class="form-group">
+
+            <label for="courseHours">
+              Carga horária
+            </label>
+
+
+            <input
+              type="number"
+              id="courseHours"
+              min="1"
+              step="1"
+              placeholder="Ex.: 8"
+              required
+            >
+
+          </div>
+
+
+
+          <!-- ÁREA -->
+
+          <div class="form-group">
+
+            <label for="courseArea">
+              Área
+            </label>
+
+
+            <select
+              id="courseArea"
+              required
+            >
+
+              <option value="">
+                Selecione
+              </option>
+
+              <option value="Tecnologia">
+                Tecnologia
+              </option>
+
+              <option value="Desenvolvimento">
+                Desenvolvimento
+              </option>
+
+              <option value="Comunicação">
+                Comunicação
+              </option>
+
+              <option value="Compliance">
+                Compliance
+              </option>
+
+              <option value="Financeiro">
+                Financeiro
+              </option>
+
+              <option value="Logística">
+                Logística
+              </option>
+
+              <option value="Marketing">
+                Marketing
+              </option>
+
+              <option value="RH">
+                RH
+              </option>
+
+              <option value="Liderança">
+                Liderança
+              </option>
+
+              <option value="Outro">
+                Outro
+              </option>
+
+            </select>
+
+          </div>
+
+
+
+          <!-- NÍVEL -->
+
+          <div class="form-group">
+
+            <label for="courseLevel">
+              Nível
+            </label>
+
+
+            <select
+              id="courseLevel"
+              required
+            >
+
+              <option value="">
+                Selecione
+              </option>
+
+              <option value="Básico">
+                Básico
+              </option>
+
+              <option value="Intermediário">
+                Intermediário
+              </option>
+
+              <option value="Avançado">
+                Avançado
+              </option>
+
+            </select>
+
+          </div>
+
+
+
+          <!-- SETOR RESPONSÁVEL -->
+
+          <div class="form-group">
+
+            <label for="courseResponsibleSector">
+              Setor responsável
+            </label>
+
+
+            <input
+              type="text"
+              id="courseResponsibleSector"
+              readonly
+            >
+
+          </div>
+
+
+
+          <!-- SETOR DESTINO -->
+
+          <div class="form-group">
+
+            <label for="courseTargetSector">
+              Setor recomendado/obrigatório
+            </label>
+
+
+            <select
+              id="courseTargetSector"
+              required
+            >
+            </select>
+
+          </div>
+
+
+
+          <!-- CLASSIFICAÇÃO -->
+
+          <div class="form-group">
+
+            <label for="courseRequirement">
+              Classificação
+            </label>
+
+
+            <select
+              id="courseRequirement"
+              required
+            >
+
+              <option value="Recomendado">
+                Recomendado
+              </option>
+
+              <option value="Obrigatório">
+                Obrigatório
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- CURSO EXTERNO -->
+
+        <label class="checkbox-card">
+
+          <input
+            type="checkbox"
+            id="externalCourse"
+            onchange="toggleExternalCourse()"
+          >
+
+
+          <div>
+
+            <strong>
+              Curso externo
+            </strong>
+
+            <span>
+              O treinamento é realizado em outra plataforma.
+            </span>
+
+          </div>
+
+        </label>
+
+
+
+        <!-- LINK EXTERNO -->
+
+        <div
+          class="external-link-area"
+          id="externalLinkArea"
+        >
+
+          <div class="form-group">
+
+            <label for="externalCourseLink">
+              Link do curso externo
+            </label>
+
+
+            <input
+              type="url"
+              id="externalCourseLink"
+              placeholder="https://..."
+            >
 
           </div>
 
@@ -2156,115 +2578,25 @@
 
 
         <!-- =================================================
-             2. PÚBLICO
+             ATIVIDADES
         ================================================== -->
 
-        <div class="form-section">
+        <section
+          class="course-activities-section"
+          id="courseActivitiesSection"
+        >
 
-          <div class="form-section-title">
-
-            <span>
-              2
-            </span>
-
+          <div class="activity-section-header">
 
             <div>
 
               <h3>
-                Público do treinamento
+                Atividades
               </h3>
 
               <p>
-                Defina qual setor receberá o curso automaticamente.
+                Defina as atividades que o colaborador deverá realizar.
               </p>
-
-            </div>
-
-          </div>
-
-
-
-          <div class="form-grid">
-
-
-            <!-- SETOR DESTINO -->
-
-            <div class="form-group">
-
-              <label>
-                Setor de destino
-              </label>
-
-              <select
-                id="courseTargetSector"
-                required
-              >
-              </select>
-
-            </div>
-
-
-
-            <!-- CLASSIFICAÇÃO -->
-
-            <div class="form-group">
-
-              <label>
-                Classificação
-              </label>
-
-              <select
-                id="courseRequirement"
-                required
-              >
-
-                <option value="Obrigatório">
-                  Obrigatório
-                </option>
-
-                <option value="Recomendado">
-                  Recomendado
-                </option>
-
-              </select>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-
-        <!-- =================================================
-             3. ATIVIDADES
-        ================================================== -->
-
-        <div
-          class="form-section"
-          id="courseActivitiesSection"
-        >
-
-          <div class="form-section-title activity-section-heading">
-
-            <div class="number-title">
-
-              <span>
-                3
-              </span>
-
-
-              <div>
-
-                <h3>
-                  Atividades
-                </h3>
-
-                <p>
-                  Crie as atividades que o colaborador deverá entregar.
-                </p>
-
-              </div>
 
             </div>
 
@@ -2282,7 +2614,6 @@
             </button>
 
           </div>
-
 
 
           <div
@@ -2306,13 +2637,11 @@
 
           </div>
 
-        </div>
+        </section>
 
 
 
-        <!-- =================================================
-             AÇÕES
-        ================================================== -->
+        <!-- AÇÕES -->
 
         <div class="modal-actions">
 
@@ -2345,9 +2674,7 @@
 
   </div>
 
-
-
-  <!-- =====================================================
+    <!-- =====================================================
        =====================================================
        MODAL - DETALHES DO CURSO
        =====================================================
@@ -2358,7 +2685,8 @@
     id="courseDetailsModal"
   >
 
-    <div class="modal standard-modal">
+    <div class="modal large-modal">
+
 
       <button
         type="button"
@@ -2372,6 +2700,17 @@
 
 
       <div id="courseDetailsContent">
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando treinamento...
+          </span>
+
+        </div>
+
       </div>
 
     </div>
@@ -2382,57 +2721,7 @@
 
   <!-- =====================================================
        =====================================================
-       MODAL - AVALIAÇÃO
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="evaluationModal"
-  >
-
-    <div class="modal evaluation-modal">
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('evaluationModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <!--
-        O app.js preencherá este espaço com:
-
-        - colaborador;
-        - curso;
-        - setor do colaborador;
-        - atividades;
-        - respostas;
-        - arquivos;
-        - OK / Não OK;
-        - certificado externo;
-        - observação final;
-        - Solicitar correção;
-        - Aprovar.
-      -->
-
-      <div id="evaluationModalContent">
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - CONFIRMAÇÃO DE EXCLUSÃO
+       MODAL - CONFIRMAR REMOÇÃO DE CURSO
        =====================================================
   ====================================================== -->
 
@@ -2443,7 +2732,8 @@
 
     <div class="modal confirmation-modal">
 
-      <div class="confirmation-icon danger-icon">
+
+      <div class="confirmation-icon danger">
 
         <i class="fa-solid fa-trash"></i>
 
@@ -2456,8 +2746,7 @@
 
 
       <p>
-        O treinamento deixará de aparecer para novos colaboradores.
-        O histórico de quem já concluiu será preservado.
+        O treinamento deixará de ficar disponível, mas o histórico dos colaboradores será preservado.
       </p>
 
 
@@ -2466,7 +2755,7 @@
         <button
           type="button"
           class="secondary-button"
-          onclick="closeModal('confirmationModal')"
+          id="cancelDeleteButton"
         >
           Cancelar
         </button>
@@ -2477,8 +2766,485 @@
           class="danger-button"
           id="confirmDeleteButton"
         >
-          Remover
+
+          <i class="fa-solid fa-trash"></i>
+
+          Remover treinamento
+
         </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       =====================================================
+       MODAL - AVALIAÇÃO DE TREINAMENTO
+       =====================================================
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="evaluationModal"
+  >
+
+    <div class="modal evaluation-modal">
+
+
+      <button
+        type="button"
+        class="close-modal"
+        onclick="closeModal('evaluationModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div id="evaluationModalContent">
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando avaliação...
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       =====================================================
+       MODAL - NOVO FEEDBACK
+       =====================================================
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="newFeedbackModal"
+  >
+
+    <div class="modal standard-modal">
+
+
+      <button
+        type="button"
+        class="close-modal"
+        onclick="closeModal('newFeedbackModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <div class="modal-header">
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-comment-dots"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Novo feedback
+          </h2>
+
+
+          <p>
+            Envie um feedback para um colaborador do seu setor.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <form id="newFeedbackForm">
+
+
+        <!-- COLABORADOR -->
+
+        <div class="form-group">
+
+          <label for="feedbackEmployee">
+            Colaborador
+          </label>
+
+
+          <select
+            id="feedbackEmployee"
+            required
+          >
+
+            <option value="">
+              Selecione um colaborador
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- TIPO -->
+
+        <div class="form-group">
+
+          <label for="feedbackType">
+            Tipo
+          </label>
+
+
+          <select
+            id="feedbackType"
+            required
+          >
+
+            <option value="">
+              Selecione
+            </option>
+
+            <option value="positivo">
+              Positivo
+            </option>
+
+            <option value="desenvolvimento">
+              Desenvolvimento
+            </option>
+
+            <option value="atencao">
+              Atenção
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- TÍTULO -->
+
+        <div class="form-group">
+
+          <label for="feedbackTitle">
+            Título
+          </label>
+
+
+          <input
+            type="text"
+            id="feedbackTitle"
+            maxlength="120"
+            placeholder="Ex.: Evolução nas últimas entregas"
+            required
+          >
+
+        </div>
+
+
+
+        <!-- MENSAGEM -->
+
+        <div class="form-group">
+
+          <label for="feedbackMessage">
+            Mensagem
+          </label>
+
+
+          <textarea
+            id="feedbackMessage"
+            rows="6"
+            maxlength="1500"
+            placeholder="Descreva o feedback de forma clara e objetiva..."
+            required
+          ></textarea>
+
+        </div>
+
+
+
+        <!-- EXIGE RESPOSTA -->
+
+        <label class="checkbox-card">
+
+          <input
+            type="checkbox"
+            id="feedbackRequiresResponse"
+          >
+
+
+          <div>
+
+            <strong>
+              Exigir resposta do colaborador
+            </strong>
+
+            <span>
+              O feedback ficará aguardando uma resposta antes de ser concluído.
+            </span>
+
+          </div>
+
+        </label>
+
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="closeModal('newFeedbackModal')"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+            id="submitNewFeedbackButton"
+          >
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            Enviar feedback
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       =====================================================
+       MODAL - SOLICITAÇÃO DE FEEDBACK
+       =====================================================
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="feedbackRequestDetailsModal"
+  >
+
+    <div class="modal feedback-details-modal">
+
+
+      <button
+        type="button"
+        class="close-modal"
+        onclick="closeModal('feedbackRequestDetailsModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div id="feedbackRequestDetailsContent">
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando solicitação...
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       =====================================================
+       MODAL - RESPONDER SOLICITAÇÃO
+       =====================================================
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="answerFeedbackRequestModal"
+  >
+
+    <div class="modal standard-modal">
+
+
+      <button
+        type="button"
+        class="close-modal"
+        onclick="closeModal('answerFeedbackRequestModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+
+      <div class="modal-header">
+
+        <div class="modal-title-icon">
+
+          <i class="fa-solid fa-reply"></i>
+
+        </div>
+
+
+        <div>
+
+          <h2>
+            Responder solicitação
+          </h2>
+
+
+          <p>
+            Envie um retorno sobre o ponto solicitado pelo colaborador.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <div
+        class="feedback-context-box"
+        id="feedbackRequestContext"
+      >
+      </div>
+
+
+
+      <form id="answerFeedbackRequestForm">
+
+
+        <input
+          type="hidden"
+          id="answerFeedbackRequestId"
+        >
+
+
+
+        <div class="form-group">
+
+          <label for="answerFeedbackRequestText">
+            Sua resposta
+          </label>
+
+
+          <textarea
+            id="answerFeedbackRequestText"
+            rows="7"
+            maxlength="1500"
+            placeholder="Escreva o feedback para o colaborador..."
+            required
+          ></textarea>
+
+        </div>
+
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="secondary-button"
+            onclick="closeModal('answerFeedbackRequestModal')"
+          >
+            Cancelar
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary-button"
+            id="submitFeedbackRequestAnswerButton"
+          >
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            Enviar resposta
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       =====================================================
+       MODAL - DETALHES DO FEEDBACK ENVIADO
+       =====================================================
+  ====================================================== -->
+
+  <div
+    class="modal-overlay"
+    id="sentFeedbackDetailsModal"
+  >
+
+    <div class="modal feedback-details-modal">
+
+
+      <button
+        type="button"
+        class="close-modal"
+        onclick="closeModal('sentFeedbackDetailsModal')"
+      >
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+
+      <div id="sentFeedbackDetailsContent">
+
+        <div class="loading-state">
+
+          <i class="fa-solid fa-spinner fa-spin"></i>
+
+          <span>
+            Carregando feedback...
+          </span>
+
+        </div>
 
       </div>
 
