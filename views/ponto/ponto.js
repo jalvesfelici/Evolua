@@ -41,6 +41,7 @@ const notificacao = document.getElementById("notificacao");
 
 const nomeUsuario = document.getElementById("nomeUsuario");
 
+const btnReset = document.getElementById("btnReset");
 
 // ================================================
 // TIPOS DE PONTO
@@ -332,10 +333,9 @@ btnRegistrar.addEventListener(
 );
 
 
-function registrarPonto() {
+async function registrarPonto() {
 
     const proximoTipo = obterProximoTipo();
-
 
     if (!proximoTipo) {
 
@@ -347,45 +347,166 @@ function registrarPonto() {
 
     }
 
+    // ================================================
+    // USUÁRIO LOGADO
+    // ================================================
 
-    const agora = new Date();
+    const usuarioLogado =
+        JSON.parse(
+            localStorage.getItem("usuario_logado")
+        );
+
+    if (!usuarioLogado || !usuarioLogado.id) {
+
+        mostrarNotificacao(
+            "Usuário não identificado."
+        );
+
+        return;
+
+    }
+
+    // ================================================
+    // CONVERTER TIPO
+    // ================================================
+
+    const tipo = {
+
+        "Entrada": "entrada",
+
+        "Saída para intervalo": "intervalo",
+
+        "Retorno do intervalo": "retorno",
+
+        "Saída": "saida"
+
+    }[proximoTipo];
 
 
-    const registro = {
+    try {
 
-        tipo: proximoTipo,
+        // ============================================
+        // ENVIAR PARA A API
+        // ============================================
 
-        data: agora.toLocaleDateString(
-            "pt-BR"
-        ),
-
-        horario: agora.toLocaleTimeString(
-            "pt-BR",
+        const response = await fetch(
+            "/api/ponto",
             {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    usuario_id:
+                        usuarioLogado.id,
+
+                    tipo:
+                        tipo
+
+                })
+
             }
-        ),
-
-        timestamp: agora.getTime()
-
-    };
+        );
 
 
-    const registros = carregarRegistros();
-
-    registros.push(registro);
-
-    salvarRegistros(registros);
+        const resultado =
+            await response.json();
 
 
-    mostrarNotificacao(
-        `${proximoTipo} registrada às ${registro.horario}`
-    );
+        // ============================================
+        // ERRO
+        // ============================================
+
+        if (!response.ok) {
+
+            throw new Error(
+
+                resultado.error ||
+                "Não foi possível registrar o ponto."
+
+            );
+
+        }
 
 
-    atualizarInterface();
+        // ============================================
+        // SALVAR NO LOCALSTORAGE
+        // ============================================
+        //
+        // Continua sendo usado apenas para
+        // mostrar o histórico/testar a tela.
+        //
+
+        const agora = new Date();
+
+        const registro = {
+
+            tipo: proximoTipo,
+
+            data:
+                agora.toLocaleDateString(
+                    "pt-BR"
+                ),
+
+            horario:
+                agora.toLocaleTimeString(
+                    "pt-BR",
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit"
+                    }
+                ),
+
+            timestamp:
+                agora.getTime()
+
+        };
+
+
+        const registros =
+            carregarRegistros();
+
+
+        registros.push(registro);
+
+
+        salvarRegistros(
+            registros
+        );
+
+
+        // ============================================
+        // SUCESSO
+        // ============================================
+
+        mostrarNotificacao(
+
+            resultado.mensagem ||
+            `${proximoTipo} registrada com sucesso.`
+
+        );
+
+
+        atualizarInterface();
+
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao registrar ponto:",
+            error
+        );
+
+
+        mostrarNotificacao(
+            error.message
+        );
+
+    }
 
 }
 
@@ -750,6 +871,61 @@ function mostrarNotificacao(
 
 }
 
+
+// ================================================
+// RESETAR MARCAÇÕES DO DIA
+// ================================================
+
+if (btnReset) {
+
+    btnReset.addEventListener(
+        "click",
+        resetarPonto
+    );
+
+}
+
+
+function resetarPonto() {
+
+    const registros = carregarRegistros();
+
+    if (registros.length === 0) {
+
+        mostrarNotificacao(
+            "Não existem marcações para resetar hoje."
+        );
+
+        return;
+
+    }
+
+
+    const confirmar = confirm(
+        "Tem certeza que deseja apagar todas as marcações de hoje?"
+    );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    localStorage.removeItem(
+        obterChaveStorage()
+    );
+
+
+    mostrarNotificacao(
+        "As marcações de hoje foram resetadas."
+    );
+
+
+    atualizarInterface();
+
+}
 
 // ================================================
 // INICIALIZAÇÃO
