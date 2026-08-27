@@ -60,9 +60,32 @@ const supabase =
   );
 
 
+  // ==========================================================
+// CLIENTE ADMINISTRATIVO
+// Usado somente no backend
+// ==========================================================
+
+const supabaseAdminKey =
+  process.env.SUPABASE_ADMIN_KEY;
+
+if (!supabaseAdminKey) {
+  throw new Error(
+    "SUPABASE_ADMIN_KEY não foi encontrada no arquivo .env."
+  );
+}
+
+const supabaseAdmin =
+  createClient(
+    supabaseUrl,
+    supabaseAdminKey
+  );
+
+
 // ==========================================================
 // EXPORTAR
 // ==========================================================
 
-module.exports =
-  supabase;
+module.exports = {
+  supabase,
+  supabaseAdmin
+};

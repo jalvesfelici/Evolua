@@ -85,32 +85,144 @@ function obterChaveStorage() {
 
 
 // ================================================
-// CARREGAR REGISTROS
+// REGISTROS DO DIA
 // ================================================
 
-function carregarRegistros() {
+let registrosDoDia = [];
 
-    const dados =
-        localStorage.getItem(obterChaveStorage());
 
-    if (!dados) {
+// ================================================
+// CARREGAR REGISTROS DO BANCO
+// ================================================
 
-        return [];
+async function carregarRegistrosDoBanco() {
+
+    const usuarioLogado =
+        JSON.parse(
+            localStorage.getItem("usuario_logado")
+        );
+
+    if (!usuarioLogado || !usuarioLogado.id) {
+
+        console.error(
+            "Usuário não identificado."
+        );
+
+        return;
 
     }
 
     try {
 
-        return JSON.parse(dados);
+        const response =
+            await fetch(
+                `/api/ponto/${usuarioLogado.id}`
+            );
+
+        const resultado =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                resultado.error ||
+                "Erro ao buscar ponto."
+            );
+
+        }
+
+        registrosDoDia = [];
+
+        const ponto = resultado.ponto;
+
+        if (!ponto) {
+
+            atualizarInterface();
+
+            return;
+
+        }
+
+        // ==========================================
+        // ENTRADA
+        // ==========================================
+
+        if (ponto.entrada) {
+
+            registrosDoDia.push({
+                tipo: TIPOS_PONTO.ENTRADA,
+                data: ponto.data,
+                horario: ponto.entrada,
+                timestamp: new Date(
+                    `${ponto.data}T${ponto.entrada}`
+                ).getTime()
+            });
+
+        }
+
+        // ==========================================
+        // INTERVALO
+        // ==========================================
+
+        if (ponto.intervalo) {
+
+            registrosDoDia.push({
+                tipo: TIPOS_PONTO.INTERVALO,
+                data: ponto.data,
+                horario: ponto.intervalo,
+                timestamp: new Date(
+                    `${ponto.data}T${ponto.intervalo}`
+                ).getTime()
+            });
+
+        }
+
+        // ==========================================
+        // RETORNO
+        // ==========================================
+
+        if (ponto.retorno) {
+
+            registrosDoDia.push({
+                tipo: TIPOS_PONTO.RETORNO,
+                data: ponto.data,
+                horario: ponto.retorno,
+                timestamp: new Date(
+                    `${ponto.data}T${ponto.retorno}`
+                ).getTime()
+            });
+
+        }
+
+        // ==========================================
+        // SAÍDA
+        // ==========================================
+
+        if (ponto.saida) {
+
+            registrosDoDia.push({
+                tipo: TIPOS_PONTO.SAIDA,
+                data: ponto.data,
+                horario: ponto.saida,
+                timestamp: new Date(
+                    `${ponto.data}T${ponto.saida}`
+                ).getTime()
+            });
+
+        }
+
+        atualizarInterface();
 
     } catch (erro) {
 
         console.error(
-            "Erro ao carregar registros:",
+            "Erro ao carregar ponto:",
             erro
         );
 
-        return [];
+        mostrarNotificacao(
+            "Não foi possível carregar o ponto."
+        );
 
     }
 
@@ -118,18 +230,14 @@ function carregarRegistros() {
 
 
 // ================================================
-// SALVAR REGISTROS
+// CARREGAR REGISTROS
 // ================================================
 
-function salvarRegistros(registros) {
+function carregarRegistros() {
 
-    localStorage.setItem(
-        obterChaveStorage(),
-        JSON.stringify(registros)
-    );
+    return registrosDoDia;
 
 }
-
 
 // ================================================
 // RELÓGIO
@@ -332,7 +440,6 @@ btnRegistrar.addEventListener(
     registrarPonto
 );
 
-
 async function registrarPonto() {
 
     const proximoTipo = obterProximoTipo();
@@ -389,27 +496,27 @@ async function registrarPonto() {
         // ENVIAR PARA A API
         // ============================================
 
-        const response = await fetch(
-            "/api/ponto",
-            {
-                method: "POST",
+        const response =
+            await fetch(
+                "/api/ponto",
+                {
+                    method: "POST",
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
-                body: JSON.stringify({
+                    body: JSON.stringify({
 
-                    usuario_id:
-                        usuarioLogado.id,
+                        usuario_id:
+                            usuarioLogado.id,
 
-                    tipo:
-                        tipo
+                        tipo:
+                            tipo
 
-                })
-
-            }
-        );
+                    })
+                }
+            );
 
 
         const resultado =
@@ -423,60 +530,11 @@ async function registrarPonto() {
         if (!response.ok) {
 
             throw new Error(
-
                 resultado.error ||
                 "Não foi possível registrar o ponto."
-
             );
 
         }
-
-
-        // ============================================
-        // SALVAR NO LOCALSTORAGE
-        // ============================================
-        //
-        // Continua sendo usado apenas para
-        // mostrar o histórico/testar a tela.
-        //
-
-        const agora = new Date();
-
-        const registro = {
-
-            tipo: proximoTipo,
-
-            data:
-                agora.toLocaleDateString(
-                    "pt-BR"
-                ),
-
-            horario:
-                agora.toLocaleTimeString(
-                    "pt-BR",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit"
-                    }
-                ),
-
-            timestamp:
-                agora.getTime()
-
-        };
-
-
-        const registros =
-            carregarRegistros();
-
-
-        registros.push(registro);
-
-
-        salvarRegistros(
-            registros
-        );
 
 
         // ============================================
@@ -484,33 +542,30 @@ async function registrarPonto() {
         // ============================================
 
         mostrarNotificacao(
-
-            resultado.mensagem ||
-            `${proximoTipo} registrada com sucesso.`
-
+            resultado.mensagem
         );
 
 
-        atualizarInterface();
+        // ============================================
+        // ATUALIZAR DADOS DO BANCO
+        // ============================================
 
+        await carregarRegistrosDoBanco();
 
-    } catch (error) {
+    } catch (erro) {
 
         console.error(
             "Erro ao registrar ponto:",
-            error
+            erro
         );
 
-
         mostrarNotificacao(
-            error.message
+            erro.message
         );
 
     }
 
 }
-
-
 // ================================================
 // HISTÓRICO
 // ================================================
@@ -885,43 +940,25 @@ if (btnReset) {
 
 }
 
-
 function resetarPonto() {
 
-    const registros = carregarRegistros();
-
-    if (registros.length === 0) {
-
-        mostrarNotificacao(
-            "Não existem marcações para resetar hoje."
-        );
-
-        return;
-
-    }
-
-
     const confirmar = confirm(
-        "Tem certeza que deseja apagar todas as marcações de hoje?"
+        "Tem certeza que deseja resetar as marcações da tela para teste?"
     );
-
 
     if (!confirmar) {
-
         return;
-
     }
 
+    // ATENÇÃO:
+    // Este botão NÃO apaga nada do banco.
+    // Ele serve apenas para limpar a tela durante os testes.
 
-    localStorage.removeItem(
-        obterChaveStorage()
-    );
-
+    registrosDoDia = [];
 
     mostrarNotificacao(
-        "As marcações de hoje foram resetadas."
+        "Tela resetada para teste."
     );
-
 
     atualizarInterface();
 
@@ -931,4 +968,4 @@ function resetarPonto() {
 // INICIALIZAÇÃO
 // ================================================
 
-atualizarInterface();
+carregarRegistrosDoBanco();

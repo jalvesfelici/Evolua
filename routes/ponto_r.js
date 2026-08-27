@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const supabase = require("../config/supabase");
+const { supabaseAdmin } = require("../config/supabase");
 
 // ==========================================================
 // POST /api/ponto
@@ -16,6 +16,11 @@ router.post("/", async (req, res) => {
             usuario_id,
             tipo
         } = req.body;
+
+        console.log("================================");
+        console.log("USUARIO_ID RECEBIDO:", usuario_id);
+        console.log("TIPO RECEBIDO:", tipo);
+        console.log("================================");
 
         // ==================================================
         // VALIDAÇÃO
@@ -47,11 +52,17 @@ router.post("/", async (req, res) => {
         const {
             data: colaborador,
             error: colaboradorError
-        } = await supabase
+        } = await supabaseAdmin
             .from("colaboradores")
             .select("id")
             .eq("usuario_id", usuario_id)
             .maybeSingle();
+
+
+        console.log("RESULTADO DA BUSCA DO COLABORADOR:");
+        console.log("usuario_id:", usuario_id);
+        console.log("colaborador:", colaborador);
+        console.log("erro:", colaboradorError);
 
         if (colaboradorError) {
 
@@ -97,7 +108,7 @@ router.post("/", async (req, res) => {
         const {
             data: pontoExistente,
             error: buscaError
-        } = await supabase
+        } = await supabaseAdmin
             .from("ponto")
             .select("*")
             .eq("colaborador_id", colaborador_id)
@@ -132,7 +143,7 @@ router.post("/", async (req, res) => {
             const {
                 data: novoPonto,
                 error: insertError
-            } = await supabase
+            } = await supabaseAdmin
                 .from("ponto")
                 .insert({
                     colaborador_id: colaborador_id,
@@ -247,7 +258,7 @@ router.post("/", async (req, res) => {
         const {
             data: pontoAtualizado,
             error: updateError
-        } = await supabase
+        } = await supabaseAdmin
             .from("ponto")
             .update(atualizacao)
             .eq("id", pontoExistente.id)
@@ -286,6 +297,134 @@ router.post("/", async (req, res) => {
             error: "Erro interno ao registrar ponto."
         });
     }
+});
+
+// ==========================================================
+// GET /api/ponto/:usuario_id
+// Buscar ponto do dia
+// ==========================================================
+
+router.get("/:usuario_id", async (req, res) => {
+
+    try {
+
+        const { usuario_id } = req.params;
+
+        // ==================================================
+        // VALIDAÇÃO
+        // ==================================================
+
+        if (!usuario_id) {
+
+            return res.status(400).json({
+                error: "usuario_id é obrigatório."
+            });
+
+        }
+
+        // ==================================================
+        // BUSCAR COLABORADOR
+        // ==================================================
+
+        const {
+            data: colaborador,
+            error: colaboradorError
+        } = await supabaseAdmin
+            .from("colaboradores")
+            .select("id")
+            .eq("usuario_id", usuario_id)
+            .maybeSingle();
+
+        if (colaboradorError) {
+
+            console.error(
+                "Erro ao buscar colaborador:",
+                colaboradorError
+            );
+
+            return res.status(500).json({
+                error: "Erro ao buscar colaborador."
+            });
+
+        }
+
+        if (!colaborador) {
+
+            return res.status(404).json({
+                error: "Colaborador não encontrado."
+            });
+
+        }
+
+        // ==================================================
+        // DATA ATUAL
+        // ==================================================
+
+        const agora = new Date();
+
+        const data =
+            agora.toISOString().split("T")[0];
+
+        // ==================================================
+        // BUSCAR PONTO DO DIA
+        // ==================================================
+
+        const {
+            data: ponto,
+            error: pontoError
+        } = await supabaseAdmin
+            .from("ponto")
+            .select("*")
+            .eq("colaborador_id", colaborador.id)
+            .eq("data", data)
+            .maybeSingle();
+
+        if (pontoError) {
+
+            console.error(
+                "Erro ao buscar ponto:",
+                pontoError
+            );
+
+            return res.status(500).json({
+                error: "Erro ao buscar ponto."
+            });
+
+        }
+
+        // ==================================================
+        // NENHUM PONTO REGISTRADO
+        // ==================================================
+
+        if (!ponto) {
+
+            return res.status(200).json({
+                ponto: null
+            });
+
+        }
+
+        // ==================================================
+        // SUCESSO
+        // ==================================================
+
+        return res.status(200).json({
+            ponto: ponto
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Erro inesperado ao buscar ponto:",
+            error
+        );
+
+        return res.status(500).json({
+            error: "Erro interno ao buscar ponto."
+        });
+
+    }
+
 });
 
 // ==========================================================
