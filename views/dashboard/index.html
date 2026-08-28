@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Evolua+ | Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/global.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="dashboard.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body data-page="dashboard">
+
+    <aside id="sidebar"></aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    Visão geral
+                </p>
+
+                <h1 id="welcomeTitle">
+                    Olá!
+                </h1>
+
+                <p>
+                    Acompanhe suas principais informações e continue evoluindo profissionalmente.
+                </p>
+
+            </div>
+
+        </header>
+
+        <div
+            class="global-message"
+            id="globalMessage"
+        ></div>
+
+        <section class="summary-grid">
+
+            <article
+                class="summary-card clickable"
+                data-link="/ferias/"
+            >
+
+                <div class="summary-icon purple">
+                    <i class="fa-solid fa-umbrella-beach"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Férias disponíveis
+                    </span>
+
+                    <strong id="vacationDays">
+                        --
+                    </strong>
+
+                    <small id="vacationDescription">
+                        Consulte seu período de férias
+                    </small>
+
+                </div>
+
+            </article>
+
+            <article
+                class="summary-card clickable"
+                data-link="/ponto/"
+            >
+
+                <div class="summary-icon blue">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Ponto de hoje
+                    </span>
+
+                    <strong id="pointStatus">
+                        Consultar
+                    </strong>
+
+                    <small>
+                        Acompanhe suas marcações
+                    </small>
+
+                </div>
+
+            </article>
+
+            <article
+                class="summary-card clickable"
+                data-link="/treinamentos/"
+            >
+
+                <div class="summary-icon orange">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Treinamentos
+                    </span>
+
+                    <strong id="trainingCount">
+                        --
+                    </strong>
+
+                    <small>
+                        Acompanhe seu desenvolvimento
+                    </small>
+
+                </div>
+
+            </article>
+
+            <article
+                class="summary-card clickable"
+                data-link="/feedbacks/"
+            >
+
+                <div class="summary-icon green">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Feedbacks
+                    </span>
+
+                    <strong id="feedbackCount">
+                        --
+                    </strong>
+
+                    <small>
+                        Veja seus retornos profissionais
+                    </small>
+
+                </div>
+
+            </article>
+
+        </section>
+
+        <section class="dashboard-grid">
+
+            <article class="dashboard-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <p class="panel-eyebrow">
+                            Acesso rápido
+                        </p>
+
+                        <h2>
+                            O que deseja fazer?
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="quick-actions">
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        data-link="/ferias/"
+                    >
+
+                        <div class="quick-icon purple">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                        </div>
+
+                        <div>
+                            <strong>
+                                Minhas férias
+                            </strong>
+
+                            <span>
+                                Consulte seu saldo e solicite férias
+                            </span>
+                        </div>
+
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        data-link="/ponto/"
+                    >
+
+                        <div class="quick-icon blue">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+
+                        <div>
+                            <strong>
+                                Registrar ponto
+                            </strong>
+
+                            <span>
+                                Consulte e registre sua jornada
+                            </span>
+                        </div>
+
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        data-link="/treinamentos/"
+                    >
+
+                        <div class="quick-icon orange">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+
+                        <div>
+                            <strong>
+                                Treinamentos
+                            </strong>
+
+                            <span>
+                                Continue seus cursos e atividades
+                            </span>
+                        </div>
+
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        data-link="/feedbacks/"
+                    >
+
+                        <div class="quick-icon green">
+                            <i class="fa-solid fa-comment-dots"></i>
+                        </div>
+
+                        <div>
+                            <strong>
+                                Feedbacks
+                            </strong>
+
+                            <span>
+                                Veja seus feedbacks ou solicite um retorno
+                            </span>
+                        </div>
+
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+
+                    </button>
+
+                </div>
+
+            </article>
+
+            <aside class="dashboard-panel profile-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <p class="panel-eyebrow">
+                            Meu perfil
+                        </p>
+
+                        <h2>
+                            Informações profissionais
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="profile-header">
+
+                    <div
+                        class="profile-avatar"
+                        id="profileAvatar"
+                    >
+                        --
+                    </div>
+
+                    <div>
+
+                        <strong id="profileName">
+                            Carregando...
+                        </strong>
+
+                        <span id="profileRole">
+                            Colaborador
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="profile-information">
+
+                    <div class="profile-item">
+
+                        <div>
+                            <i class="fa-solid fa-building"></i>
+                            Setor
+                        </div>
+
+                        <strong id="profileSector">
+                            --
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <div>
+                            <i class="fa-solid fa-briefcase"></i>
+                            Cargo
+                        </div>
+
+                        <strong id="profileJob">
+                            --
+                        </strong>
+
+                    </div>
+
+                    <div class="profile-item">
+
+                        <div>
+                            <i class="fa-solid fa-envelope"></i>
+                            E-mail
+                        </div>
+
+                        <strong id="profileEmail">
+                            --
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+        <section class="dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <p class="panel-eyebrow">
+                        Evolua+
+                    </p>
+
+                    <h2>
+                        Sua jornada profissional
+                    </h2>
+
+                    <p>
+                        Utilize as áreas do portal para acompanhar seu desenvolvimento dentro da empresa.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="journey-grid">
+
+                <button
+                    type="button"
+                    class="journey-card"
+                    data-link="/ferias/"
+                >
+
+                    <i class="fa-solid fa-umbrella-beach"></i>
+
+                    <strong>
+                        Férias
+                    </strong>
+
+                    <span>
+                        Período aquisitivo, saldo e solicitações.
+                    </span>
+
+                </button>
+
+                <button
+                    type="button"
+                    class="journey-card"
+                    data-link="/ponto/"
+                >
+
+                    <i class="fa-solid fa-clock"></i>
+
+                    <strong>
+                        Ponto
+                    </strong>
+
+                    <span>
+                        Jornada, horários e registros.
+                    </span>
+
+                </button>
+
+                <button
+                    type="button"
+                    class="journey-card"
+                    data-link="/treinamentos/"
+                >
+
+                    <i class="fa-solid fa-graduation-cap"></i>
+
+                    <strong>
+                        Treinamentos
+                    </strong>
+
+                    <span>
+                        Cursos, atividades e certificados.
+                    </span>
+
+                </button>
+
+                <button
+                    type="button"
+                    class="journey-card"
+                    data-link="/feedbacks/"
+                >
+
+                    <i class="fa-solid fa-comments"></i>
+
+                    <strong>
+                        Feedbacks
+                    </strong>
+
+                    <span>
+                        Retornos e desenvolvimento profissional.
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/components/sidebar.js"></script>
+    <script src="dashboard.js"></script>
+
+</body>
+
+</html>

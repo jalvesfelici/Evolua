@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Evolua+ | Ponto</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/global.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="ponto.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body data-page="ponto">
+
+    <aside id="sidebar"></aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+
+            <div>
+                <p class="eyebrow">
+                    Jornada de trabalho
+                </p>
+
+                <h1>
+                    Meu Ponto
+                </h1>
+
+                <p>
+                    Registre sua jornada e acompanhe atrasos, faltas, horas extras e justificativas.
+                </p>
+            </div>
+
+        </header>
+
+        <div
+            class="global-message"
+            id="globalMessage"
+            role="alert"
+        ></div>
+
+        <section class="clock-panel">
+
+            <div class="clock-information">
+
+                <div class="clock-icon">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+
+                <div>
+
+                    <p class="clock-label">
+                        Horário atual
+                    </p>
+
+                    <strong id="currentTime">
+                        00:00:00
+                    </strong>
+
+                    <span id="currentDate">
+                        Carregando data...
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="next-punch-area">
+
+                <div>
+
+                    <span class="next-punch-label">
+                        Próxima marcação
+                    </span>
+
+                    <strong id="nextPunchText">
+                        Entrada
+                    </strong>
+
+                    <small id="nextPunchDescription">
+                        Registre o início da sua jornada.
+                    </small>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="primary-button register-button"
+                    id="registerPointButton"
+                >
+
+                    <i class="fa-solid fa-fingerprint"></i>
+
+                    <span id="registerPointButtonText">
+                        Registrar entrada
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+        <section class="summary-grid">
+
+            <article class="summary-card">
+
+                <div class="summary-icon blue">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Horas hoje
+                    </span>
+
+                    <strong id="todayWorkedHours">
+                        0h 00min
+                    </strong>
+
+                    <small>
+                        Jornada acumulada
+                    </small>
+
+                </div>
+
+            </article>
+
+            <article class="summary-card">
+
+                <div class="summary-icon orange">
+                    <i class="fa-solid fa-person-running"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Atrasos
+                    </span>
+
+                    <strong id="monthlyDelays">
+                        0
+                    </strong>
+
+                    <small>
+                        Neste mês
+                    </small>
+
+                </div>
+
+            </article>
+
+            <article class="summary-card">
+
+                <div class="summary-icon red">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Faltas
+                    </span>
+
+                    <strong id="monthlyAbsences">
+                        0
+                    </strong>
+
+                    <small>
+                        Neste mês
+                    </small>
+
+                </div>
+
+            </article>
+
+            <article class="summary-card">
+
+                <div class="summary-icon green">
+                    <i class="fa-solid fa-business-time"></i>
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Horas extras
+                    </span>
+
+                    <strong id="monthlyOvertime">
+                        0h 00min
+                    </strong>
+
+                    <small>
+                        Acumuladas no mês
+                    </small>
+
+                </div>
+
+            </article>
+
+        </section>
+
+        <section class="dashboard-grid">
+
+            <article class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <p class="panel-eyebrow">
+                            Hoje
+                        </p>
+
+                        <h2>
+                            Jornada do dia
+                        </h2>
+
+                        <p>
+                            Acompanhe as marcações realizadas hoje.
+                        </p>
+                    </div>
+
+                    <span
+                        class="status-badge neutral"
+                        id="todayStatusBadge"
+                    >
+                        Não iniciado
+                    </span>
+
+                </div>
+
+                <div class="timeline">
+
+                    <div
+                        class="timeline-item"
+                        id="timelineEntry"
+                    >
+
+                        <div class="timeline-marker">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                        </div>
+
+                        <div class="timeline-content">
+
+                            <span>
+                                Entrada
+                            </span>
+
+                            <strong id="entryTime">
+                                --:--
+                            </strong>
+
+                            <small id="entryStatus">
+                                Não registrado
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="timeline-item"
+                        id="timelineBreak"
+                    >
+
+                        <div class="timeline-marker">
+                            <i class="fa-solid fa-mug-hot"></i>
+                        </div>
+
+                        <div class="timeline-content">
+
+                            <span>
+                                Início do intervalo
+                            </span>
+
+                            <strong id="breakTime">
+                                --:--
+                            </strong>
+
+                            <small>
+                                Não registrado
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="timeline-item"
+                        id="timelineReturn"
+                    >
+
+                        <div class="timeline-marker">
+                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                        </div>
+
+                        <div class="timeline-content">
+
+                            <span>
+                                Retorno
+                            </span>
+
+                            <strong id="returnTime">
+                                --:--
+                            </strong>
+
+                            <small>
+                                Não registrado
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="timeline-item"
+                        id="timelineExit"
+                    >
+
+                        <div class="timeline-marker">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </div>
+
+                        <div class="timeline-content">
+
+                            <span>
+                                Saída
+                            </span>
+
+                            <strong id="exitTime">
+                                --:--
+                            </strong>
+
+                            <small>
+                                Não registrado
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="worked-progress">
+
+                    <div class="worked-progress-header">
+
+                        <div>
+                            <span>
+                                Jornada diária
+                            </span>
+
+                            <small>
+                                Referência: 8 horas
+                            </small>
+                        </div>
+
+                        <strong id="dailyProgressText">
+                            0%
+                        </strong>
+
+                    </div>
+
+                    <div class="progress-track">
+
+                        <div
+                            class="progress-fill"
+                            id="dailyProgressBar"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+            <aside class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <p class="panel-eyebrow">
+                            Situação
+                        </p>
+
+                        <h2>
+                            Resumo do dia
+                        </h2>
+                    </div>
+
+                </div>
+
+                <div class="day-status-list">
+
+                    <div class="day-status-item">
+
+                        <div class="day-status-icon">
+                            <i class="fa-solid fa-calendar-day"></i>
+                        </div>
+
+                        <div>
+                            <span>
+                                Status
+                            </span>
+
+                            <strong id="daySituation">
+                                Aguardando entrada
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="day-status-item">
+
+                        <div class="day-status-icon">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+
+                        <div>
+                            <span>
+                                Jornada prevista
+                            </span>
+
+                            <strong>
+                                8h
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="day-status-item">
+
+                        <div class="day-status-icon">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+
+                        <div>
+                            <span>
+                                Hora extra hoje
+                            </span>
+
+                            <strong id="todayOvertime">
+                                0h 00min
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div class="day-status-item">
+
+                        <div class="day-status-icon">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </div>
+
+                        <div>
+                            <span>
+                                Documentos hoje
+                            </span>
+
+                            <strong id="todayDocuments">
+                                0
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+        <section class="panel history-panel">
+
+            <div class="panel-header history-header">
+
+                <div>
+                    <p class="panel-eyebrow">
+                        Histórico
+                    </p>
+
+                    <h2>
+                        Registros recentes
+                    </h2>
+
+                    <p>
+                        Consulte seus últimos dias de trabalho e eventuais ocorrências.
+                    </p>
+                </div>
+
+                <div class="history-filter">
+
+                    <label for="historyMonth">
+                        Período
+                    </label>
+
+                    <input
+                        type="month"
+                        id="historyMonth"
+                    >
+
+                </div>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="point-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Data</th>
+                            <th>Entrada</th>
+                            <th>Intervalo</th>
+                            <th>Retorno</th>
+                            <th>Saída</th>
+                            <th>Trabalhado</th>
+                            <th>Situação</th>
+                            <th>Documento</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="pointHistoryBody"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <div
+        class="modal-overlay"
+        id="pointModal"
+        aria-hidden="true"
+    >
+
+        <div
+            class="point-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pointModalTitle"
+        >
+
+            <button
+                type="button"
+                class="close-modal"
+                id="closePointModalButton"
+                aria-label="Fechar"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-icon">
+                    <i
+                        class="fa-solid fa-fingerprint"
+                        id="pointModalIcon"
+                    ></i>
+                </div>
+
+                <div>
+                    <p class="panel-eyebrow">
+                        Registrar ponto
+                    </p>
+
+                    <h2 id="pointModalTitle">
+                        Registrar entrada
+                    </h2>
+
+                    <p id="pointModalDescription">
+                        Confirme a marcação da sua entrada.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="current-mark-box">
+
+                <div>
+                    <span>
+                        Data
+                    </span>
+
+                    <strong id="modalCurrentDate">
+                        -
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        Horário
+                    </span>
+
+                    <strong id="modalCurrentTime">
+                        -
+                    </strong>
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="pointObservation">
+                    Observação
+                    <span>opcional</span>
+                </label>
+
+                <textarea
+                    id="pointObservation"
+                    maxlength="500"
+                    placeholder="Ex.: consulta médica, atraso no transporte, atendimento externo..."
+                ></textarea>
+
+                <small>
+                    Use este campo quando precisar explicar alguma situação relacionada à marcação.
+                </small>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Documento ou atestado
+                    <span>opcional</span>
+                </label>
+
+                <input
+                    type="file"
+                    id="pointDocument"
+                    class="file-input"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                >
+
+                <label
+                    for="pointDocument"
+                    class="upload-box"
+                >
+
+                    <div class="upload-icon">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                    </div>
+
+                    <div>
+                        <strong id="documentFileName">
+                            Anexar documento
+                        </strong>
+
+                        <span>
+                            PDF, PNG ou JPG — máximo de 10 MB
+                        </span>
+                    </div>
+
+                </label>
+
+            </div>
+
+            <div
+                class="modal-message"
+                id="pointModalMessage"
+            ></div>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelPointButton"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmPointButton"
+                >
+
+                    <i class="fa-solid fa-check"></i>
+
+                    <span id="confirmPointButtonText">
+                        Confirmar entrada
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div
+        class="modal-overlay"
+        id="documentModal"
+        aria-hidden="true"
+    >
+
+        <div
+            class="document-modal"
+            role="dialog"
+            aria-modal="true"
+        >
+
+            <div class="document-modal-icon">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+
+            <h2>
+                Documento anexado
+            </h2>
+
+            <p>
+                Este é apenas um registro demonstrativo do frontend. Amanhã o documento será carregado a partir do banco/Storage.
+            </p>
+
+            <div class="document-information">
+
+                <span>
+                    Arquivo
+                </span>
+
+                <strong id="documentModalName">
+                    -
+                </strong>
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-button"
+                id="closeDocumentModalButton"
+            >
+                Fechar
+            </button>
+
+        </div>
+
+    </div>
+
+    <script src="/components/sidebar.js"></script>
+    <script src="ponto.js"></script>
+
+</body>
+
+</html>
