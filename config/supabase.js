@@ -1,91 +1,16 @@
 // ==========================================================
-// EVOLUA+
-// CONEXÃO PADRÃO COM O SUPABASE
+// EVOLUA+ - CONEXÃO PADRÃO
 // ==========================================================
-
-// Carrega o arquivo .env.
 require("dotenv").config();
+const { createClient } = require("@supabase/supabase-js");
 
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
-// Importa o cliente do Supabase.
-const {
-  createClient
-} = require(
-  "@supabase/supabase-js"
-);
-
-
-// ==========================================================
-// VARIÁVEIS
-// ==========================================================
-
-const supabaseUrl =
-  process.env.SUPABASE_URL;
-
-
-const supabaseKey =
-  process.env.SUPABASE_KEY;
-
-
-// ==========================================================
-// VALIDAÇÕES
-// ==========================================================
-
-if (!supabaseUrl) {
-
-  throw new Error(
-    "SUPABASE_URL não foi encontrada no arquivo .env."
-  );
-
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("SUPABASE_URL ou SUPABASE_KEY não configuradas no .env");
 }
 
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-if (!supabaseKey) {
-
-  throw new Error(
-    "SUPABASE_KEY não foi encontrada no arquivo .env."
-  );
-
-}
-
-
-// ==========================================================
-// CLIENTE
-// ==========================================================
-
-const supabase =
-  createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
-
-  // ==========================================================
-// CLIENTE ADMINISTRATIVO
-// Usado somente no backend
-// ==========================================================
-
-const supabaseAdminKey =
-  process.env.SUPABASE_ADMIN_KEY;
-
-if (!supabaseAdminKey) {
-  throw new Error(
-    "SUPABASE_ADMIN_KEY não foi encontrada no arquivo .env."
-  );
-}
-
-const supabaseAdmin =
-  createClient(
-    supabaseUrl,
-    supabaseAdminKey
-  );
-
-
-// ==========================================================
-// EXPORTAR
-// ==========================================================
-
-module.exports = {
-  supabase,
-  supabaseAdmin
-};
+module.exports = supabase;

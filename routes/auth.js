@@ -13,10 +13,9 @@ const router =
   express.Router();
 
 
-const supabase =
-  require(
-    "../config/supabase"
-  );
+// Importa ambos os clientes configurados
+const supabase = require("../config/supabase");
+const supabaseAdmin = require("../config/supabaseAdmin");
 
 
 // ==========================================================
