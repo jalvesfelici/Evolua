@@ -4,1261 +4,771 @@
 
 <head>
 
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <title>
-    Evolua+ | Feedbacks
-  </title>
+    <title>Evolua+ | Feedbacks</title>
 
+    <link
+        rel="stylesheet"
+        href="/css/global.css"
+    >
 
-  <!-- =====================================================
-       CSS
-  ====================================================== -->
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
-
-  <!-- =====================================================
-       FONT AWESOME
-  ====================================================== -->
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  >
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 
 </head>
 
+<body data-page="feedbacks">
 
+    <aside id="sidebar"></aside>
 
-<body>
+    <main class="main-content">
 
+        <header class="page-header">
 
-  <!-- =====================================================
-       =====================================================
-       SIDEBAR
-       =====================================================
-  ====================================================== -->
+            <div>
 
-  <aside class="sidebar">
+                <p class="eyebrow">
+                    Desenvolvimento profissional
+                </p>
 
+                <h1>
+                    Feedbacks
+                </h1>
 
-    <!-- ===================================================
-         LOGO
-    ==================================================== -->
+                <p>
+                    Acompanhe os feedbacks recebidos e solicite retornos sobre seu desenvolvimento.
+                </p>
 
-    <div class="logo">
+            </div>
 
-      <div class="logo-icon">
+            <button
+                type="button"
+                class="primary-button"
+                id="openRequestFeedbackButton"
+            >
 
-        <i class="fa-solid fa-chart-line"></i>
+                <i class="fa-solid fa-plus"></i>
 
-      </div>
+                Solicitar feedback
 
+            </button>
 
-      <div>
+        </header>
 
-        <h2>
-          Evolua+
-        </h2>
+        <div
+            class="global-message"
+            id="globalMessage"
+            role="alert"
+        ></div>
 
-        <span>
-          Portal de Carreiras
-        </span>
+        <section class="summary-grid">
 
-      </div>
+            <article class="summary-card">
 
-    </div>
+                <div class="summary-icon purple">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                </div>
 
+                <div>
 
+                    <span>
+                        Novos feedbacks
+                    </span>
 
-    <!-- ===================================================
-         MENU
-    ==================================================== -->
+                    <strong id="summaryNewFeedbacks">
+                        0
+                    </strong>
 
-    <nav class="menu">
+                    <small>
+                        Ainda não visualizados
+                    </small>
 
+                </div>
 
-      <!-- VISÃO GERAL -->
+            </article>
 
-      <button
-        type="button"
-        class="menu-item"
-        data-link="/"
-      >
+            <article class="summary-card">
 
-        <i class="fa-solid fa-house"></i>
+                <div class="summary-icon orange">
+                    <i class="fa-solid fa-reply"></i>
+                </div>
 
-        <span>
-          Visão Geral
-        </span>
+                <div>
 
-      </button>
+                    <span>
+                        Aguardando sua resposta
+                    </span>
 
+                    <strong id="summaryWaitingResponse">
+                        0
+                    </strong>
 
+                    <small>
+                        Feedbacks que exigem retorno
+                    </small>
 
-      <!-- FÉRIAS -->
+                </div>
 
-      <button
-        type="button"
-        class="menu-item"
-        data-link="/ferias/"
-      >
+            </article>
 
-        <i class="fa-solid fa-umbrella-beach"></i>
+            <article class="summary-card">
 
-        <span>
-          Férias
-        </span>
+                <div class="summary-icon blue">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
 
-      </button>
+                <div>
 
+                    <span>
+                        Solicitações em aberto
+                    </span>
 
+                    <strong id="summaryPendingRequests">
+                        0
+                    </strong>
 
-      <!-- TREINAMENTOS -->
+                    <small>
+                        Aguardando resposta do responsável
+                    </small>
 
-      <button
-        type="button"
-        class="menu-item"
-        data-link="/treinamentos/"
-      >
+                </div>
 
-        <i class="fa-solid fa-graduation-cap"></i>
+            </article>
 
-        <span>
-          Treinamentos
-        </span>
+            <article class="summary-card">
 
-      </button>
+                <div class="summary-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
 
+                <div>
 
+                    <span>
+                        Respondidos
+                    </span>
 
-      <!-- FEEDBACKS -->
+                    <strong id="summaryAnswered">
+                        0
+                    </strong>
 
-      <button
-        type="button"
-        class="menu-item active"
-      >
+                    <small>
+                        Feedbacks já respondidos
+                    </small>
 
-        <i class="fa-solid fa-comments"></i>
+                </div>
 
-        <span>
-          Feedbacks
-        </span>
+            </article>
 
+        </section>
 
-        <span
-          class="menu-counter"
-          id="feedbackMenuCounter"
-        >
-          0
-        </span>
+        <section class="feedback-panel">
 
-      </button>
+            <div class="feedback-tabs">
 
+                <button
+                    type="button"
+                    class="feedback-tab active"
+                    data-feedback-tab="received"
+                    id="receivedTabButton"
+                >
 
+                    <i class="fa-solid fa-inbox"></i>
 
-      <!-- DIVISOR -->
+                    Feedbacks recebidos
 
-      <div class="menu-divider">
+                    <span
+                        class="tab-counter"
+                        id="receivedTabCounter"
+                    >
+                        0
+                    </span>
 
-        Desenvolvimento
+                </button>
 
-      </div>
+                <button
+                    type="button"
+                    class="feedback-tab"
+                    data-feedback-tab="requests"
+                    id="requestsTabButton"
+                >
 
+                    <i class="fa-solid fa-paper-plane"></i>
 
+                    Minhas solicitações
 
-      <!-- DESEMPENHO -->
+                    <span
+                        class="tab-counter"
+                        id="requestsTabCounter"
+                    >
+                        0
+                    </span>
 
-      <button
-        type="button"
-        class="menu-item disabled"
-        disabled
-      >
+                </button>
 
-        <i class="fa-solid fa-chart-column"></i>
+            </div>
 
-        <span>
-          Desempenho
-        </span>
+            <div class="feedback-toolbar">
 
-      </button>
+                <div class="search-box">
 
+                    <i class="fa-solid fa-magnifying-glass"></i>
 
+                    <input
+                        type="text"
+                        id="feedbackSearch"
+                        placeholder="Pesquisar feedback..."
+                    >
 
-      <!-- CARREIRA -->
+                </div>
 
-      <button
-        type="button"
-        class="menu-item disabled"
-        disabled
-      >
+                <select id="feedbackStatusFilter">
 
-        <i class="fa-solid fa-briefcase"></i>
+                    <option value="">
+                        Todos os status
+                    </option>
 
-        <span>
-          Carreira
-        </span>
+                    <option value="pendente">
+                        Pendente
+                    </option>
 
-      </button>
+                    <option value="visualizado">
+                        Visualizado
+                    </option>
 
-    </nav>
+                    <option value="aguardando_resposta">
+                        Aguardando resposta
+                    </option>
 
+                    <option value="respondido">
+                        Respondido
+                    </option>
 
+                    <option value="ciente">
+                        Ciente
+                    </option>
 
-    <!-- ===================================================
-         USUÁRIO LOGADO
-    ==================================================== -->
+                </select>
 
-    <div class="sidebar-user">
+                <button
+                    type="button"
+                    class="outline-button"
+                    id="refreshFeedbacksButton"
+                >
 
-      <div
-        class="avatar"
-        id="userAvatar"
-      >
-        --
-      </div>
+                    <i class="fa-solid fa-rotate"></i>
 
+                    Atualizar
 
-      <div class="user-info">
+                </button>
 
-        <strong id="userName">
-          Carregando...
-        </strong>
+            </div>
 
+            <div
+                class="feedback-tab-content active"
+                id="receivedFeedbacksContent"
+            >
 
-        <span id="userRole">
-          Colaborador
-        </span>
+                <div class="section-heading">
 
-      </div>
+                    <div>
 
+                        <h2>
+                            Feedbacks recebidos
+                        </h2>
 
-      <button
-        type="button"
-        class="logout-button"
-        id="logoutButton"
-        title="Sair"
-      >
+                        <p>
+                            Retornos enviados pelo responsável do seu setor.
+                        </p>
 
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </div>
 
-      </button>
+                </div>
 
-    </div>
+                <div
+                    class="feedback-list"
+                    id="receivedFeedbackList"
+                >
 
-  </aside>
+                    <div class="loading-state">
 
+                        <i class="fa-solid fa-spinner fa-spin"></i>
 
+                        <span>
+                            Carregando feedbacks...
+                        </span>
 
-  <!-- =====================================================
-       =====================================================
-       CONTEÚDO PRINCIPAL
-       =====================================================
-  ====================================================== -->
+                    </div>
 
-  <main class="main-content">
+                </div>
 
+            </div>
 
-    <!-- ===================================================
-         CABEÇALHO
-    ==================================================== -->
+            <div
+                class="feedback-tab-content"
+                id="requestsFeedbacksContent"
+            >
 
-    <header class="page-header">
+                <div class="section-heading">
 
-      <div>
+                    <div>
 
-        <p class="eyebrow">
-          Desenvolvimento profissional
-        </p>
+                        <h2>
+                            Minhas solicitações
+                        </h2>
 
+                        <p>
+                            Acompanhe os pedidos de feedback enviados ao responsável do seu setor.
+                        </p>
 
-        <h1>
-          Feedbacks
-        </h1>
+                    </div>
 
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        id="openRequestFeedbackSecondaryButton"
+                    >
 
-        <p>
-          Acompanhe os feedbacks recebidos e solicite retornos sobre seu desenvolvimento.
-        </p>
+                        <i class="fa-solid fa-plus"></i>
 
-      </div>
+                        Nova solicitação
 
+                    </button>
 
-      <button
-        type="button"
-        class="primary-button"
-        id="openRequestFeedbackButton"
-      >
+                </div>
 
-        <i class="fa-solid fa-plus"></i>
+                <div
+                    class="feedback-list"
+                    id="requestFeedbackList"
+                >
 
-        Solicitar feedback
+                    <div class="loading-state">
 
-      </button>
+                        <i class="fa-solid fa-spinner fa-spin"></i>
 
-    </header>
+                        <span>
+                            Carregando solicitações...
+                        </span>
 
+                    </div>
 
+                </div>
 
-    <!-- ===================================================
-         MENSAGEM GLOBAL
-    ==================================================== -->
+            </div>
+
+        </section>
+
+    </main>
 
     <div
-      class="global-message"
-      id="globalMessage"
-      role="alert"
+        class="modal-overlay"
+        id="requestFeedbackModal"
     >
+
+        <div class="modal standard-modal">
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('requestFeedbackModal')"
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </div>
+
+                <div>
+
+                    <h2>
+                        Solicitar feedback
+                    </h2>
+
+                    <p>
+                        Informe sobre qual aspecto do seu desempenho deseja receber um retorno.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="responsible-card">
+
+                <div class="responsible-icon">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+
+                <div>
+
+                    <span>
+                        Sua solicitação será enviada para
+                    </span>
+
+                    <strong id="requestResponsibleText">
+                        responsável do seu setor
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <form id="requestFeedbackForm">
+
+                <div class="form-group">
+
+                    <label for="requestFeedbackSubject">
+                        Assunto
+                    </label>
+
+                    <select
+                        id="requestFeedbackSubject"
+                        required
+                    >
+
+                        <option value="">
+                            Selecione
+                        </option>
+
+                        <option value="desempenho_geral">
+                            Desempenho geral
+                        </option>
+
+                        <option value="desempenho_tecnico">
+                            Desempenho técnico
+                        </option>
+
+                        <option value="comunicacao">
+                            Comunicação
+                        </option>
+
+                        <option value="organizacao">
+                            Organização
+                        </option>
+
+                        <option value="produtividade">
+                            Produtividade
+                        </option>
+
+                        <option value="relacionamento">
+                            Relacionamento
+                        </option>
+
+                        <option value="desenvolvimento_profissional">
+                            Desenvolvimento profissional
+                        </option>
+
+                        <option value="outro">
+                            Outro
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="requestFeedbackTitle">
+                        Título
+                    </label>
+
+                    <input
+                        type="text"
+                        id="requestFeedbackTitle"
+                        placeholder="Ex.: Feedback sobre minhas últimas entregas"
+                        maxlength="120"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="requestFeedbackMessage">
+                        O que você gostaria de saber?
+                    </label>
+
+                    <textarea
+                        id="requestFeedbackMessage"
+                        rows="6"
+                        maxlength="1500"
+                        placeholder="Ex.: Gostaria de receber um feedback sobre a qualidade das minhas últimas entregas e entender quais pontos posso melhorar."
+                        required
+                    ></textarea>
+
+                    <small class="form-hint">
+                        Seja específico para receber um retorno mais útil.
+                    </small>
+
+                </div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('requestFeedbackModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="submitFeedbackRequestButton"
+                    >
+
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                        Enviar solicitação
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
 
+    <div
+        class="modal-overlay"
+        id="feedbackDetailsModal"
+    >
 
+        <div class="modal feedback-details-modal">
 
-    <!-- =====================================================
-         =====================================================
-         RESUMO
-         =====================================================
-    ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('feedbackDetailsModal')"
+            >
 
-    <section class="summary-grid">
+                <i class="fa-solid fa-xmark"></i>
 
+            </button>
 
-      <!-- NOVOS -->
+            <div id="feedbackDetailsContent">
 
-      <article class="summary-card">
+                <div class="loading-state">
 
-        <div class="summary-icon purple">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
 
-          <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>
+                        Carregando feedback...
+                    </span>
 
-        </div>
+                </div>
 
-
-        <div>
-
-          <span>
-            Novos feedbacks
-          </span>
-
-          <strong id="summaryNewFeedbacks">
-            0
-          </strong>
-
-          <small>
-            Ainda não visualizados
-          </small>
+            </div>
 
         </div>
 
-      </article>
+    </div>
 
+    <div
+        class="modal-overlay"
+        id="respondFeedbackModal"
+    >
 
+        <div class="modal standard-modal">
 
-      <!-- AGUARDANDO RESPOSTA -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('respondFeedbackModal')"
+            >
 
-      <article class="summary-card">
+                <i class="fa-solid fa-xmark"></i>
 
-        <div class="summary-icon orange">
+            </button>
 
-          <i class="fa-solid fa-reply"></i>
+            <div class="modal-header">
+
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-reply"></i>
+                </div>
+
+                <div>
+
+                    <h2>
+                        Responder feedback
+                    </h2>
+
+                    <p>
+                        Envie seu retorno para o responsável.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div
+                class="feedback-context-box"
+                id="respondFeedbackContext"
+            ></div>
+
+            <form id="respondFeedbackForm">
+
+                <input
+                    type="hidden"
+                    id="respondFeedbackId"
+                >
+
+                <div class="form-group">
+
+                    <label for="respondFeedbackText">
+                        Sua resposta
+                    </label>
+
+                    <textarea
+                        id="respondFeedbackText"
+                        rows="6"
+                        maxlength="1500"
+                        placeholder="Escreva sua resposta..."
+                        required
+                    ></textarea>
+
+                </div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('respondFeedbackModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="submitFeedbackResponseButton"
+                    >
+
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                        Enviar resposta
+
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
 
+    </div>
 
-        <div>
+    <div
+        class="modal-overlay"
+        id="requestDetailsModal"
+    >
 
-          <span>
-            Aguardando sua resposta
-          </span>
+        <div class="modal feedback-details-modal">
 
-          <strong id="summaryWaitingResponse">
-            0
-          </strong>
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('requestDetailsModal')"
+            >
 
-          <small>
-            Feedbacks que exigem retorno
-          </small>
+                <i class="fa-solid fa-xmark"></i>
 
-        </div>
+            </button>
 
-      </article>
+            <div id="requestDetailsContent">
 
+                <div class="loading-state">
 
+                    <i class="fa-solid fa-spinner fa-spin"></i>
 
-      <!-- SOLICITAÇÕES -->
+                    <span>
+                        Carregando solicitação...
+                    </span>
 
-      <article class="summary-card">
+                </div>
 
-        <div class="summary-icon blue">
-
-          <i class="fa-solid fa-paper-plane"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Solicitações em aberto
-          </span>
-
-          <strong id="summaryPendingRequests">
-            0
-          </strong>
-
-          <small>
-            Aguardando resposta do responsável
-          </small>
+            </div>
 
         </div>
 
-      </article>
+    </div>
 
+    <div
+        class="modal-overlay"
+        id="acknowledgeModal"
+    >
 
+        <div class="modal confirmation-modal">
 
-      <!-- RESPONDIDOS -->
+            <div class="confirmation-icon">
 
-      <article class="summary-card">
+                <i class="fa-solid fa-check"></i>
 
-        <div class="summary-icon green">
-
-          <i class="fa-solid fa-circle-check"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Respondidos
-          </span>
-
-          <strong id="summaryAnswered">
-            0
-          </strong>
-
-          <small>
-            Feedbacks já respondidos
-          </small>
-
-        </div>
-
-      </article>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         =====================================================
-         ÁREA PRINCIPAL
-         =====================================================
-    ====================================================== -->
-
-    <section class="feedback-panel">
-
-
-      <!-- ===================================================
-           ABAS
-      ==================================================== -->
-
-      <div class="feedback-tabs">
-
-
-        <button
-          type="button"
-          class="feedback-tab active"
-          data-feedback-tab="received"
-          id="receivedTabButton"
-        >
-
-          <i class="fa-solid fa-inbox"></i>
-
-          Feedbacks recebidos
-
-
-          <span
-            class="tab-counter"
-            id="receivedTabCounter"
-          >
-            0
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          class="feedback-tab"
-          data-feedback-tab="requests"
-          id="requestsTabButton"
-        >
-
-          <i class="fa-solid fa-paper-plane"></i>
-
-          Minhas solicitações
-
-
-          <span
-            class="tab-counter"
-            id="requestsTabCounter"
-          >
-            0
-          </span>
-
-        </button>
-
-      </div>
-
-
-
-      <!-- ===================================================
-           TOOLBAR
-      ==================================================== -->
-
-      <div class="feedback-toolbar">
-
-
-        <!-- BUSCA -->
-
-        <div class="search-box">
-
-          <i class="fa-solid fa-magnifying-glass"></i>
-
-
-          <input
-            type="text"
-            id="feedbackSearch"
-            placeholder="Pesquisar feedback..."
-          >
-
-        </div>
-
-
-
-        <!-- FILTRO -->
-
-        <select id="feedbackStatusFilter">
-
-          <option value="">
-            Todos os status
-          </option>
-
-          <option value="pendente">
-            Pendente
-          </option>
-
-          <option value="visualizado">
-            Visualizado
-          </option>
-
-          <option value="aguardando_resposta">
-            Aguardando resposta
-          </option>
-
-          <option value="respondido">
-            Respondido
-          </option>
-
-          <option value="ciente">
-            Ciente
-          </option>
-
-        </select>
-
-
-
-        <!-- ATUALIZAR -->
-
-        <button
-          type="button"
-          class="outline-button"
-          id="refreshFeedbacksButton"
-        >
-
-          <i class="fa-solid fa-rotate"></i>
-
-          Atualizar
-
-        </button>
-
-      </div>
-
-
-
-      <!-- ===================================================
-           FEEDBACKS RECEBIDOS
-      ==================================================== -->
-
-      <div
-        class="feedback-tab-content active"
-        id="receivedFeedbacksContent"
-      >
-
-
-        <div class="section-heading">
-
-          <div>
+            </div>
 
             <h2>
-              Feedbacks recebidos
+                Confirmar ciência
             </h2>
 
-
             <p>
-              Retornos enviados pelo responsável do seu setor.
+                Ao confirmar, este feedback será marcado como lido e compreendido.
             </p>
 
-          </div>
+            <input
+                type="hidden"
+                id="acknowledgeFeedbackId"
+            >
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    onclick="closeModal('acknowledgeModal')"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmAcknowledgeButton"
+                >
+
+                    <i class="fa-solid fa-check"></i>
+
+                    Confirmar ciência
+
+                </button>
+
+            </div>
 
         </div>
-
-
-
-        <div
-          class="feedback-list"
-          id="receivedFeedbackList"
-        >
-
-          <div class="loading-state">
-
-            <i class="fa-solid fa-spinner fa-spin"></i>
-
-            <span>
-              Carregando feedbacks...
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- ===================================================
-           MINHAS SOLICITAÇÕES
-      ==================================================== -->
-
-      <div
-        class="feedback-tab-content"
-        id="requestsFeedbacksContent"
-      >
-
-
-        <div class="section-heading">
-
-          <div>
-
-            <h2>
-              Minhas solicitações
-            </h2>
-
-
-            <p>
-              Acompanhe os pedidos de feedback enviados ao responsável do seu setor.
-            </p>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="secondary-button"
-            id="openRequestFeedbackSecondaryButton"
-          >
-
-            <i class="fa-solid fa-plus"></i>
-
-            Nova solicitação
-
-          </button>
-
-        </div>
-
-
-
-        <div
-          class="feedback-list"
-          id="requestFeedbackList"
-        >
-
-          <div class="loading-state">
-
-            <i class="fa-solid fa-spinner fa-spin"></i>
-
-            <span>
-              Carregando solicitações...
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - SOLICITAR FEEDBACK
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="requestFeedbackModal"
-  >
-
-    <div class="modal standard-modal">
-
-
-      <!-- FECHAR -->
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('requestFeedbackModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <!-- CABEÇALHO -->
-
-      <div class="modal-header">
-
-        <div class="modal-title-icon">
-
-          <i class="fa-solid fa-comment-dots"></i>
-
-        </div>
-
-
-        <div>
-
-          <h2>
-            Solicitar feedback
-          </h2>
-
-
-          <p>
-            Informe sobre qual aspecto do seu desempenho deseja receber um retorno.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- RESPONSÁVEL -->
-
-      <div class="responsible-card">
-
-        <div class="responsible-icon">
-
-          <i class="fa-solid fa-user-tie"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Sua solicitação será enviada para
-          </span>
-
-
-          <strong id="requestResponsibleText">
-            responsável do seu setor
-          </strong>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- FORM -->
-
-      <form id="requestFeedbackForm">
-
-
-        <!-- ASSUNTO -->
-
-        <div class="form-group">
-
-          <label for="requestFeedbackSubject">
-            Assunto
-          </label>
-
-
-          <select
-            id="requestFeedbackSubject"
-            required
-          >
-
-            <option value="">
-              Selecione
-            </option>
-
-            <option value="desempenho_geral">
-              Desempenho geral
-            </option>
-
-            <option value="desempenho_tecnico">
-              Desempenho técnico
-            </option>
-
-            <option value="comunicacao">
-              Comunicação
-            </option>
-
-            <option value="organizacao">
-              Organização
-            </option>
-
-            <option value="produtividade">
-              Produtividade
-            </option>
-
-            <option value="relacionamento">
-              Relacionamento
-            </option>
-
-            <option value="desenvolvimento_profissional">
-              Desenvolvimento profissional
-            </option>
-
-            <option value="outro">
-              Outro
-            </option>
-
-          </select>
-
-        </div>
-
-
-
-        <!-- TÍTULO -->
-
-        <div class="form-group">
-
-          <label for="requestFeedbackTitle">
-            Título
-          </label>
-
-
-          <input
-            type="text"
-            id="requestFeedbackTitle"
-            placeholder="Ex.: Feedback sobre minhas últimas entregas"
-            maxlength="120"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- MENSAGEM -->
-
-        <div class="form-group">
-
-          <label for="requestFeedbackMessage">
-            O que você gostaria de saber?
-          </label>
-
-
-          <textarea
-            id="requestFeedbackMessage"
-            rows="6"
-            maxlength="1500"
-            placeholder="Ex.: Gostaria de receber um feedback sobre a qualidade das minhas últimas entregas e entender quais pontos posso melhorar."
-            required
-          ></textarea>
-
-
-          <small class="form-hint">
-
-            Seja específico para receber um retorno mais útil.
-
-          </small>
-
-        </div>
-
-
-
-        <!-- AÇÕES -->
-
-        <div class="modal-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('requestFeedbackModal')"
-          >
-            Cancelar
-          </button>
-
-
-          <button
-            type="submit"
-            class="primary-button"
-            id="submitFeedbackRequestButton"
-          >
-
-            <i class="fa-solid fa-paper-plane"></i>
-
-            Enviar solicitação
-
-          </button>
-
-        </div>
-
-      </form>
 
     </div>
 
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - DETALHES DO FEEDBACK RECEBIDO
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="feedbackDetailsModal"
-  >
-
-    <div class="modal feedback-details-modal">
-
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('feedbackDetailsModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <!--
-        O JavaScript preencherá dinamicamente:
-
-        - tipo;
-        - título;
-        - responsável;
-        - data;
-        - mensagem;
-        - status;
-        - resposta do colaborador;
-        - botão responder;
-        - botão marcar como ciente.
-      -->
-
-      <div id="feedbackDetailsContent">
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando feedback...
-          </span>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - RESPONDER FEEDBACK
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="respondFeedbackModal"
-  >
-
-    <div class="modal standard-modal">
-
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('respondFeedbackModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <div class="modal-header">
-
-        <div class="modal-title-icon">
-
-          <i class="fa-solid fa-reply"></i>
-
-        </div>
-
-
-        <div>
-
-          <h2>
-            Responder feedback
-          </h2>
-
-
-          <p>
-            Envie seu retorno para o responsável.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- RESUMO -->
-
-      <div
-        class="feedback-context-box"
-        id="respondFeedbackContext"
-      >
-      </div>
-
-
-
-      <!-- FORM -->
-
-      <form id="respondFeedbackForm">
-
-
-        <input
-          type="hidden"
-          id="respondFeedbackId"
-        >
-
-
-
-        <div class="form-group">
-
-          <label for="respondFeedbackText">
-            Sua resposta
-          </label>
-
-
-          <textarea
-            id="respondFeedbackText"
-            rows="6"
-            maxlength="1500"
-            placeholder="Escreva sua resposta..."
-            required
-          ></textarea>
-
-        </div>
-
-
-
-        <div class="modal-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('respondFeedbackModal')"
-          >
-            Cancelar
-          </button>
-
-
-          <button
-            type="submit"
-            class="primary-button"
-            id="submitFeedbackResponseButton"
-          >
-
-            <i class="fa-solid fa-paper-plane"></i>
-
-            Enviar resposta
-
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - DETALHES DA SOLICITAÇÃO
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="requestDetailsModal"
-  >
-
-    <div class="modal feedback-details-modal">
-
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('requestDetailsModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <!--
-        O JS preencherá:
-
-        - assunto;
-        - título;
-        - texto enviado;
-        - responsável;
-        - status;
-        - resposta recebida;
-        - botão ciente.
-      -->
-
-      <div id="requestDetailsContent">
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando solicitação...
-          </span>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - CONFIRMAR CIÊNCIA
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="acknowledgeModal"
-  >
-
-    <div class="modal confirmation-modal">
-
-
-      <div class="confirmation-icon">
-
-        <i class="fa-solid fa-check"></i>
-
-      </div>
-
-
-      <h2>
-        Confirmar ciência
-      </h2>
-
-
-      <p>
-        Ao confirmar, este feedback será marcado como lido e compreendido.
-      </p>
-
-
-      <input
-        type="hidden"
-        id="acknowledgeFeedbackId"
-      >
-
-
-
-      <div class="modal-actions">
-
-        <button
-          type="button"
-          class="secondary-button"
-          onclick="closeModal('acknowledgeModal')"
-        >
-          Cancelar
-        </button>
-
-
-        <button
-          type="button"
-          class="primary-button"
-          id="confirmAcknowledgeButton"
-        >
-
-          <i class="fa-solid fa-check"></i>
-
-          Confirmar ciência
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
-
-  <script src="app.js"></script>
+    <script src="/components/sidebar.js"></script>
+    <script src="app.js"></script>
 
 </body>
 

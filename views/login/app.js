@@ -1,533 +1,207 @@
-// ==========================================================
-// EVOLUA+
-// LOGIN - FRONTEND
-// ==========================================================
-//
-// Este arquivo controla:
-//
-// - captura dos dados do formulário;
-// - mostrar/esconder senha;
-// - envio do login para o backend;
-// - armazenamento da sessão;
-// - redirecionamento conforme o perfil.
-//
-// ==========================================================
+const loginForm = document.getElementById("loginForm");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("senha");
+const passwordButton = document.getElementById("passwordButton");
+const passwordIcon = document.getElementById("passwordIcon");
+const loginMessage = document.getElementById("loginMessage");
+const loginButton = document.getElementById("loginButton");
 
+if (passwordButton && passwordInput && passwordIcon) {
+    passwordButton.addEventListener("click", () => {
+        const passwordHidden = passwordInput.type === "password";
 
+        passwordInput.type = passwordHidden
+            ? "text"
+            : "password";
 
-// ==========================================================
-// ELEMENTOS DA TELA
-// ==========================================================
+        passwordIcon.className = passwordHidden
+            ? "fa-regular fa-eye-slash"
+            : "fa-regular fa-eye";
 
-const loginForm =
-  document.getElementById(
-    "loginForm"
-  );
+        const buttonText = passwordHidden
+            ? "Ocultar senha"
+            : "Mostrar senha";
 
+        passwordButton.title = buttonText;
 
-const emailInput =
-  document.getElementById(
-    "email"
-  );
-
-
-const passwordInput =
-  document.getElementById(
-    "senha"
-  );
-
-
-const passwordButton =
-  document.getElementById(
-    "passwordButton"
-  );
-
-
-const passwordIcon =
-  document.getElementById(
-    "passwordIcon"
-  );
-
-
-const loginMessage =
-  document.getElementById(
-    "loginMessage"
-  );
-
-
-const loginButton =
-  document.getElementById(
-    "loginButton"
-  );
-
-
-
-// ==========================================================
-// MOSTRAR / ESCONDER SENHA
-// ==========================================================
-
-if (
-  passwordButton &&
-  passwordInput &&
-  passwordIcon
-) {
-
-  passwordButton.addEventListener(
-    "click",
-    () => {
-
-      // Verifica se a senha está escondida.
-      const hidden =
-        passwordInput.type ===
-        "password";
-
-
-      // Se estiver escondida,
-      // mudamos para texto.
-      //
-      // Se estiver visível,
-      // voltamos para password.
-
-      passwordInput.type =
-        hidden
-          ? "text"
-          : "password";
-
-
-      // Alteramos o ícone.
-      passwordIcon.className =
-        hidden
-          ? "fa-regular fa-eye-slash"
-          : "fa-regular fa-eye";
-
-
-      // Alteramos também o texto
-      // exibido ao passar o mouse.
-
-      passwordButton.title =
-        hidden
-          ? "Ocultar senha"
-          : "Mostrar senha";
-
-    }
-  );
-
+        passwordButton.setAttribute(
+            "aria-label",
+            buttonText
+        );
+    });
 }
 
+if (loginForm) {
+    loginForm.addEventListener("submit", async event => {
+        event.preventDefault();
 
+        const email = emailInput
+            ? emailInput.value.trim().toLowerCase()
+            : "";
 
-// ==========================================================
-// LOGIN
-// ==========================================================
+        const senha = passwordInput
+            ? passwordInput.value
+            : "";
 
-if (
-  loginForm
-) {
+        if (!email || !senha) {
+            showMessage(
+                "Preencha e-mail e senha.",
+                "error"
+            );
 
-  loginForm.addEventListener(
-    "submit",
-    async event => {
+            return;
+        }
 
-      // Impede o formulário de atualizar a página.
-      event.preventDefault();
+        const originalButtonHTML = loginButton
+            ? loginButton.innerHTML
+            : "Entrar";
 
+        try {
+            if (loginButton) {
+                loginButton.disabled = true;
 
-
-      // ====================================================
-      // PEGAR DADOS
-      // ====================================================
-
-      const email =
-        emailInput
-          .value
-          .trim()
-          .toLowerCase();
-
-
-      const senha =
-        passwordInput
-          .value;
-
-
-
-      // ====================================================
-      // VALIDAR CAMPOS
-      // ====================================================
-
-      if (
-        !email ||
-        !senha
-      ) {
-
-        showMessage(
-          "Preencha e-mail e senha.",
-          "error"
-        );
-
-        return;
-
-      }
-
-
-
-      // ====================================================
-      // PREPARAR BOTÃO
-      // ====================================================
-
-      const originalButtonText =
-        loginButton.textContent;
-
-
-      try {
-
-        loginButton.disabled =
-          true;
-
-
-        loginButton.textContent =
-          "Entrando...";
-
-
-        // Limpamos mensagens anteriores.
-        hideMessage();
-
-
-
-        // ==================================================
-        // ENVIAR LOGIN PARA O BACKEND
-        // ==================================================
-        //
-        // Fluxo:
-        //
-        // Login
-        //   ↓
-        // POST /api/auth/login
-        //   ↓
-        // Node.js
-        //   ↓
-        // Supabase Auth
-        //   ↓
-        // tabela usuario
-        //
-        // ==================================================
-
-        const response =
-          await fetch(
-            "/api/auth/login",
-            {
-
-              method:
-                "POST",
-
-              headers: {
-
-                "Content-Type":
-                  "application/json"
-
-              },
-
-              body:
-                JSON.stringify({
-
-                  email:
-                    email,
-
-                  senha:
-                    senha
-
-                })
-
+                loginButton.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Entrando...</span>
+                `;
             }
-          );
 
+            hideMessage();
 
+            const response = await fetch(
+                "/api/auth/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email,
+                        senha
+                    })
+                }
+            );
 
-        // ==================================================
-        // PEGAR RESPOSTA
-        // ==================================================
+            const result = await getResponseData(
+                response
+            );
 
-        const result =
-          await response.json();
+            if (!response.ok) {
+                throw new Error(
+                    result.error ||
+                    result.message ||
+                    "Não foi possível realizar o login."
+                );
+            }
 
+            if (
+                !result.access_token ||
+                !result.usuario
+            ) {
+                throw new Error(
+                    "O servidor não retornou os dados necessários para iniciar a sessão."
+                );
+            }
 
+            if (result.usuario.ativo === false) {
+                clearSession();
 
-        // ==================================================
-        // LOGIN COM ERRO
-        // ==================================================
+                throw new Error(
+                    "Este usuário está inativo."
+                );
+            }
 
-        if (
-          !response.ok
-        ) {
+            const perfil = result.usuario.perfil;
 
-          throw new Error(
-            result.error ||
-            "Não foi possível realizar o login."
-          );
+            if (
+                perfil !== "admin_principal" &&
+                perfil !== "admin_setor" &&
+                perfil !== "colaborador"
+            ) {
+                clearSession();
 
+                throw new Error(
+                    "Perfil de usuário não reconhecido pelo sistema."
+                );
+            }
+
+            localStorage.setItem(
+                "access_token",
+                result.access_token
+            );
+
+            localStorage.setItem(
+                "usuario_logado",
+                JSON.stringify(
+                    result.usuario
+                )
+            );
+
+            if (
+                perfil === "admin_principal" ||
+                perfil === "admin_setor"
+            ) {
+                window.location.href = "/admin/";
+                return;
+            }
+
+            window.location.href = "/dashboard/";
+
+        } catch (error) {
+            console.error(
+                "Erro no login:",
+                error
+            );
+
+            showMessage(
+                error.message ||
+                "Não foi possível realizar o login.",
+                "error"
+            );
+
+        } finally {
+            if (loginButton) {
+                loginButton.disabled = false;
+                loginButton.innerHTML =
+                    originalButtonHTML;
+            }
         }
+    });
+}
 
-
-
-        // ==================================================
-        // VALIDAR RESPOSTA DO BACKEND
-        // ==================================================
-
-        if (
-          !result.access_token ||
-          !result.usuario
-        ) {
-
-          throw new Error(
-            "O servidor não retornou os dados necessários para iniciar a sessão."
-          );
-
-        }
-
-
-
-        // ==================================================
-        // GUARDAR TOKEN
-        // ==================================================
-        //
-        // Esse token será utilizado posteriormente
-        // para provar para o backend quem está logado.
-        //
-        // Exemplo:
-        //
-        // Authorization: Bearer TOKEN
-        //
-        // ==================================================
-
-        localStorage.setItem(
-          "access_token",
-          result.access_token
-        );
-
-
-
-        // ==================================================
-        // GUARDAR DADOS DO USUÁRIO
-        // ==================================================
-        //
-        // Exemplo:
-        //
-        // {
-        //   id,
-        //   nome,
-        //   email,
-        //   matricula,
-        //   cargo,
-        //   setor,
-        //   perfil,
-        //   ativo
-        // }
-        //
-        // ==================================================
-
-        localStorage.setItem(
-          "usuario_logado",
-          JSON.stringify(
-            result.usuario
-          )
-        );
-
-
-
-        // ==================================================
-        // PEGAR PERFIL
-        // ==================================================
-
-        const perfil =
-          result.usuario.perfil;
-
-
-
-        // ==================================================
-        // ADMIN PRINCIPAL
-        // ==================================================
-        //
-        // Vai para:
-        //
-        // /admin/
-        //
-        // ==================================================
-
-        if (
-          perfil ===
-          "admin_principal"
-        ) {
-
-          window.location.href =
-            "/admin/";
-
-          return;
-
-        }
-
-
-
-        // ==================================================
-        // ADMIN DE SETOR
-        // ==================================================
-        //
-        // Também vai para:
-        //
-        // /admin/
-        //
-        // ==================================================
-
-        if (
-          perfil ===
-          "admin_setor"
-        ) {
-
-          window.location.href =
-            "/admin/";
-
-          return;
-
-        }
-
-
-
-        // ==================================================
-        // COLABORADOR
-        // ==================================================
-        //
-        // Vai para:
-        //
-        // /treinamentos/
-        //
-        // ==================================================
-
-        if (
-          perfil ===
-          "colaborador"
-        ) {
-
-          window.location.href =
-            "/treinamentos/";
-
-          return;
-
-        }
-
-
-
-        // ==================================================
-        // PERFIL DESCONHECIDO
-        // ==================================================
-        //
-        // Não deixamos entrar automaticamente
-        // em nenhuma página.
-        //
-        // ==================================================
-
-        localStorage.removeItem(
-          "access_token"
-        );
-
-
-        localStorage.removeItem(
-          "usuario_logado"
-        );
-
-
-        throw new Error(
-          "Perfil de usuário não reconhecido pelo sistema."
-        );
-
-
-
-      } catch (error) {
-
-        // ==================================================
-        // EXIBIR ERRO
-        // ==================================================
-
-        console.error(
-          "Erro no login:",
-          error
-        );
-
-
-        showMessage(
-          error.message,
-          "error"
-        );
-
-
-      } finally {
-
-        // ==================================================
-        // RESTAURAR BOTÃO
-        // ==================================================
-
-        loginButton.disabled =
-          false;
-
-
-        loginButton.textContent =
-          originalButtonText;
-
-      }
-
+async function getResponseData(response) {
+    try {
+        return await response.json();
+    } catch {
+        return {};
     }
-  );
-
 }
 
+function clearSession() {
+    localStorage.removeItem(
+        "access_token"
+    );
 
-
-// ==========================================================
-// MOSTRAR MENSAGEM
-// ==========================================================
-
-function showMessage(
-  message,
-  type
-) {
-
-  if (
-    !loginMessage
-  ) {
-
-    return;
-
-  }
-
-
-  loginMessage.textContent =
-    message;
-
-
-  loginMessage.className =
-    `login-message ${type}`;
-
+    localStorage.removeItem(
+        "usuario_logado"
+    );
 }
 
+function showMessage(message, type = "error") {
+    if (!loginMessage) return;
 
+    loginMessage.textContent =
+        message;
 
-// ==========================================================
-// ESCONDER MENSAGEM
-// ==========================================================
+    loginMessage.className =
+        `login-message ${type}`;
+}
 
 function hideMessage() {
+    if (!loginMessage) return;
 
-  if (
-    !loginMessage
-  ) {
+    loginMessage.textContent = "";
 
-    return;
-
-  }
-
-
-  loginMessage.textContent =
-    "";
-
-
-  loginMessage.className =
-    "login-message";
-
+    loginMessage.className =
+        "login-message";
 }

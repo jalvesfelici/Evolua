@@ -1,1411 +1,847 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 
 <head>
+    <meta charset="UTF-8">
 
-  <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+    <title>Evolua+ | Treinamentos</title>
 
-  <title>
-    Evolua+ | Treinamentos
-  </title>
+    <link
+        rel="stylesheet"
+        href="/css/global.css"
+    >
 
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-  <!-- =====================================================
-       CSS
-  ====================================================== -->
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  />
-
-
-  <!-- =====================================================
-       FONT AWESOME
-  ====================================================== -->
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
-
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 </head>
 
+<body data-page="treinamentos">
 
+    <aside id="sidebar"></aside>
 
-<body>
+    <main class="main-content">
 
+        <header class="page-header">
 
-  <!-- =====================================================
-       SIDEBAR
-  ====================================================== -->
+            <div>
 
-  <aside class="sidebar">
+                <p class="eyebrow">
+                    Desenvolvimento profissional
+                </p>
 
+                <h1>
+                    Treinamentos
+                </h1>
 
-    <!-- ===================================================
-         LOGO
-    ==================================================== -->
+                <p>
+                    Desenvolva suas habilidades e acompanhe seu aprendizado.
+                </p>
 
-    <div class="logo">
+            </div>
 
-      <div class="logo-icon">
-
-        <i class="fa-solid fa-chart-line"></i>
-
-      </div>
-
-
-      <div>
-
-        <h2>
-          Evolua+
-        </h2>
-
-        <span>
-          Portal de Carreiras
-        </span>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- ===================================================
-         IDENTIFICAÇÃO
-    ==================================================== -->
-
-    <div class="portal-badge">
-
-      <i class="fa-solid fa-user"></i>
-
-      <div>
-
-        <strong>
-          COLABORADOR
-        </strong>
-
-        <span>
-          Área do colaborador
-        </span>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- ===================================================
-         MENU
-    ==================================================== -->
-
-    <nav class="menu">
-
-
-      <!-- DASHBOARD -->
-
-      <a
-        href="#"
-        class="menu-item disabled"
-        aria-disabled="true"
-      >
-
-        <i class="fa-solid fa-house"></i>
-
-        <span>
-          Dashboard
-        </span>
-
-      </a>
-
-
-
-      <!-- FÉRIAS -->
-
-      <a
-        href="/ferias/"
-        class="menu-item"
-      >
-
-        <i class="fa-solid fa-calendar-days"></i>
-
-        <span>
-          Férias
-        </span>
-
-      </a>
-
-
-
-      <!-- PONTO -->
-
-      <a
-        href="#"
-        class="menu-item disabled"
-        aria-disabled="true"
-      >
-
-        <i class="fa-solid fa-clock"></i>
-
-        <span>
-          Ponto
-        </span>
-
-      </a>
-
-
-
-      <!-- TREINAMENTOS -->
-
-      <a
-        href="/treinamentos/"
-        class="menu-item active"
-      >
-
-        <i class="fa-solid fa-graduation-cap"></i>
-
-        <span>
-          Treinamentos
-        </span>
-
-      </a>
-
-
-
-      <!-- CARREIRA -->
-
-      <a
-        href="#"
-        class="menu-item disabled"
-        aria-disabled="true"
-      >
-
-        <i class="fa-solid fa-briefcase"></i>
-
-        <span>
-          Carreira
-        </span>
-
-      </a>
-
-
-
-      <!-- FEEDBACKS -->
-
-      <a
-        href="#"
-        class="menu-item disabled"
-        aria-disabled="true"
-      >
-
-        <i class="fa-solid fa-comments"></i>
-
-        <span>
-          Feedbacks
-        </span>
-
-      </a>
-
-    </nav>
-
-
-
-    <!-- ===================================================
-         USUÁRIO LOGADO
-    ==================================================== -->
-
-    <div class="sidebar-user">
-
-      <div
-        class="avatar"
-        id="userAvatar"
-      >
-        --
-      </div>
-
-
-      <div class="user-info">
-
-        <strong id="userName">
-          Carregando...
-        </strong>
-
-        <span id="userRole">
-          -
-        </span>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="logout-button"
-        id="logoutButton"
-        title="Sair"
-        aria-label="Sair do sistema"
-      >
-
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-
-      </button>
-
-    </div>
-
-  </aside>
-
-
-
-  <!-- =====================================================
-       CONTEÚDO PRINCIPAL
-  ====================================================== -->
-
-  <main class="main-content">
-
-
-    <!-- ===================================================
-         TOPO
-    ==================================================== -->
-
-    <header class="topbar">
-
-      <div>
-
-        <p class="eyebrow">
-          Desenvolvimento profissional
-        </p>
-
-        <h1>
-          Treinamentos
-        </h1>
-
-        <p>
-          Desenvolva suas habilidades e acompanhe seu aprendizado.
-        </p>
-
-      </div>
-
-    </header>
-
-
-
-    <!-- =====================================================
-         MENSAGEM GLOBAL
-    ====================================================== -->
-
-    <div
-      class="global-message"
-      id="globalMessage"
-      role="alert"
-    >
-    </div>
-
-
-
-    <!-- =====================================================
-         RESUMO
-    ====================================================== -->
-
-    <section
-      class="summary-grid"
-      aria-label="Resumo dos treinamentos"
-    >
-
-
-      <!-- =================================================
-           OBRIGATÓRIOS
-      ================================================== -->
-
-      <article class="summary-card">
-
-        <div class="summary-icon purple">
-
-          <i class="fa-solid fa-circle-exclamation"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Obrigatórios
-          </span>
-
-          <strong id="mandatoryCount">
-            0
-          </strong>
-
-          <small>
-            Pendentes no seu setor
-          </small>
-
-        </div>
-
-      </article>
-
-
-
-      <!-- =================================================
-           EM ANDAMENTO
-      ================================================== -->
-
-      <article class="summary-card">
-
-        <div class="summary-icon blue">
-
-          <i class="fa-solid fa-spinner"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Em andamento
-          </span>
-
-          <strong id="inProgressCount">
-            0
-          </strong>
-
-          <small>
-            Treinamentos
-          </small>
-
-        </div>
-
-      </article>
-
-
-
-      <!-- =================================================
-           CONCLUÍDOS
-      ================================================== -->
-
-      <article class="summary-card">
-
-        <div class="summary-icon green">
-
-          <i class="fa-solid fa-circle-check"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Concluídos
-          </span>
-
-          <strong id="completedCount">
-            0
-          </strong>
-
-          <small>
-            Aprovados
-          </small>
-
-        </div>
-
-      </article>
-
-
-
-      <!-- =================================================
-           CARGA HORÁRIA
-      ================================================== -->
-
-      <article class="summary-card">
-
-        <div class="summary-icon orange">
-
-          <i class="fa-solid fa-clock"></i>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Carga horária
-          </span>
-
-          <strong id="totalHours">
-            0h
-          </strong>
-
-          <small>
-            Horas aprovadas
-          </small>
-
-        </div>
-
-      </article>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         SEUS TREINAMENTOS
-    ====================================================== -->
-
-    <section class="section">
-
-
-      <div class="section-header">
-
-        <div>
-
-          <p class="eyebrow">
-            Seu desenvolvimento
-          </p>
-
-          <h2>
-            Seus treinamentos
-          </h2>
-
-          <p>
-            Cursos destinados ao seu setor e treinamentos que você iniciou.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =================================================
-           FILTROS DOS MEUS TREINAMENTOS
-      ================================================== -->
-
-      <div class="my-training-filters">
-
-        <button
-          type="button"
-          class="training-status-filter active"
-          data-status="todos"
-        >
-          Todos
-        </button>
-
-        <button
-          type="button"
-          class="training-status-filter"
-          data-status="pendentes"
-        >
-          Pendentes
-        </button>
-
-        <button
-          type="button"
-          class="training-status-filter"
-          data-status="andamento"
-        >
-          Em andamento
-        </button>
-
-        <button
-          type="button"
-          class="training-status-filter"
-          data-status="avaliacao"
-        >
-          Em avaliação
-        </button>
-
-        <button
-          type="button"
-          class="training-status-filter"
-          data-status="correcao"
-        >
-          Correção
-        </button>
-
-        <button
-          type="button"
-          class="training-status-filter"
-          data-status="concluidos"
-        >
-          Concluídos
-        </button>
-
-      </div>
-
-
-
-      <!-- =================================================
-           GRID
-      ================================================== -->
-
-      <div
-        class="training-grid"
-        id="userTrainingGrid"
-      >
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando seus treinamentos...
-          </span>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         CATÁLOGO GERAL
-    ====================================================== -->
-
-    <section class="section">
-
-
-      <div class="section-header">
-
-        <div>
-
-          <p class="eyebrow">
-            Catálogo
-          </p>
-
-          <h2>
-            Todos os treinamentos
-          </h2>
-
-          <p>
-            Explore todos os cursos ativos disponibilizados pela empresa.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =================================================
-           BUSCA E FILTROS
-      ================================================== -->
-
-      <div class="filters">
-
-
-        <!-- PESQUISA -->
-
-        <div class="search-box">
-
-          <i class="fa-solid fa-magnifying-glass"></i>
-
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Buscar treinamento..."
-            autocomplete="off"
-          />
-
-        </div>
-
-
-
-        <!-- FILTROS POR ÁREA -->
+        </header>
 
         <div
-          class="filter-buttons"
-          id="filterButtons"
+            class="global-message"
+            id="globalMessage"
+            role="alert"
+        ></div>
+
+        <section
+            class="summary-grid"
+            aria-label="Resumo dos treinamentos"
         >
 
-          <button
-            type="button"
-            class="filter-button active"
-            data-area="Todos"
-          >
-            Todos
-          </button>
+            <article class="summary-card">
 
-        </div>
+                <div class="summary-icon purple">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
 
-      </div>
+                <div>
+                    <span>Obrigatórios</span>
 
+                    <strong id="mandatoryCount">
+                        0
+                    </strong>
 
+                    <small>
+                        Pendentes no seu setor
+                    </small>
+                </div>
 
-      <!-- =================================================
-           CATÁLOGO
-      ================================================== -->
+            </article>
 
-      <div
-        class="catalog-grid"
-        id="courseCatalog"
-      >
+            <article class="summary-card">
 
-        <div class="loading-state">
+                <div class="summary-icon blue">
+                    <i class="fa-solid fa-spinner"></i>
+                </div>
 
-          <i class="fa-solid fa-spinner fa-spin"></i>
+                <div>
+                    <span>Em andamento</span>
 
-          <span>
-            Carregando catálogo...
-          </span>
+                    <strong id="inProgressCount">
+                        0
+                    </strong>
 
-        </div>
+                    <small>
+                        Treinamentos
+                    </small>
+                </div>
 
-      </div>
+            </article>
 
-    </section>
+            <article class="summary-card">
 
-  </main>
+                <div class="summary-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
 
+                <div>
+                    <span>Concluídos</span>
 
+                    <strong id="completedCount">
+                        0
+                    </strong>
 
-  <!-- =====================================================
-       =====================================================
-       MODAL DO TREINAMENTO
-       =====================================================
-  ====================================================== -->
+                    <small>
+                        Aprovados
+                    </small>
+                </div>
 
-  <div
-    class="modal-overlay"
-    id="courseModal"
-    aria-hidden="true"
-  >
+            </article>
 
-    <div
-      class="course-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modalCourseTitle"
-    >
+            <article class="summary-card">
 
+                <div class="summary-icon orange">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
 
-      <!-- =================================================
-           FECHAR
-      ================================================== -->
+                <div>
+                    <span>Carga horária</span>
 
-      <button
-        type="button"
-        class="close-modal"
-        id="closeCourseModalButton"
-        aria-label="Fechar treinamento"
-      >
+                    <strong id="totalHours">
+                        0h
+                    </strong>
 
-        <i class="fa-solid fa-xmark"></i>
+                    <small>
+                        Horas aprovadas
+                    </small>
+                </div>
 
-      </button>
+            </article>
 
+        </section>
 
+        <section class="section">
 
-      <!-- =================================================
-           CABEÇALHO
-      ================================================== -->
+            <div class="section-header">
 
-      <div class="course-modal-header">
+                <div>
 
-        <div class="course-modal-icon">
+                    <p class="eyebrow">
+                        Seu desenvolvimento
+                    </p>
 
-          <i
-            class="fa-solid fa-graduation-cap"
-            id="modalCourseIcon"
-          ></i>
+                    <h2>
+                        Seus treinamentos
+                    </h2>
 
-        </div>
+                    <p>
+                        Cursos destinados ao seu setor e treinamentos que você iniciou.
+                    </p>
 
-
-        <div class="course-modal-title-area">
-
-          <div class="course-modal-badges">
-
-            <span
-              class="modal-badge"
-              id="modalCourseBadge"
-            >
-              Treinamento
-            </span>
-
-
-            <span
-              class="status-pill"
-              id="modalCourseStatus"
-            >
-              Não iniciado
-            </span>
-
-          </div>
-
-
-          <h2 id="modalCourseTitle">
-            Curso
-          </h2>
-
-
-          <p id="modalCourseArea">
-            Área
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =================================================
-           INFORMAÇÕES
-      ================================================== -->
-
-      <div class="course-information">
-
-
-        <!-- CARGA HORÁRIA -->
-
-        <div>
-
-          <span>
-            Carga horária
-          </span>
-
-          <strong>
-
-            <i class="fa-regular fa-clock"></i>
-
-            <span id="modalCourseHours">
-              0 horas
-            </span>
-
-          </strong>
-
-        </div>
-
-
-
-        <!-- NÍVEL -->
-
-        <div>
-
-          <span>
-            Nível
-          </span>
-
-          <strong>
-
-            <i class="fa-solid fa-signal"></i>
-
-            <span id="modalCourseLevel">
-              -
-            </span>
-
-          </strong>
-
-        </div>
-
-
-
-        <!-- RESPONSÁVEL -->
-
-        <div>
-
-          <span>
-            Setor responsável
-          </span>
-
-          <strong>
-
-            <i class="fa-solid fa-building"></i>
-
-            <span id="modalCourseSector">
-              -
-            </span>
-
-          </strong>
-
-        </div>
-
-
-
-        <!-- CLASSIFICAÇÃO -->
-
-        <div>
-
-          <span>
-            Classificação
-          </span>
-
-          <strong>
-
-            <i class="fa-solid fa-list-check"></i>
-
-            <span id="modalCourseRequirement">
-              -
-            </span>
-
-          </strong>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =================================================
-           DESCRIÇÃO
-      ================================================== -->
-
-      <div class="course-description">
-
-        <h3>
-          Sobre o treinamento
-        </h3>
-
-        <p id="modalCourseDescription">
-        </p>
-
-      </div>
-
-
-
-      <!-- =================================================
-           AVISO DE CORREÇÃO
-      ================================================== -->
-
-      <div
-        class="correction-alert"
-        id="correctionAlert"
-      >
-
-        <div class="correction-alert-icon">
-
-          <i class="fa-solid fa-triangle-exclamation"></i>
-
-        </div>
-
-
-        <div>
-
-          <strong>
-            Correção solicitada
-          </strong>
-
-          <p id="correctionMessage">
-            Revise as atividades indicadas pelo responsável.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =================================================
-           AGUARDANDO AVALIAÇÃO
-      ================================================== -->
-
-      <div
-        class="evaluation-waiting-box"
-        id="evaluationWaitingBox"
-      >
-
-        <i class="fa-solid fa-hourglass-half"></i>
-
-        <div>
-
-          <strong>
-            Aguardando avaliação
-          </strong>
-
-          <span>
-            Seu treinamento foi enviado e está aguardando análise do setor responsável.
-          </span>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =================================================
-           APROVADO
-      ================================================== -->
-
-      <div
-        class="approved-training-box"
-        id="approvedTrainingBox"
-      >
-
-        <i class="fa-solid fa-circle-check"></i>
-
-        <div>
-
-          <strong>
-            Treinamento aprovado
-          </strong>
-
-          <span>
-            Este treinamento foi concluído e aprovado.
-          </span>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- =====================================================
-           CURSO EXTERNO
-      ====================================================== -->
-
-      <section
-        class="external-course-section"
-        id="externalCourseSection"
-      >
-
-
-        <!-- ACESSO EXTERNO -->
-
-        <div class="external-course-box">
-
-          <div class="external-course-info">
-
-            <div class="external-course-icon">
-
-              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </div>
 
             </div>
 
+            <div class="my-training-filters">
 
-            <div>
+                <button
+                    type="button"
+                    class="training-status-filter active"
+                    data-status="todos"
+                >
+                    Todos
+                </button>
 
-              <strong>
-                Curso realizado em plataforma externa
-              </strong>
+                <button
+                    type="button"
+                    class="training-status-filter"
+                    data-status="pendentes"
+                >
+                    Pendentes
+                </button>
 
-              <span>
-                Acesse o treinamento pelo link fornecido pelo responsável.
-              </span>
+                <button
+                    type="button"
+                    class="training-status-filter"
+                    data-status="andamento"
+                >
+                    Em andamento
+                </button>
 
-            </div>
+                <button
+                    type="button"
+                    class="training-status-filter"
+                    data-status="avaliacao"
+                >
+                    Em avaliação
+                </button>
 
-          </div>
+                <button
+                    type="button"
+                    class="training-status-filter"
+                    data-status="correcao"
+                >
+                    Correção
+                </button>
 
-
-          <a
-            href="#"
-            id="externalCourseLink"
-            class="external-course-button"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-
-            Acessar curso
-
-          </a>
-
-        </div>
-
-
-
-        <!-- =================================================
-             ENVIO DO CERTIFICADO EXTERNO
-        ================================================== -->
-
-        <div
-          class="external-certificate-area"
-          id="externalCertificateArea"
-        >
-
-          <div class="activities-title">
-
-            <div>
-
-              <h3>
-                Comprovação de conclusão
-              </h3>
-
-              <p>
-                Após concluir o curso externo, envie o certificado para avaliação.
-              </p>
+                <button
+                    type="button"
+                    class="training-status-filter"
+                    data-status="concluidos"
+                >
+                    Concluídos
+                </button>
 
             </div>
-
-          </div>
-
-
-          <div class="certificate-upload-box">
-
-            <input
-              type="file"
-              id="externalCertificateInput"
-              class="file-input"
-              accept=".pdf,.png,.jpg,.jpeg"
-            />
-
-
-            <label
-              for="externalCertificateInput"
-              class="upload-label"
-            >
-
-              <i class="fa-solid fa-file-arrow-up"></i>
-
-
-              <div>
-
-                <strong>
-                  Selecionar certificado
-                </strong>
-
-                <span id="externalCertificateFileName">
-                  PDF, PNG ou JPG — máximo de 10 MB
-                </span>
-
-              </div>
-
-            </label>
-
-
-            <button
-              type="button"
-              class="primary-button"
-              id="sendExternalCertificateButton"
-            >
-
-              <i class="fa-solid fa-paper-plane"></i>
-
-              Enviar para avaliação
-
-            </button>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           CURSO INTERNO
-      ====================================================== -->
-
-      <section
-        class="internal-course-section"
-        id="internalCourseSection"
-      >
-
-
-        <!-- =================================================
-             PROGRESSO
-        ================================================== -->
-
-        <div class="course-progress-area">
-
-          <div class="course-progress-header">
-
-            <div>
-
-              <h3>
-                Seu progresso
-              </h3>
-
-              <span id="courseProgressText">
-                0 de 0 atividades enviadas
-              </span>
-
-            </div>
-
-
-            <strong id="courseProgressPercentage">
-              0%
-            </strong>
-
-          </div>
-
-
-          <div class="course-progress-bar">
 
             <div
-              id="courseProgressFill"
-              class="course-progress-fill"
+                class="training-grid"
+                id="userTrainingGrid"
             >
-            </div>
 
-          </div>
-
-        </div>
-
-
-
-        <!-- =================================================
-             ATIVIDADES
-        ================================================== -->
-
-        <div class="activities-section">
-
-          <div class="activities-title">
-
-            <div>
-
-              <h3>
-                Atividades do treinamento
-              </h3>
-
-              <p>
-                Realize e envie todas as atividades antes de encaminhar o treinamento para avaliação.
-              </p>
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando seus treinamentos...</span>
+                </div>
 
             </div>
 
-          </div>
+        </section>
 
+        <section class="section">
 
-          <div
-            class="activities-list"
-            id="courseActivities"
-          >
+            <div class="section-header">
 
-            <div class="loading-state">
+                <div>
 
-              <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p class="eyebrow">
+                        Catálogo
+                    </p>
 
-              <span>
-                Carregando atividades...
-              </span>
+                    <h2>
+                        Todos os treinamentos
+                    </h2>
+
+                    <p>
+                        Explore todos os cursos ativos disponibilizados pela empresa.
+                    </p>
+
+                </div>
 
             </div>
 
-          </div>
+            <div class="filters">
 
-        </div>
+                <div class="search-box">
 
+                    <i class="fa-solid fa-magnifying-glass"></i>
 
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Buscar treinamento..."
+                        autocomplete="off"
+                    >
 
-        <!-- =================================================
-             ENVIAR CURSO PARA AVALIAÇÃO
-        ================================================== -->
+                </div>
 
-        <div
-          class="submit-training-area"
-          id="submitTrainingArea"
-        >
+                <div
+                    class="filter-buttons"
+                    id="filterButtons"
+                >
 
-          <div>
+                    <button
+                        type="button"
+                        class="filter-button active"
+                        data-area="Todos"
+                    >
+                        Todos
+                    </button>
 
-            <strong>
-              Terminou todas as atividades?
-            </strong>
+                </div>
 
-            <span>
-              Depois do envio você não poderá alterar as atividades até que o responsável conclua a avaliação.
-            </span>
+            </div>
 
-          </div>
+            <div
+                class="catalog-grid"
+                id="courseCatalog"
+            >
 
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando catálogo...</span>
+                </div>
 
-          <button
-            type="button"
-            class="primary-button"
-            id="submitTrainingButton"
-          >
+            </div>
 
-            <i class="fa-solid fa-paper-plane"></i>
+        </section>
 
-            Enviar para avaliação
-
-          </button>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           CERTIFICADO APROVADO
-      ====================================================== -->
-
-      <section
-        class="certificate-result-section"
-        id="certificateResultSection"
-      >
-
-        <div class="certificate-result-card">
-
-          <div class="certificate-result-icon">
-
-            <i class="fa-solid fa-certificate"></i>
-
-          </div>
-
-
-          <div class="certificate-result-info">
-
-            <strong>
-              Certificado disponível
-            </strong>
-
-            <span id="certificateFileName">
-              Certificado do treinamento
-            </span>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="secondary-button"
-            id="openCertificateButton"
-          >
-
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-
-            Abrir certificado
-
-          </button>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           AÇÕES DO MODAL
-      ====================================================== -->
-
-      <div class="course-modal-actions">
-
-
-        <!-- INICIAR CURSO -->
-
-        <button
-          type="button"
-          class="primary-button"
-          id="startCourseButton"
-        >
-
-          <i class="fa-solid fa-play"></i>
-
-          Iniciar treinamento
-
-        </button>
-
-
-        <!-- FECHAR -->
-
-        <button
-          type="button"
-          class="secondary-button"
-          id="closeCourseFooterButton"
-        >
-
-          Fechar
-
-        </button>
-
-      </div>
-
-
-
-      <!-- =====================================================
-           MENSAGEM DO MODAL
-      ====================================================== -->
-
-      <div
-        class="modal-message"
-        id="courseModalMessage"
-        role="alert"
-      >
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL DE CONFIRMAÇÃO DE ENVIO
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="submitConfirmationModal"
-    aria-hidden="true"
-  >
+    </main>
 
     <div
-      class="confirmation-modal"
-      role="dialog"
-      aria-modal="true"
+        class="modal-overlay"
+        id="courseModal"
+        aria-hidden="true"
     >
 
-      <div class="confirmation-icon">
-
-        <i class="fa-solid fa-paper-plane"></i>
-
-      </div>
-
-
-      <h2>
-        Enviar treinamento?
-      </h2>
-
-
-      <p>
-        Todas as suas atividades serão encaminhadas para o setor responsável pelo treinamento.
-      </p>
-
-
-      <p>
-        Enquanto estiver em avaliação, você não poderá alterar as entregas.
-      </p>
-
-
-      <div class="confirmation-actions">
-
-        <button
-          type="button"
-          class="secondary-button"
-          id="cancelSubmitTrainingButton"
-        >
-          Cancelar
-        </button>
-
-
-        <button
-          type="button"
-          class="primary-button"
-          id="confirmSubmitTrainingButton"
+        <div
+            class="course-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalCourseTitle"
         >
 
-          <i class="fa-solid fa-paper-plane"></i>
+            <button
+                type="button"
+                class="close-modal"
+                id="closeCourseModalButton"
+                aria-label="Fechar treinamento"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-          Confirmar envio
+            <div class="course-modal-header">
 
-        </button>
+                <div class="course-modal-icon">
 
-      </div>
+                    <i
+                        class="fa-solid fa-graduation-cap"
+                        id="modalCourseIcon"
+                    ></i>
+
+                </div>
+
+                <div class="course-modal-title-area">
+
+                    <div class="course-modal-badges">
+
+                        <span
+                            class="modal-badge"
+                            id="modalCourseBadge"
+                        >
+                            Treinamento
+                        </span>
+
+                        <span
+                            class="status-pill"
+                            id="modalCourseStatus"
+                        >
+                            Não iniciado
+                        </span>
+
+                    </div>
+
+                    <h2 id="modalCourseTitle">
+                        Curso
+                    </h2>
+
+                    <p id="modalCourseArea">
+                        Área
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="course-information">
+
+                <div>
+                    <span>Carga horária</span>
+
+                    <strong>
+                        <i class="fa-regular fa-clock"></i>
+
+                        <span id="modalCourseHours">
+                            0 horas
+                        </span>
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Nível</span>
+
+                    <strong>
+                        <i class="fa-solid fa-signal"></i>
+
+                        <span id="modalCourseLevel">
+                            -
+                        </span>
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Setor responsável</span>
+
+                    <strong>
+                        <i class="fa-solid fa-building"></i>
+
+                        <span id="modalCourseSector">
+                            -
+                        </span>
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Classificação</span>
+
+                    <strong>
+                        <i class="fa-solid fa-list-check"></i>
+
+                        <span id="modalCourseRequirement">
+                            -
+                        </span>
+                    </strong>
+                </div>
+
+            </div>
+
+            <div class="course-description">
+
+                <h3>
+                    Sobre o treinamento
+                </h3>
+
+                <p id="modalCourseDescription"></p>
+
+            </div>
+
+            <div
+                class="correction-alert"
+                id="correctionAlert"
+            >
+
+                <div class="correction-alert-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+
+                <div>
+
+                    <strong>
+                        Correção solicitada
+                    </strong>
+
+                    <p id="correctionMessage">
+                        Revise as atividades indicadas pelo responsável.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div
+                class="evaluation-waiting-box"
+                id="evaluationWaitingBox"
+            >
+
+                <i class="fa-solid fa-hourglass-half"></i>
+
+                <div>
+
+                    <strong>
+                        Aguardando avaliação
+                    </strong>
+
+                    <span>
+                        Seu treinamento foi enviado e está aguardando análise do setor responsável.
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div
+                class="approved-training-box"
+                id="approvedTrainingBox"
+            >
+
+                <i class="fa-solid fa-circle-check"></i>
+
+                <div>
+
+                    <strong>
+                        Treinamento aprovado
+                    </strong>
+
+                    <span>
+                        Este treinamento foi concluído e aprovado.
+                    </span>
+
+                </div>
+
+            </div>
+
+            <section
+                class="external-course-section"
+                id="externalCourseSection"
+            >
+
+                <div class="external-course-box">
+
+                    <div class="external-course-info">
+
+                        <div class="external-course-icon">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Curso realizado em plataforma externa
+                            </strong>
+
+                            <span>
+                                Acesse o treinamento pelo link fornecido pelo responsável.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <a
+                        href="#"
+                        id="externalCourseLink"
+                        class="external-course-button"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                        Acessar curso
+
+                    </a>
+
+                </div>
+
+                <div
+                    class="external-certificate-area"
+                    id="externalCertificateArea"
+                >
+
+                    <div class="activities-title">
+
+                        <div>
+
+                            <h3>
+                                Comprovação de conclusão
+                            </h3>
+
+                            <p>
+                                Após concluir o curso externo, envie o certificado para avaliação.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="certificate-upload-box">
+
+                        <input
+                            type="file"
+                            id="externalCertificateInput"
+                            class="file-input"
+                            accept=".pdf,.png,.jpg,.jpeg"
+                        >
+
+                        <label
+                            for="externalCertificateInput"
+                            class="upload-label"
+                        >
+
+                            <i class="fa-solid fa-file-arrow-up"></i>
+
+                            <div>
+
+                                <strong>
+                                    Selecionar certificado
+                                </strong>
+
+                                <span id="externalCertificateFileName">
+                                    PDF, PNG ou JPG — máximo de 10 MB
+                                </span>
+
+                            </div>
+
+                        </label>
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            id="sendExternalCertificateButton"
+                        >
+
+                            <i class="fa-solid fa-paper-plane"></i>
+
+                            Enviar para avaliação
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section
+                class="internal-course-section"
+                id="internalCourseSection"
+            >
+
+                <div class="course-progress-area">
+
+                    <div class="course-progress-header">
+
+                        <div>
+
+                            <h3>
+                                Seu progresso
+                            </h3>
+
+                            <span id="courseProgressText">
+                                0 de 0 atividades enviadas
+                            </span>
+
+                        </div>
+
+                        <strong id="courseProgressPercentage">
+                            0%
+                        </strong>
+
+                    </div>
+
+                    <div class="course-progress-bar">
+
+                        <div
+                            id="courseProgressFill"
+                            class="course-progress-fill"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+                <div class="activities-section">
+
+                    <div class="activities-title">
+
+                        <div>
+
+                            <h3>
+                                Atividades do treinamento
+                            </h3>
+
+                            <p>
+                                Realize e envie todas as atividades antes de encaminhar o treinamento para avaliação.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="activities-list"
+                        id="courseActivities"
+                    >
+
+                        <div class="loading-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Carregando atividades...</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="submit-training-area"
+                    id="submitTrainingArea"
+                >
+
+                    <div>
+
+                        <strong>
+                            Terminou todas as atividades?
+                        </strong>
+
+                        <span>
+                            Depois do envio você não poderá alterar as atividades até que o responsável conclua a avaliação.
+                        </span>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="submitTrainingButton"
+                    >
+
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                        Enviar para avaliação
+
+                    </button>
+
+                </div>
+
+            </section>
+
+            <section
+                class="certificate-result-section"
+                id="certificateResultSection"
+            >
+
+                <div class="certificate-result-card">
+
+                    <div class="certificate-result-icon">
+                        <i class="fa-solid fa-certificate"></i>
+                    </div>
+
+                    <div class="certificate-result-info">
+
+                        <strong>
+                            Certificado disponível
+                        </strong>
+
+                        <span id="certificateFileName">
+                            Certificado do treinamento
+                        </span>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        id="openCertificateButton"
+                    >
+
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                        Abrir certificado
+
+                    </button>
+
+                </div>
+
+            </section>
+
+            <div class="course-modal-actions">
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="startCourseButton"
+                >
+
+                    <i class="fa-solid fa-play"></i>
+
+                    Iniciar treinamento
+
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="closeCourseFooterButton"
+                >
+                    Fechar
+                </button>
+
+            </div>
+
+            <div
+                class="modal-message"
+                id="courseModalMessage"
+                role="alert"
+            ></div>
+
+        </div>
 
     </div>
 
-  </div>
+    <div
+        class="modal-overlay"
+        id="submitConfirmationModal"
+        aria-hidden="true"
+    >
 
+        <div
+            class="confirmation-modal"
+            role="dialog"
+            aria-modal="true"
+        >
 
+            <div class="confirmation-icon">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
 
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
+            <h2>
+                Enviar treinamento?
+            </h2>
 
-  <script src="app.js"></script>
+            <p>
+                Todas as suas atividades serão encaminhadas para o setor responsável pelo treinamento.
+            </p>
+
+            <p>
+                Enquanto estiver em avaliação, você não poderá alterar as entregas.
+            </p>
+
+            <div class="confirmation-actions">
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelSubmitTrainingButton"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmSubmitTrainingButton"
+                >
+
+                    <i class="fa-solid fa-paper-plane"></i>
+
+                    Confirmar envio
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="/components/sidebar.js"></script>
+    <script src="app.js"></script>
 
 </body>
 

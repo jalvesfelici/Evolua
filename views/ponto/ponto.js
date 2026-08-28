@@ -1,264 +1,227 @@
+const accessToken = localStorage.getItem("access_token");
 
-/*
-==================================================
-    SISTEMA DE PONTO - LOBIOS
-==================================================
-*/
+let loggedUser = null;
+let selectedDocument = null;
 
+try {
+    const storedUser = localStorage.getItem("usuario_logado");
 
-// ================================================
-// CONFIGURAÇÕES
-// ================================================
+    if (storedUser) {
+        loggedUser = JSON.parse(storedUser);
+    }
+} catch (error) {
+    console.error("Erro ao recuperar usuário:", error);
+}
 
-const NOME_USUARIO = "Usuário Lobios";
+const punchTypes = [
+    {
+        key: "entrada",
+        label: "Entrada",
+        button: "Registrar entrada",
+        modalTitle: "Registrar entrada",
+        description: "Registre o início da sua jornada."
+    },
+    {
+        key: "intervalo",
+        label: "Início do intervalo",
+        button: "Iniciar intervalo",
+        modalTitle: "Registrar intervalo",
+        description: "Registre o início do seu intervalo."
+    },
+    {
+        key: "retorno",
+        label: "Retorno do intervalo",
+        button: "Registrar retorno",
+        modalTitle: "Registrar retorno",
+        description: "Registre seu retorno ao trabalho."
+    },
+    {
+        key: "saida",
+        label: "Saída",
+        button: "Registrar saída",
+        modalTitle: "Registrar saída",
+        description: "Registre o encerramento da sua jornada."
+    }
+];
 
-const JORNADA_DIARIA = 8 * 60 * 60 * 1000;
-
-
-// ================================================
-// ELEMENTOS DA PÁGINA
-// ================================================
-
-const relogio = document.getElementById("relogio");
-const dataAtual = document.getElementById("dataAtual");
-
-const btnRegistrar = document.getElementById("btnRegistrar");
-
-const tituloRegistro = document.getElementById("tituloRegistro");
-const descricaoRegistro = document.getElementById("descricaoRegistro");
-
-const status = document.getElementById("status");
-
-const historicoBody = document.getElementById("historicoBody");
-
-const contador = document.getElementById("contador");
-
-const horasTrabalhadas = document.getElementById("horasTrabalhadas");
-
-const barraProgresso = document.getElementById("barraProgresso");
-
-const notificacao = document.getElementById("notificacao");
-
-const nomeUsuario = document.getElementById("nomeUsuario");
-
-const btnReset = document.getElementById("btnReset");
-
-// ================================================
-// TIPOS DE PONTO
-// ================================================
-
-const TIPOS_PONTO = {
-
-    ENTRADA: "Entrada",
-
-    INTERVALO: "Saída para intervalo",
-
-    RETORNO: "Retorno do intervalo",
-
-    SAIDA: "Saída"
-
+let todayPoint = {
+    entrada: null,
+    intervalo: null,
+    retorno: null,
+    saida: null,
+    documentos: [],
+    observacoes: []
 };
 
+let pointHistory = [
+    {
+        date: "27/08/2026",
+        entrada: "08:02",
+        intervalo: "12:01",
+        retorno: "13:00",
+        saida: "17:08",
+        worked: "8h 07min",
+        status: "normal",
+        statusLabel: "Normal",
+        document: null
+    },
+    {
+        date: "26/08/2026",
+        entrada: "08:19",
+        intervalo: "12:03",
+        retorno: "13:04",
+        saida: "17:13",
+        worked: "7h 57min",
+        status: "delay",
+        statusLabel: "Atraso",
+        document: null
+    },
+    {
+        date: "25/08/2026",
+        entrada: "07:55",
+        intervalo: "12:00",
+        retorno: "13:00",
+        saida: "18:12",
+        worked: "9h 17min",
+        status: "overtime",
+        statusLabel: "Hora extra",
+        document: null
+    },
+    {
+        date: "24/08/2026",
+        entrada: "--",
+        intervalo: "--",
+        retorno: "--",
+        saida: "--",
+        worked: "0h 00min",
+        status: "absence",
+        statusLabel: "Falta justificada",
+        document: "atestado-medico.pdf"
+    },
+    {
+        date: "21/08/2026",
+        entrada: "08:00",
+        intervalo: "12:00",
+        retorno: "13:00",
+        saida: "17:00",
+        worked: "8h 00min",
+        status: "normal",
+        statusLabel: "Normal",
+        document: null
+    }
+];
 
-// ================================================
-// DATA ATUAL
-// ================================================
-
-function obterDataHoje() {
-
-    const agora = new Date();
-
-    return agora.toLocaleDateString("pt-BR");
-
+function clearSession() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("usuario_logado");
 }
 
-
-// ================================================
-// CHAVE DO STORAGE
-// ================================================
-
-function obterChaveStorage() {
-
-    return `lobios_ponto_${obterDataHoje()}`;
-
-}
-
-
-// ================================================
-// REGISTROS DO DIA
-// ================================================
-
-let registrosDoDia = [];
-
-
-// ================================================
-// CARREGAR REGISTROS DO BANCO
-// ================================================
-
-async function carregarRegistrosDoBanco() {
-
-    const usuarioLogado =
-        JSON.parse(
-            localStorage.getItem("usuario_logado")
-        );
-
-    if (!usuarioLogado || !usuarioLogado.id) {
-
-        console.error(
-            "Usuário não identificado."
-        );
-
-        return;
-
+function validateSession() {
+    if (!accessToken || !loggedUser) {
+        window.location.href = "/login/";
+        return false;
     }
 
-    try {
-
-        const response =
-            await fetch(
-                `/api/ponto/${usuarioLogado.id}`
-            );
-
-        const resultado =
-            await response.json();
-
-        if (!response.ok) {
-
-            throw new Error(
-                resultado.error ||
-                "Erro ao buscar ponto."
-            );
-
-        }
-
-        registrosDoDia = [];
-
-        const ponto = resultado.ponto;
-
-        if (!ponto) {
-
-            atualizarInterface();
-
-            return;
-
-        }
-
-        // ==========================================
-        // ENTRADA
-        // ==========================================
-
-        if (ponto.entrada) {
-
-            registrosDoDia.push({
-                tipo: TIPOS_PONTO.ENTRADA,
-                data: ponto.data,
-                horario: ponto.entrada,
-                timestamp: new Date(
-                    `${ponto.data}T${ponto.entrada}`
-                ).getTime()
-            });
-
-        }
-
-        // ==========================================
-        // INTERVALO
-        // ==========================================
-
-        if (ponto.intervalo) {
-
-            registrosDoDia.push({
-                tipo: TIPOS_PONTO.INTERVALO,
-                data: ponto.data,
-                horario: ponto.intervalo,
-                timestamp: new Date(
-                    `${ponto.data}T${ponto.intervalo}`
-                ).getTime()
-            });
-
-        }
-
-        // ==========================================
-        // RETORNO
-        // ==========================================
-
-        if (ponto.retorno) {
-
-            registrosDoDia.push({
-                tipo: TIPOS_PONTO.RETORNO,
-                data: ponto.data,
-                horario: ponto.retorno,
-                timestamp: new Date(
-                    `${ponto.data}T${ponto.retorno}`
-                ).getTime()
-            });
-
-        }
-
-        // ==========================================
-        // SAÍDA
-        // ==========================================
-
-        if (ponto.saida) {
-
-            registrosDoDia.push({
-                tipo: TIPOS_PONTO.SAIDA,
-                data: ponto.data,
-                horario: ponto.saida,
-                timestamp: new Date(
-                    `${ponto.data}T${ponto.saida}`
-                ).getTime()
-            });
-
-        }
-
-        atualizarInterface();
-
-    } catch (erro) {
-
-        console.error(
-            "Erro ao carregar ponto:",
-            erro
-        );
-
-        mostrarNotificacao(
-            "Não foi possível carregar o ponto."
-        );
-
+    if (
+        loggedUser.perfil === "admin_principal" ||
+        loggedUser.perfil === "admin_setor"
+    ) {
+        window.location.href = "/admin/";
+        return false;
     }
 
+    if (
+        loggedUser.perfil !== "colaborador" ||
+        loggedUser.ativo === false
+    ) {
+        clearSession();
+        window.location.href = "/login/";
+        return false;
+    }
+
+    return true;
 }
 
+function getInitials(name) {
+    const parts = String(name || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
 
-// ================================================
-// CARREGAR REGISTROS
-// ================================================
+    if (!parts.length) return "--";
 
-function carregarRegistros() {
+    if (parts.length === 1) {
+        return parts[0]
+            .substring(0, 2)
+            .toUpperCase();
+    }
 
-    return registrosDoDia;
-
+    return (
+        parts[0][0] +
+        parts[parts.length - 1][0]
+    ).toUpperCase();
 }
 
-// ================================================
-// RELÓGIO
-// ================================================
+function renderLoggedUser() {
+    if (!loggedUser) return;
 
-function atualizarRelogio() {
-
-    const agora = new Date();
-
-
-    const hora = agora.toLocaleTimeString(
-        "pt-BR",
-        {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-        }
+    setText(
+        "userAvatar",
+        getInitials(loggedUser.nome)
     );
 
+    setText(
+        "userName",
+        loggedUser.nome || "Colaborador"
+    );
 
-    const data = agora.toLocaleDateString(
+    setText(
+        "userRole",
+        loggedUser.cargo ||
+        loggedUser.setor ||
+        "Colaborador"
+    );
+}
+
+function updateClock() {
+    const now = new Date();
+
+    setText(
+        "currentTime",
+        now.toLocaleTimeString(
+            "pt-BR",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }
+        )
+    );
+
+    setText(
+        "currentDate",
+        formatLongDate(now)
+    );
+
+    setText(
+        "modalCurrentTime",
+        now.toLocaleTimeString(
+            "pt-BR",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        )
+    );
+
+    setText(
+        "modalCurrentDate",
+        formatLongDate(now)
+    );
+}
+
+function formatLongDate(date) {
+    const formatted = date.toLocaleDateString(
         "pt-BR",
         {
             weekday: "long",
@@ -268,704 +231,1082 @@ function atualizarRelogio() {
         }
     );
 
-
-    relogio.textContent = hora;
-
-    dataAtual.textContent = data;
-
+    return formatted.charAt(0).toUpperCase() +
+        formatted.slice(1);
 }
 
+function getCurrentTime() {
+    return new Date().toLocaleTimeString(
+        "pt-BR",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
 
-setInterval(
-    atualizarRelogio,
-    1000
-);
-
-atualizarRelogio();
-
-
-// ================================================
-// NOME DO USUÁRIO
-// ================================================
-
-nomeUsuario.textContent =
-    NOME_USUARIO;
-
-
-// ================================================
-// DESCOBRIR PRÓXIMO PONTO
-// ================================================
-
-function obterProximoTipo() {
-
-    const registros = carregarRegistros();
-
-    const quantidade = registros.length;
-
-
-    switch (quantidade) {
-
-        case 0:
-            return TIPOS_PONTO.ENTRADA;
-
-        case 1:
-            return TIPOS_PONTO.INTERVALO;
-
-        case 2:
-            return TIPOS_PONTO.RETORNO;
-
-        case 3:
-            return TIPOS_PONTO.SAIDA;
-
-        default:
-            return null;
-
+function getNextPunch() {
+    if (!todayPoint.entrada) {
+        return punchTypes[0];
     }
 
+    if (!todayPoint.intervalo) {
+        return punchTypes[1];
+    }
+
+    if (!todayPoint.retorno) {
+        return punchTypes[2];
+    }
+
+    if (!todayPoint.saida) {
+        return punchTypes[3];
+    }
+
+    return null;
 }
 
+function renderTodayPoint() {
+    renderTimelineItem(
+        "timelineEntry",
+        "entryTime",
+        todayPoint.entrada
+    );
 
-// ================================================
-// ATUALIZAR INTERFACE
-// ================================================
+    renderTimelineItem(
+        "timelineBreak",
+        "breakTime",
+        todayPoint.intervalo
+    );
 
-function atualizarInterface() {
+    renderTimelineItem(
+        "timelineReturn",
+        "returnTime",
+        todayPoint.retorno
+    );
 
-    const registros = carregarRegistros();
+    renderTimelineItem(
+        "timelineExit",
+        "exitTime",
+        todayPoint.saida
+    );
 
-    const proximoTipo = obterProximoTipo();
+    renderEntryStatus();
+    renderNextPunch();
+    renderWorkedHours();
 
+    setText(
+        "todayDocuments",
+        todayPoint.documentos.length
+    );
+}
 
-    // --------------------------------------------
-    // BOTÃO
-    // --------------------------------------------
+function renderTimelineItem(
+    itemId,
+    timeId,
+    value
+) {
+    const item =
+        document.getElementById(itemId);
 
-    if (!proximoTipo) {
+    setText(
+        timeId,
+        value || "--:--"
+    );
 
-        btnRegistrar.disabled = true;
+    if (!item) return;
 
-        btnRegistrar.innerHTML =
-            "<span>Ponto do dia concluído</span>";
+    item.classList.toggle(
+        "completed",
+        Boolean(value)
+    );
 
-        tituloRegistro.textContent =
-            "Jornada concluída";
+    const small =
+        item.querySelector(
+            ".timeline-content small"
+        );
 
-        descricaoRegistro.textContent =
-            "Todos os registros do dia já foram realizados.";
+    if (
+        small &&
+        itemId !== "timelineEntry"
+    ) {
+        small.textContent =
+            value
+                ? "Registrado"
+                : "Não registrado";
+    }
+}
 
-        status.textContent =
-            "Jornada encerrada";
+function renderEntryStatus() {
+    const timelineEntry =
+        document.getElementById(
+            "timelineEntry"
+        );
 
+    if (!todayPoint.entrada) {
+        setText(
+            "entryStatus",
+            "Não registrado"
+        );
+
+        timelineEntry?.classList.remove(
+            "delay"
+        );
+
+        return;
+    }
+
+    const delayed =
+        isEntryDelayed(
+            todayPoint.entrada
+        );
+
+    if (delayed) {
+        setText(
+            "entryStatus",
+            "Entrada com atraso"
+        );
+
+        timelineEntry?.classList.add(
+            "delay"
+        );
+
+        return;
+    }
+
+    setText(
+        "entryStatus",
+        "Registrado no horário"
+    );
+
+    timelineEntry?.classList.remove(
+        "delay"
+    );
+}
+
+function isEntryDelayed(time) {
+    if (!time) return false;
+
+    const [hour, minute] =
+        time.split(":").map(Number);
+
+    return hour > 8 ||
+        (hour === 8 && minute > 10);
+}
+
+function renderNextPunch() {
+    const next =
+        getNextPunch();
+
+    const button =
+        document.getElementById(
+            "registerPointButton"
+        );
+
+    if (!button) return;
+
+    if (!next) {
+        setText(
+            "nextPunchText",
+            "Jornada finalizada"
+        );
+
+        setText(
+            "nextPunchDescription",
+            "Todas as marcações do dia foram concluídas."
+        );
+
+        setText(
+            "registerPointButtonText",
+            "Ponto concluído"
+        );
+
+        button.disabled = true;
+
+        setText(
+            "daySituation",
+            getTodaySituation()
+        );
+
+        setTodayBadge();
+
+        return;
+    }
+
+    setText(
+        "nextPunchText",
+        next.label
+    );
+
+    setText(
+        "nextPunchDescription",
+        next.description
+    );
+
+    setText(
+        "registerPointButtonText",
+        next.button
+    );
+
+    button.disabled = false;
+
+    if (!todayPoint.entrada) {
+        setText(
+            "daySituation",
+            "Aguardando entrada"
+        );
     } else {
-
-        btnRegistrar.disabled = false;
-
-        btnRegistrar.innerHTML =
-            `<span>Registrar ${proximoTipo}</span>`;
-
-        tituloRegistro.textContent =
-            `Registrar ${proximoTipo}`;
-
-        descricaoRegistro.textContent =
-            obterDescricao(proximoTipo);
-
-        status.textContent =
-            `Próximo registro: ${proximoTipo}`;
-
+        setText(
+            "daySituation",
+            "Jornada em andamento"
+        );
     }
 
-
-    // --------------------------------------------
-    // HISTÓRICO
-    // --------------------------------------------
-
-    atualizarHistorico(registros);
-
-
-    // --------------------------------------------
-    // RESUMO
-    // --------------------------------------------
-
-    atualizarResumo(registros);
-
-
-    // --------------------------------------------
-    // HORAS TRABALHADAS
-    // --------------------------------------------
-
-    atualizarHorasTrabalhadas(registros);
-
+    setTodayBadge();
 }
 
+function setTodayBadge() {
+    const badge =
+        document.getElementById(
+            "todayStatusBadge"
+        );
 
-// ================================================
-// DESCRIÇÃO DO PONTO
-// ================================================
+    if (!badge) return;
 
-function obterDescricao(tipo) {
+    if (!todayPoint.entrada) {
+        badge.className =
+            "status-badge neutral";
 
-    switch (tipo) {
+        badge.textContent =
+            "Não iniciado";
 
-        case TIPOS_PONTO.ENTRADA:
-
-            return "Registre o horário em que você iniciou sua jornada.";
-
-        case TIPOS_PONTO.INTERVALO:
-
-            return "Registre sua saída para o intervalo.";
-
-        case TIPOS_PONTO.RETORNO:
-
-            return "Registre seu retorno do intervalo.";
-
-        case TIPOS_PONTO.SAIDA:
-
-            return "Registre o horário em que você encerrou sua jornada.";
-
-        default:
-
-            return "";
-
+        return;
     }
 
+    if (todayPoint.saida) {
+        const overtime =
+            calculateWorkedMinutes() > 480;
+
+        badge.className =
+            overtime
+                ? "status-badge info"
+                : "status-badge success";
+
+        badge.textContent =
+            overtime
+                ? "Hora extra"
+                : "Concluído";
+
+        return;
+    }
+
+    if (
+        isEntryDelayed(
+            todayPoint.entrada
+        )
+    ) {
+        badge.className =
+            "status-badge warning";
+
+        badge.textContent =
+            "Atraso";
+    } else {
+        badge.className =
+            "status-badge success";
+
+        badge.textContent =
+            "Em andamento";
+    }
 }
 
-
-// ================================================
-// REGISTRAR PONTO
-// ================================================
-
-btnRegistrar.addEventListener(
-    "click",
-    registrarPonto
-);
-
-async function registrarPonto() {
-
-    const proximoTipo = obterProximoTipo();
-
-    if (!proximoTipo) {
-
-        mostrarNotificacao(
-            "A jornada de hoje já foi concluída."
-        );
-
-        return;
-
+function getTodaySituation() {
+    if (
+        calculateWorkedMinutes() >
+        480
+    ) {
+        return "Jornada com hora extra";
     }
 
-    // ================================================
-    // USUÁRIO LOGADO
-    // ================================================
-
-    const usuarioLogado =
-        JSON.parse(
-            localStorage.getItem("usuario_logado")
-        );
-
-    if (!usuarioLogado || !usuarioLogado.id) {
-
-        mostrarNotificacao(
-            "Usuário não identificado."
-        );
-
-        return;
-
+    if (
+        isEntryDelayed(
+            todayPoint.entrada
+        )
+    ) {
+        return "Jornada concluída com atraso";
     }
 
-    // ================================================
-    // CONVERTER TIPO
-    // ================================================
+    return "Jornada concluída";
+}
 
-    const tipo = {
+function calculateWorkedMinutes() {
+    if (!todayPoint.entrada) {
+        return 0;
+    }
 
-        "Entrada": "entrada",
+    let total = 0;
 
-        "Saída para intervalo": "intervalo",
+    const firstEnd =
+        todayPoint.intervalo ||
+        getCurrentTime();
 
-        "Retorno do intervalo": "retorno",
+    total += getMinutesDifference(
+        todayPoint.entrada,
+        firstEnd
+    );
 
-        "Saída": "saida"
+    if (todayPoint.retorno) {
+        const secondEnd =
+            todayPoint.saida ||
+            getCurrentTime();
 
-    }[proximoTipo];
+        total += getMinutesDifference(
+            todayPoint.retorno,
+            secondEnd
+        );
+    }
 
+    return Math.max(
+        0,
+        total
+    );
+}
 
-    try {
+function getMinutesDifference(
+    start,
+    end
+) {
+    if (!start || !end) return 0;
 
-        // ============================================
-        // ENVIAR PARA A API
-        // ============================================
+    const [startHour, startMinute] =
+        start.split(":").map(Number);
 
-        const response =
-            await fetch(
-                "/api/ponto",
-                {
-                    method: "POST",
+    const [endHour, endMinute] =
+        end.split(":").map(Number);
 
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+    const startTotal =
+        startHour * 60 +
+        startMinute;
 
-                    body: JSON.stringify({
+    const endTotal =
+        endHour * 60 +
+        endMinute;
 
-                        usuario_id:
-                            usuarioLogado.id,
+    return Math.max(
+        0,
+        endTotal - startTotal
+    );
+}
 
-                        tipo:
-                            tipo
+function formatMinutes(minutes) {
+    const safeMinutes =
+        Math.max(
+            0,
+            Math.floor(
+                Number(minutes) || 0
+            )
+        );
 
-                    })
-                }
-            );
+    const hours =
+        Math.floor(
+            safeMinutes / 60
+        );
 
+    const remaining =
+        safeMinutes % 60;
 
-        const resultado =
-            await response.json();
+    return `${hours}h ${String(
+        remaining
+    ).padStart(2, "0")}min`;
+}
 
+function renderWorkedHours() {
+    const worked =
+        calculateWorkedMinutes();
 
-        // ============================================
-        // ERRO
-        // ============================================
+    const overtime =
+        Math.max(
+            0,
+            worked - 480
+        );
 
-        if (!response.ok) {
+    const percentage =
+        Math.min(
+            100,
+            Math.round(
+                worked / 480 * 100
+            )
+        );
 
-            throw new Error(
-                resultado.error ||
-                "Não foi possível registrar o ponto."
-            );
+    setText(
+        "todayWorkedHours",
+        formatMinutes(worked)
+    );
 
+    setText(
+        "todayOvertime",
+        formatMinutes(overtime)
+    );
+
+    setText(
+        "dailyProgressText",
+        `${percentage}%`
+    );
+
+    const progress =
+        document.getElementById(
+            "dailyProgressBar"
+        );
+
+    if (progress) {
+        progress.style.width =
+            `${percentage}%`;
+    }
+}
+
+function renderMonthlySummary() {
+    const delays =
+        pointHistory.filter(
+            item =>
+                item.status ===
+                "delay"
+        ).length;
+
+    const absences =
+        pointHistory.filter(
+            item =>
+                item.status ===
+                "absence"
+        ).length;
+
+    let overtimeMinutes = 0;
+
+    pointHistory.forEach(item => {
+        if (
+            item.status !==
+            "overtime"
+        ) {
+            return;
         }
 
+        overtimeMinutes +=
+            parseWorkedMinutes(
+                item.worked
+            ) - 480;
+    });
 
-        // ============================================
-        // SUCESSO
-        // ============================================
+    setText(
+        "monthlyDelays",
+        delays
+    );
 
-        mostrarNotificacao(
-            resultado.mensagem
-        );
+    setText(
+        "monthlyAbsences",
+        absences
+    );
 
-
-        // ============================================
-        // ATUALIZAR DADOS DO BANCO
-        // ============================================
-
-        await carregarRegistrosDoBanco();
-
-    } catch (erro) {
-
-        console.error(
-            "Erro ao registrar ponto:",
-            erro
-        );
-
-        mostrarNotificacao(
-            erro.message
-        );
-
-    }
-
+    setText(
+        "monthlyOvertime",
+        formatMinutes(
+            Math.max(
+                overtimeMinutes,
+                0
+            )
+        )
+    );
 }
-// ================================================
-// HISTÓRICO
-// ================================================
 
-function atualizarHistorico(registros) {
+function parseWorkedMinutes(value) {
+    const match =
+        String(value)
+            .match(
+                /(\d+)h\s*(\d+)min/
+            );
 
-    historicoBody.innerHTML = "";
+    if (!match) return 0;
 
+    return (
+        Number(match[1]) * 60 +
+        Number(match[2])
+    );
+}
 
-    if (registros.length === 0) {
+function renderHistory() {
+    const body =
+        document.getElementById(
+            "pointHistoryBody"
+        );
 
-        historicoBody.innerHTML = `
-            <tr class="sem-registros">
-                <td colspan="3">
-                    Nenhum ponto registrado hoje.
+    if (!body) return;
+
+    if (!pointHistory.length) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    Nenhum registro encontrado.
                 </td>
             </tr>
         `;
 
-        contador.textContent =
-            "0 registros";
-
         return;
-
     }
 
+    body.innerHTML =
+        pointHistory
+            .map(item => `
+                <tr>
+                    <td>
+                        ${item.date}
+                    </td>
 
-    registros.forEach(
-        (registro) => {
+                    <td>
+                        ${item.entrada}
+                    </td>
 
-            const linha =
-                document.createElement("tr");
+                    <td>
+                        ${item.intervalo}
+                    </td>
 
+                    <td>
+                        ${item.retorno}
+                    </td>
 
-            const tipoClasse =
-                obterClasseBadge(
-                    registro.tipo
-                );
+                    <td>
+                        ${item.saida}
+                    </td>
 
+                    <td>
+                        ${item.worked}
+                    </td>
 
-            linha.innerHTML = `
+                    <td>
+                        <span
+                            class="history-status ${item.status}"
+                        >
+                            ${item.statusLabel}
+                        </span>
+                    </td>
 
-                <td>
-                    <span class="badge ${tipoClasse}">
-                        ${registro.tipo}
-                    </span>
-                </td>
+                    <td>
+                        ${
+                            item.document
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="document-button"
+                                        data-document="${escapeHTML(
+                                            item.document
+                                        )}"
+                                    >
+                                        <i class="fa-solid fa-paperclip"></i>
+                                        Ver
+                                    </button>
+                                `
+                                : `
+                                    <span class="no-document">
+                                        -
+                                    </span>
+                                `
+                        }
+                    </td>
+                </tr>
+            `)
+            .join("");
 
-                <td>
-                    ${registro.data}
-                </td>
-
-                <td>
-                    <strong>
-                        ${registro.horario}
-                    </strong>
-                </td>
-
-            `;
-
-
-            historicoBody.appendChild(
-                linha
+    body
+        .querySelectorAll(
+            "[data-document]"
+        )
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    openDocumentModal(
+                        button.dataset.document
+                    );
+                }
             );
+        });
+}
 
+function openPointModal() {
+    const next =
+        getNextPunch();
+
+    if (!next) return;
+
+    setText(
+        "pointModalTitle",
+        next.modalTitle
+    );
+
+    setText(
+        "pointModalDescription",
+        next.description
+    );
+
+    setText(
+        "confirmPointButtonText",
+        `Confirmar ${next.label.toLowerCase()}`
+    );
+
+    document
+        .getElementById(
+            "pointModal"
+        )
+        ?.classList.add(
+            "show"
+        );
+
+    document
+        .getElementById(
+            "pointModal"
+        )
+        ?.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+    updateClock();
+}
+
+function closePointModal() {
+    const modal =
+        document.getElementById(
+            "pointModal"
+        );
+
+    modal?.classList.remove(
+        "show"
+    );
+
+    modal?.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    clearPointForm();
+}
+
+function clearPointForm() {
+    const observation =
+        document.getElementById(
+            "pointObservation"
+        );
+
+    const documentInput =
+        document.getElementById(
+            "pointDocument"
+        );
+
+    if (observation) {
+        observation.value = "";
+    }
+
+    if (documentInput) {
+        documentInput.value = "";
+    }
+
+    selectedDocument = null;
+
+    setText(
+        "documentFileName",
+        "Anexar documento"
+    );
+
+    hideModalMessage();
+}
+
+function handleDocumentSelection() {
+    const input =
+        document.getElementById(
+            "pointDocument"
+        );
+
+    const file =
+        input?.files?.[0];
+
+    if (!file) {
+        selectedDocument = null;
+
+        setText(
+            "documentFileName",
+            "Anexar documento"
+        );
+
+        return;
+    }
+
+    const allowedTypes = [
+        "application/pdf",
+        "image/png",
+        "image/jpeg"
+    ];
+
+    if (
+        !allowedTypes.includes(
+            file.type
+        )
+    ) {
+        showModalMessage(
+            "Envie um documento em PDF, PNG ou JPG.",
+            "error"
+        );
+
+        input.value = "";
+
+        return;
+    }
+
+    if (
+        file.size >
+        10 * 1024 * 1024
+    ) {
+        showModalMessage(
+            "O documento deve possuir no máximo 10 MB.",
+            "error"
+        );
+
+        input.value = "";
+
+        return;
+    }
+
+    selectedDocument = file;
+
+    setText(
+        "documentFileName",
+        file.name
+    );
+
+    hideModalMessage();
+}
+
+function confirmPoint() {
+    const next =
+        getNextPunch();
+
+    if (!next) return;
+
+    const time =
+        getCurrentTime();
+
+    const observation =
+        document
+            .getElementById(
+                "pointObservation"
+            )
+            ?.value
+            .trim() || "";
+
+    todayPoint[next.key] =
+        time;
+
+    if (observation) {
+        todayPoint.observacoes.push({
+            tipo: next.key,
+            texto: observation
+        });
+    }
+
+    if (selectedDocument) {
+        todayPoint.documentos.push({
+            tipo: next.key,
+            nome: selectedDocument.name
+        });
+    }
+
+    closePointModal();
+
+    renderTodayPoint();
+
+    showGlobalMessage(
+        `${next.label} registrada às ${time}.`,
+        "success"
+    );
+}
+
+function openDocumentModal(name) {
+    setText(
+        "documentModalName",
+        name || "Documento"
+    );
+
+    const modal =
+        document.getElementById(
+            "documentModal"
+        );
+
+    modal?.classList.add(
+        "show"
+    );
+
+    modal?.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+}
+
+function closeDocumentModal() {
+    const modal =
+        document.getElementById(
+            "documentModal"
+        );
+
+    modal?.classList.remove(
+        "show"
+    );
+
+    modal?.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+function showGlobalMessage(
+    message,
+    type = "info"
+) {
+    const element =
+        document.getElementById(
+            "globalMessage"
+        );
+
+    if (!element) return;
+
+    element.textContent =
+        message;
+
+    element.className =
+        `global-message show ${type}`;
+
+    window.setTimeout(
+        () => {
+            element.textContent = "";
+            element.className =
+                "global-message";
+        },
+        4000
+    );
+}
+
+function showModalMessage(
+    message,
+    type = "error"
+) {
+    const element =
+        document.getElementById(
+            "pointModalMessage"
+        );
+
+    if (!element) return;
+
+    element.textContent =
+        message;
+
+    element.className =
+        `modal-message ${type}`;
+}
+
+function hideModalMessage() {
+    const element =
+        document.getElementById(
+            "pointModalMessage"
+        );
+
+    if (!element) return;
+
+    element.textContent = "";
+    element.className =
+        "modal-message";
+}
+
+function escapeHTML(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function setText(id, value) {
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+        element.textContent =
+            value;
+    }
+}
+
+function configureEvents() {
+    document
+        .getElementById(
+            "registerPointButton"
+        )
+        ?.addEventListener(
+            "click",
+            openPointModal
+        );
+
+    document
+        .getElementById(
+            "closePointModalButton"
+        )
+        ?.addEventListener(
+            "click",
+            closePointModal
+        );
+
+    document
+        .getElementById(
+            "cancelPointButton"
+        )
+        ?.addEventListener(
+            "click",
+            closePointModal
+        );
+
+    document
+        .getElementById(
+            "confirmPointButton"
+        )
+        ?.addEventListener(
+            "click",
+            confirmPoint
+        );
+
+    document
+        .getElementById(
+            "pointDocument"
+        )
+        ?.addEventListener(
+            "change",
+            handleDocumentSelection
+        );
+
+    document
+        .getElementById(
+            "closeDocumentModalButton"
+        )
+        ?.addEventListener(
+            "click",
+            closeDocumentModal
+        );
+
+    document
+        .getElementById(
+            "logoutButton"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+                if (
+                    !confirm(
+                        "Deseja sair do Evolua+?"
+                    )
+                ) {
+                    return;
+                }
+
+                clearSession();
+
+                window.location.href =
+                    "/login/";
+            }
+        );
+
+    document
+        .getElementById(
+            "pointModal"
+        )
+        ?.addEventListener(
+            "click",
+            event => {
+                if (
+                    event.target.id ===
+                    "pointModal"
+                ) {
+                    closePointModal();
+                }
+            }
+        );
+
+    document
+        .getElementById(
+            "documentModal"
+        )
+        ?.addEventListener(
+            "click",
+            event => {
+                if (
+                    event.target.id ===
+                    "documentModal"
+                ) {
+                    closeDocumentModal();
+                }
+            }
+        );
+
+    document.addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key !==
+                "Escape"
+            ) {
+                return;
+            }
+
+            closePointModal();
+            closeDocumentModal();
         }
     );
-
-
-    contador.textContent =
-        registros.length === 1
-            ? "1 registro"
-            : `${registros.length} registros`;
-
 }
 
-
-// ================================================
-// CLASSES DOS BADGES
-// ================================================
-
-function obterClasseBadge(tipo) {
-
-    switch (tipo) {
-
-        case TIPOS_PONTO.ENTRADA:
-
-            return "badge-entrada";
-
-        case TIPOS_PONTO.INTERVALO:
-
-            return "badge-intervalo";
-
-        case TIPOS_PONTO.RETORNO:
-
-            return "badge-retorno";
-
-        case TIPOS_PONTO.SAIDA:
-
-            return "badge-saida";
-
-        default:
-
-            return "";
-
-    }
-
-}
-
-
-// ================================================
-// RESUMO
-// ================================================
-
-function atualizarResumo(registros) {
-
-    const horaEntrada =
+function configureCurrentMonth() {
+    const input =
         document.getElementById(
-            "horaEntrada"
+            "historyMonth"
         );
 
-    const horaIntervalo =
-        document.getElementById(
-            "horaIntervalo"
-        );
+    if (!input) return;
 
-    const horaRetorno =
-        document.getElementById(
-            "horaRetorno"
-        );
+    const now =
+        new Date();
 
-    const horaSaida =
-        document.getElementById(
-            "horaSaida"
-        );
-
-
-    horaEntrada.textContent =
-        encontrarHorario(
-            registros,
-            TIPOS_PONTO.ENTRADA
-        );
-
-
-    horaIntervalo.textContent =
-        encontrarHorario(
-            registros,
-            TIPOS_PONTO.INTERVALO
-        );
-
-
-    horaRetorno.textContent =
-        encontrarHorario(
-            registros,
-            TIPOS_PONTO.RETORNO
-        );
-
-
-    horaSaida.textContent =
-        encontrarHorario(
-            registros,
-            TIPOS_PONTO.SAIDA
-        );
-
+    input.value =
+        `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, "0")}`;
 }
 
-
-// ================================================
-// ENCONTRAR HORÁRIO
-// ================================================
-
-function encontrarHorario(
-    registros,
-    tipo
-) {
-
-    const registro =
-        registros.find(
-            item => item.tipo === tipo
-        );
-
-
-    if (!registro) {
-
-        return "--:--";
-
-    }
-
-
-    return registro.horario.substring(
-        0,
-        5
-    );
-
-}
-
-
-// ================================================
-// CALCULAR HORAS TRABALHADAS
-// ================================================
-
-function calcularHorasTrabalhadas(
-    registros
-) {
-
-    if (
-        registros.length < 2
-    ) {
-
-        return 0;
-
-    }
-
-
-    let total = 0;
-
-
-    // Entrada → Intervalo
-    if (
-        registros[0] &&
-        registros[1]
-    ) {
-
-        total +=
-            registros[1].timestamp -
-            registros[0].timestamp;
-
-    }
-
-
-    // Retorno → Saída
-    if (
-        registros[2] &&
-        registros[3]
-    ) {
-
-        total +=
-            registros[3].timestamp -
-            registros[2].timestamp;
-
-    }
-
-
-    return total;
-
-}
-
-
-// ================================================
-// FORMATAR TEMPO
-// ================================================
-
-function formatarTempo(
-    milissegundos
-) {
-
-    if (milissegundos < 0) {
-
-        milissegundos = 0;
-
-    }
-
-
-    const segundos =
-        Math.floor(
-            milissegundos / 1000
-        );
-
-
-    const horas =
-        Math.floor(
-            segundos / 3600
-        );
-
-
-    const minutos =
-        Math.floor(
-            (segundos % 3600) / 60
-        );
-
-
-    const segundosRestantes =
-        segundos % 60;
-
-
-    return [
-
-        String(horas).padStart(2, "0"),
-
-        String(minutos).padStart(2, "0"),
-
-        String(segundosRestantes)
-            .padStart(2, "0")
-
-    ].join(":");
-
-}
-
-
-// ================================================
-// ATUALIZAR HORAS TRABALHADAS
-// ================================================
-
-function atualizarHorasTrabalhadas(
-    registros
-) {
-
-    const total =
-        calcularHorasTrabalhadas(
-            registros
-        );
-
-
-    horasTrabalhadas.textContent =
-        formatarTempo(total);
-
-
-    const percentual =
-        Math.min(
-            (total / JORNADA_DIARIA) * 100,
-            100
-        );
-
-
-    barraProgresso.style.width =
-        `${percentual}%`;
-
-}
-
-
-// ================================================
-// NOTIFICAÇÃO
-// ================================================
-
-function mostrarNotificacao(
-    mensagem
-) {
-
-    notificacao.textContent =
-        mensagem;
-
-
-    notificacao.classList.add(
-        "mostrar"
-    );
-
-
-    setTimeout(
-        () => {
-
-            notificacao.classList.remove(
-                "mostrar"
-            );
-
-        },
-        3500
-    );
-
-}
-
-
-// ================================================
-// RESETAR MARCAÇÕES DO DIA
-// ================================================
-
-if (btnReset) {
-
-    btnReset.addEventListener(
-        "click",
-        resetarPonto
-    );
-
-}
-
-function resetarPonto() {
-
-    const confirmar = confirm(
-        "Tem certeza que deseja resetar as marcações da tela para teste?"
-    );
-
-    if (!confirmar) {
+function initializePointPage() {
+    if (!validateSession()) {
         return;
     }
 
-    // ATENÇÃO:
-    // Este botão NÃO apaga nada do banco.
-    // Ele serve apenas para limpar a tela durante os testes.
+    renderLoggedUser();
+    configureEvents();
+    configureCurrentMonth();
 
-    registrosDoDia = [];
+    updateClock();
+    renderTodayPoint();
+    renderMonthlySummary();
+    renderHistory();
 
-    mostrarNotificacao(
-        "Tela resetada para teste."
+    window.setInterval(
+        () => {
+            updateClock();
+
+            if (
+                todayPoint.entrada &&
+                !todayPoint.saida
+            ) {
+                renderWorkedHours();
+            }
+        },
+        1000
     );
-
-    atualizarInterface();
-
 }
 
-// ================================================
-// INICIALIZAÇÃO
-// ================================================
-
-carregarRegistrosDoBanco();
+initializePointPage();
