@@ -1,904 +1,377 @@
-// ==========================================================
-// EVOLUA+
-// ROTAS DE USUÁRIOS
-// ==========================================================
-//
-// RESPONSABILIDADES:
-//
-// GET /api/usuarios
-//
-// - validar o administrador logado;
-// - retornar SOMENTE colaboradores;
-// - retornar SOMENTE colaboradores do setor do Admin.
-//
-// POST /api/usuarios
-//
-// - validar o administrador logado;
-// - criar colaboradores;
-// - criar administradores de setor;
-// - criar usuário no Supabase Auth;
-// - criar perfil na tabela "usuario".
-//
-// ==========================================================
-
-
-
-// ==========================================================
-// IMPORTAÇÕES
-// ==========================================================
-
-const express =
-  require(
-    "express"
-  );
-
-
-const router =
-  express.Router();
-
-
-
-// ==========================================================
-// SUPABASE NORMAL
-// ==========================================================
-//
-// Utilizado para:
-//
-// - validar token;
-// - consultas normais.
-//
-// ==========================================================
+const express = require("express");
+const router = express.Router();
 
 const supabase =
-  require(
-    "../config/supabase"
-  );
-
-
-
-// ==========================================================
-// SUPABASE ADMIN
-// ==========================================================
-//
-// Utilizado para:
-//
-// - criar usuário no Auth;
-// - excluir usuário do Auth em rollback;
-// - operações administrativas.
-//
-// IMPORTANTE:
-//
-// A chave administrativa fica somente no backend.
-//
-// ==========================================================
+  require("../config/supabase");
 
 const supabaseAdmin =
-  require(
-    "../config/supabaseAdmin"
-  );
-
-
-
-// ==========================================================
-// SETORES PERMITIDOS
-// ==========================================================
+  require("../config/supabaseAdmin");
 
 const allowedSectors = [
-
   "Operacional",
-
   "Logística",
-
   "Administrativo",
-
   "Tecnologia",
-
   "RH",
-
   "Financeiro",
-
   "Marketing"
-
 ];
-
-
-
-// ==========================================================
-// PERFIS QUE PODEM SER CRIADOS
-// ==========================================================
-//
-// Não permitimos criar outro:
-//
-// admin_principal
-//
-// pela interface.
-//
-// O Admin Principal inicial continua sendo
-// um usuário especial.
-//
-// ==========================================================
 
 const allowedCreationProfiles = [
-
   "admin_setor",
-
   "colaborador"
-
 ];
 
+/* ==========================================================
+   AUTENTICAÇÃO
+========================================================== */
 
-
-// ==========================================================
-// PEGAR TOKEN BEARER
-// ==========================================================
-//
-// O frontend envia:
-//
-// Authorization: Bearer TOKEN
-//
-// ==========================================================
-
-function getBearerToken(
-  req
-) {
-
+function getBearerToken(req) {
   const authorization =
     req.headers.authorization;
 
-
-  if (
-    !authorization
-  ) {
-
+  if (!authorization) {
     return null;
-
   }
-
 
   const parts =
-    authorization.split(
-      " "
-    );
-
+    authorization.split(" ");
 
   if (
-    parts.length !== 2
-  ) {
-
-    return null;
-
-  }
-
-
-  if (
+    parts.length !== 2 ||
     parts[0].toLowerCase() !==
-    "bearer"
+      "bearer"
   ) {
-
     return null;
-
   }
-
 
   return parts[1];
-
 }
 
-
-
-// ==========================================================
-// IDENTIFICAR USUÁRIO LOGADO
-// ==========================================================
-//
-// Fluxo:
-//
-// access_token
-//      ↓
-// Supabase Auth
-//      ↓
-// UUID
-//      ↓
-// tabela usuario
-//      ↓
-// perfil / setor / ativo
-//
-// ==========================================================
-
-async function getLoggedUser(
-  req
-) {
-
-  // ========================================================  
-  // TOKEN
-  // ========================================================
-
+async function getLoggedUser(req) {
   const token =
-    getBearerToken(
-      req
-    );
+    getBearerToken(req);
 
-
-  if (
-    !token
-  ) {
-
+  if (!token) {
     return {
-
       error:
         "Token de autenticação não informado.",
-
-      status:
-        401
-
+      status: 401
     };
-
   }
 
-
-
-  // ========================================================
-  // VALIDAR TOKEN
-  // ========================================================
-
   const {
-
-    data:
-      authData,
-
-    error:
-      authError
-
+    data: authData,
+    error: authError
   } =
     await supabase
       .auth
-      .getUser(
-        token
-      );
-
+      .getUser(token);
 
   if (
-    authError
-    ||
+    authError ||
     !authData?.user
   ) {
-
     console.error(
       "Erro ao validar token:",
       authError
     );
 
-
     return {
-
       error:
         "Sessão inválida ou expirada.",
-
-      status:
-        401
-
+      status: 401
     };
-
   }
 
-
-
-  // ========================================================
-  // UUID
-  // ========================================================
-
-  const userId =
-    authData
-      .user
-      .id;
-
-
-
-  // ========================================================
-  // BUSCAR PERFIL PROFISSIONAL
-  // ========================================================
-
   const {
-
-    data:
-      profile,
-
-    error:
-      profileError
-
+    data: profile,
+    error: profileError
   } =
     await supabaseAdmin
-      .from(
-        "usuario"
-      )
-      .select(
-        `
-          id,
-          nome,
-          email,
-          matricula,
-          cargo,
-          setor,
-          perfil,
-          ativo
-        `
-      )
+      .from("usuario")
+      .select(`
+        id,
+        nome,
+        email,
+        matricula,
+        cargo,
+        setor,
+        perfil,
+        ativo
+      `)
       .eq(
         "id",
-        userId
+        authData.user.id
       )
       .maybeSingle();
 
-
-
-  if (
-    profileError
-  ) {
-
+  if (profileError) {
     console.error(
-      "Erro ao buscar perfil do usuário:",
+      "Erro ao buscar perfil:",
       profileError
     );
 
-
     return {
-
       error:
         "Não foi possível validar o perfil do usuário.",
-
-      status:
-        500
-
+      status: 500
     };
-
   }
 
-
-
-  // ========================================================
-  // PERFIL NÃO ENCONTRADO
-  // ========================================================
-
-  if (
-    !profile
-  ) {
-
+  if (!profile) {
     return {
-
       error:
         "Perfil do usuário não encontrado.",
-
-      status:
-        403
-
+      status: 403
     };
-
   }
 
-
-
-  // ========================================================
-  // INATIVO
-  // ========================================================
-
-  if (
-    profile.ativo ===
-    false
-  ) {
-
+  if (profile.ativo === false) {
     return {
-
       error:
         "Este usuário está inativo.",
-
-      status:
-        403
-
+      status: 403
     };
-
   }
 
-
-
   return {
-
-    user:
-      profile,
-
+    user: profile,
     authUser:
       authData.user
-
   };
-
 }
 
-
-
-// ==========================================================
-// VERIFICAR SE É ADMINISTRADOR
-// ==========================================================
-
-function isAdmin(
-  user
-) {
-
-  return (
-
-    user.perfil ===
-      "admin_principal"
-
-    ||
-
-    user.perfil ===
-      "admin_setor"
-
+function isAdmin(user) {
+  return [
+    "admin_principal",
+    "admin_setor"
+  ].includes(
+    user?.perfil
   );
-
 }
 
-
-
-// ==========================================================
-// NORMALIZAR TEXTO
-// ==========================================================
-
-function normalizeText(
-  value
-) {
-
+function normalizeText(value) {
   return String(
     value || ""
   ).trim();
-
 }
 
-
-
-// ==========================================================
-// NORMALIZAR E-MAIL
-// ==========================================================
-
-function normalizeEmail(
-  value
-) {
-
+function normalizeEmail(value) {
   return String(
     value || ""
   )
     .trim()
     .toLowerCase();
-
 }
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    .test(email);
+}
 
+/* ==========================================================
+   GET /api/usuarios
 
-// ==========================================================
-// ==========================================================
-// GET /api/usuarios
-// ==========================================================
-// ==========================================================
-//
-// NOVA REGRA:
-//
-// A aba "Funcionários" NÃO é uma lista
-// administrativa de todos os usuários.
-//
-// Ela representa:
-//
-// "FUNCIONÁRIOS QUE ESTE ADMIN GERENCIA"
-//
-// Portanto:
-//
-// 1. somente perfil = colaborador;
-//
-// 2. somente setor = setor do Admin.
-//
-// Essa regra vale para:
-//
-// admin_principal
-// admin_setor
-//
-// ==========================================================
+   Cada administrador visualiza somente colaboradores
+   ativos pertencentes ao próprio setor.
+========================================================== */
 
 router.get(
   "/",
-  async (
-    req,
-    res
-  ) => {
-
+  async (req, res) => {
     try {
-
-      // ====================================================
-      // IDENTIFICAR ADMIN LOGADO
-      // ====================================================
-
       const authResult =
-        await getLoggedUser(
-          req
-        );
+        await getLoggedUser(req);
 
-
-      if (
-        authResult.error
-      ) {
-
+      if (authResult.error) {
         return res
           .status(
             authResult.status
           )
           .json({
-
             error:
               authResult.error
-
           });
-
       }
-
-
 
       const loggedAdmin =
         authResult.user;
 
-
-
-      // ====================================================
-      // SOMENTE ADMINISTRADORES
-      // ====================================================
-
-      if (
-        !isAdmin(
-          loggedAdmin
-        )
-      ) {
-
+      if (!isAdmin(loggedAdmin)) {
         return res
           .status(403)
           .json({
-
             error:
               "Você não possui permissão para visualizar funcionários."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // ADMIN PRECISA TER SETOR
-      // ====================================================
-
-      if (
-        !loggedAdmin.setor
-      ) {
-
+      if (!loggedAdmin.setor) {
         return res
           .status(400)
           .json({
-
             error:
               "O administrador não possui um setor definido."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // BUSCAR FUNCIONÁRIOS
-      // ====================================================
-      //
-      // DUAS REGRAS IMPORTANTES:
-      //
-      // perfil = colaborador
-      //
-      // setor = setor do Admin
-      //
-      // NÃO existe mais:
-      //
-      // admin_principal vê todo mundo.
-      //
-      // ====================================================
-
       const {
-
-        data:
-          employees,
-
+        data: employees,
         error
-
       } =
         await supabaseAdmin
-          .from(
-            "usuario"
-          )
-          .select(
-            `
-              id,
-              nome,
-              email,
-              matricula,
-              cargo,
-              setor,
-              perfil,
-              ativo,
-              criado_por,
-              created_at
-            `
-          )
-
-          // Somente funcionários.
+          .from("usuario")
+          .select(`
+            id,
+            nome,
+            email,
+            matricula,
+            cargo,
+            setor,
+            perfil,
+            ativo,
+            criado_por,
+            created_at
+          `)
           .eq(
             "perfil",
             "colaborador"
           )
-
-          // Somente setor do Admin logado.
           .eq(
             "setor",
             loggedAdmin.setor
           )
-
+          .eq(
+            "ativo",
+            true
+          )
           .order(
             "nome",
             {
-
-              ascending:
-                true
-
+              ascending: true
             }
           );
 
-
-
-      // ====================================================
-      // ERRO
-      // ====================================================
-
-      if (
-        error
-      ) {
-
+      if (error) {
         console.error(
           "Erro Supabase ao buscar funcionários:",
           error
         );
 
-
         return res
           .status(500)
           .json({
-
             error:
               "Não foi possível buscar os funcionários.",
-
             details:
               error.message
-
           });
-
       }
-
-
-
-      // ====================================================
-      // RETORNAR FUNCIONÁRIOS DO SETOR
-      // ====================================================
 
       return res.json(
         employees || []
       );
 
-
-    } catch (
-      error
-    ) {
-
+    } catch (error) {
       console.error(
         "Erro inesperado ao buscar funcionários:",
         error
       );
 
-
       return res
         .status(500)
         .json({
-
           error:
             "Erro interno ao buscar funcionários."
-
         });
-
     }
-
   }
 );
 
+/* ==========================================================
+   POST /api/usuarios
 
+   REGRAS:
 
-// ==========================================================
-// ==========================================================
-// POST /api/usuarios
-// ==========================================================
-// ==========================================================
-//
-// O Admin pode criar:
-//
-// 1. COLABORADOR
-//
-//    obrigatoriamente no próprio setor.
-//
-//
-// 2. ADMINISTRADOR DE SETOR
-//
-//    pode ser criado para qualquer setor.
-//
-//
-// Exemplos:
-//
-// Admin Tecnologia
-//
-// criar colaborador Financeiro
-// ❌ NÃO
-//
-// criar colaborador Tecnologia
-// ✅ SIM
-//
-// criar Admin Financeiro
-// ✅ SIM
-//
-// criar Admin RH
-// ✅ SIM
-//
-// ==========================================================
+   admin_setor:
+   - cria somente colaboradores;
+   - colaborador pertence obrigatoriamente ao próprio setor.
+
+   admin_principal:
+   - cria colaboradores no próprio setor;
+   - pode criar admin_setor para qualquer setor.
+
+   Nenhum usuário pode criar admin_principal.
+========================================================== */
 
 router.post(
   "/",
-  async (
-    req,
-    res
-  ) => {
-
+  async (req, res) => {
     let createdAuthUserId =
       null;
 
-
     try {
-
-      // ====================================================
-      // IDENTIFICAR ADMINISTRADOR LOGADO
-      // ====================================================
-
       const authResult =
-        await getLoggedUser(
-          req
-        );
+        await getLoggedUser(req);
 
-
-      if (
-        authResult.error
-      ) {
-
+      if (authResult.error) {
         return res
           .status(
             authResult.status
           )
           .json({
-
             error:
               authResult.error
-
           });
-
       }
-
-
 
       const creatorAdmin =
         authResult.user;
 
-
-
-      // ====================================================
-      // SOMENTE ADMINS
-      // ====================================================
-
-      if (
-        !isAdmin(
-          creatorAdmin
-        )
-      ) {
-
+      if (!isAdmin(creatorAdmin)) {
         return res
           .status(403)
           .json({
-
             error:
               "Você não possui permissão para criar usuários."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // DADOS RECEBIDOS
-      // ====================================================
-
       let {
-
         nome,
-
         matricula,
-
         email,
-
         senha,
-
         cargo,
-
         setor,
-
         perfil
-
-      } =
-        req.body;
-
-
-
-      // ====================================================
-      // NORMALIZAÇÃO
-      // ====================================================
+      } = req.body;
 
       nome =
-        normalizeText(
-          nome
-        );
-
+        normalizeText(nome);
 
       matricula =
         normalizeText(
           matricula
         );
 
-
       email =
-        normalizeEmail(
-          email
-        );
-
+        normalizeEmail(email);
 
       senha =
         String(
           senha || ""
         );
 
-
       cargo =
-        normalizeText(
-          cargo
-        );
-
+        normalizeText(cargo);
 
       setor =
-        normalizeText(
-          setor
-        );
-
+        normalizeText(setor);
 
       perfil =
-        normalizeText(
-          perfil
-        );
-
-
-
-      // ====================================================
-      // CAMPOS OBRIGATÓRIOS
-      // ====================================================
+        normalizeText(perfil);
 
       if (
         !nome ||
@@ -906,505 +379,297 @@ router.post(
         !email ||
         !senha ||
         !cargo ||
-        !setor ||
         !perfil
       ) {
-
         return res
           .status(400)
           .json({
-
             error:
               "Preencha todos os campos obrigatórios."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // SENHA
-      // ====================================================
-
-      if (
-        senha.length < 6
-      ) {
-
+      if (!isValidEmail(email)) {
         return res
           .status(400)
           .json({
+            error:
+              "Informe um e-mail válido."
+          });
+      }
 
+      if (senha.length < 6) {
+        return res
+          .status(400)
+          .json({
             error:
               "A senha precisa possuir pelo menos 6 caracteres."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // PERFIL
-      // ====================================================
-
       if (
-        !allowedCreationProfiles.includes(
-          perfil
-        )
+        !allowedCreationProfiles
+          .includes(perfil)
       ) {
-
         return res
           .status(400)
           .json({
-
             error:
               "Perfil de usuário inválido."
-
           });
-
       }
 
+      if (
+        perfil ===
+          "admin_setor" &&
+        creatorAdmin.perfil !==
+          "admin_principal"
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Somente o administrador principal pode criar administradores de setor."
+          });
+      }
 
-
-      // ====================================================
-      // REGRA PARA COLABORADOR
-      // ====================================================
-      //
-      // TODO Admin só cria colaboradores
-      // no próprio setor.
-      //
-      // Não confiamos no setor enviado pelo frontend.
-      //
-      // Forçamos:
-      //
-      // setor = creatorAdmin.setor
-      //
-      // ====================================================
-
+      /*
+       * Colaboradores sempre recebem o setor do
+       * administrador que está realizando o cadastro.
+       * O setor enviado pelo frontend é ignorado.
+       */
       if (
         perfil ===
         "colaborador"
       ) {
-
-        if (
-          !creatorAdmin.setor
-        ) {
-
+        if (!creatorAdmin.setor) {
           return res
             .status(400)
             .json({
-
               error:
                 "O administrador não possui um setor definido."
-
             });
-
         }
-
 
         setor =
           creatorAdmin.setor;
-
       }
 
-
-
-      // ====================================================
-      // REGRA PARA ADMIN DE SETOR
-      // ====================================================
-      //
-      // Qualquer administrador pode criar
-      // outro admin_setor.
-      //
-      // Nesse caso o setor selecionado no formulário
-      // será respeitado.
-      //
-      // ====================================================
-
+      /*
+       * Somente o administrador principal pode chegar
+       * neste ponto criando um administrador de setor.
+       */
       if (
         perfil ===
         "admin_setor"
       ) {
-
-        if (
-          !allowedSectors.includes(
-            setor
-          )
-        ) {
-
+        if (!setor) {
           return res
             .status(400)
             .json({
-
               error:
-                "Setor do administrador inválido."
-
+                "Informe o setor do administrador."
             });
-
         }
 
+        if (
+          !allowedSectors
+            .includes(setor)
+        ) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "Setor do administrador inválido."
+            });
+        }
       }
 
-
-
-      // ====================================================
-      // VALIDAR SETOR FINAL
-      // ====================================================
-
       if (
-        !allowedSectors.includes(
-          setor
-        )
+        !allowedSectors
+          .includes(setor)
       ) {
-
         return res
           .status(400)
           .json({
-
             error:
               "Setor inválido."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // VERIFICAR E-MAIL DUPLICADO
-      // ====================================================
+      /* E-mail duplicado */
 
       const {
-
-        data:
-          existingEmail,
-
-        error:
-          emailCheckError
-
+        data: existingEmail,
+        error: emailCheckError
       } =
         await supabaseAdmin
-          .from(
-            "usuario"
-          )
-          .select(
-            "id"
-          )
+          .from("usuario")
+          .select("id")
           .eq(
             "email",
             email
           )
           .maybeSingle();
 
-
-
-      if (
-        emailCheckError
-      ) {
-
+      if (emailCheckError) {
         console.error(
           "Erro ao verificar e-mail:",
           emailCheckError
         );
 
-
         return res
           .status(500)
           .json({
-
             error:
               "Não foi possível validar o e-mail.",
-
             details:
               emailCheckError.message
-
           });
-
       }
 
-
-
-      if (
-        existingEmail
-      ) {
-
+      if (existingEmail) {
         return res
           .status(409)
           .json({
-
             error:
               "Já existe um usuário cadastrado com este e-mail."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // VERIFICAR MATRÍCULA DUPLICADA
-      // ====================================================
+      /* Matrícula duplicada */
 
       const {
-
-        data:
-          existingRegistration,
-
+        data: existingRegistration,
         error:
           registrationCheckError
-
       } =
         await supabaseAdmin
-          .from(
-            "usuario"
-          )
-          .select(
-            "id"
-          )
+          .from("usuario")
+          .select("id")
           .eq(
             "matricula",
             matricula
           )
           .maybeSingle();
 
-
-
       if (
         registrationCheckError
       ) {
-
         console.error(
           "Erro ao verificar matrícula:",
           registrationCheckError
         );
 
-
         return res
           .status(500)
           .json({
-
             error:
               "Não foi possível validar a matrícula.",
-
             details:
               registrationCheckError.message
-
           });
-
       }
 
-
-
-      if (
-        existingRegistration
-      ) {
-
+      if (existingRegistration) {
         return res
           .status(409)
           .json({
-
             error:
               "Já existe um usuário cadastrado com esta matrícula."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // CRIAR USUÁRIO NO SUPABASE AUTH
-      // ====================================================
+      /* Criar conta no Supabase Auth */
 
       const {
-
-        data:
-          authData,
-
-        error:
-          authError
-
+        data: authData,
+        error: authError
       } =
         await supabaseAdmin
           .auth
           .admin
           .createUser({
-
-            email:
-              email,
-
+            email,
             password:
               senha,
 
             email_confirm:
               true,
 
-
-            // ==================================================
-            // METADADOS
-            // ==================================================
-
             user_metadata: {
-
-              nome:
-                nome,
-
-              matricula:
-                matricula,
-
-              cargo:
-                cargo,
-
-              setor:
-                setor,
-
-              perfil:
-                perfil
-
+              nome,
+              matricula,
+              cargo,
+              setor,
+              perfil
             }
-
           });
 
-
-
-      // ====================================================
-      // ERRO NO AUTH
-      // ====================================================
-
-      if (
-        authError
-      ) {
-
+      if (authError) {
         console.error(
-          "Erro ao criar usuário no Supabase Auth:",
+          "Erro ao criar usuário no Auth:",
           authError
         );
-
 
         return res
           .status(400)
           .json({
-
             error:
               "Não foi possível criar o usuário no sistema de autenticação.",
-
             details:
               authError.message
-
           });
-
       }
 
-
-
-      // ====================================================
-      // UUID GERADO PELO AUTH
-      // ====================================================
-
       createdAuthUserId =
-        authData
-          ?.user
-          ?.id;
+        authData?.user?.id;
 
-
-
-      if (
-        !createdAuthUserId
-      ) {
-
+      if (!createdAuthUserId) {
         return res
           .status(500)
           .json({
-
             error:
               "O Supabase não retornou o ID do novo usuário."
-
           });
-
       }
 
-
-
-      // ====================================================
-      // CRIAR PERFIL NA TABELA usuario
-      // ====================================================
+      /* Criar perfil profissional */
 
       const {
-
-        data:
-          profileData,
-
-        error:
-          profileError
-
+        data: profileData,
+        error: profileError
       } =
         await supabaseAdmin
-          .from(
-            "usuario"
-          )
+          .from("usuario")
           .insert({
-
             id:
               createdAuthUserId,
 
-            nome:
-              nome,
-
-            email:
-              email,
-
-            matricula:
-              matricula,
-
-            cargo:
-              cargo,
-
-            setor:
-              setor,
-
-            perfil:
-              perfil,
+            nome,
+            email,
+            matricula,
+            cargo,
+            setor,
+            perfil,
 
             ativo:
               true,
 
             criado_por:
               creatorAdmin.id
-
           })
           .select()
           .single();
 
-
-
-      // ====================================================
-      // ERRO AO CRIAR PERFIL
-      // ====================================================
-      //
-      // O usuário já existe no Auth.
-      //
-      // Se o INSERT falhar, apagamos o usuário
-      // do Auth para não deixar registros incompletos.
-      //
-      // ====================================================
-
-      if (
-        profileError
-      ) {
-
+      if (profileError) {
         console.error(
           "Erro ao criar perfil:",
           profileError
         );
 
-
-
         const {
-
-          error:
-            rollbackError
-
+          error: rollbackError
         } =
           await supabaseAdmin
             .auth
@@ -1413,88 +678,44 @@ router.post(
               createdAuthUserId
             );
 
-
-
-        if (
-          rollbackError
-        ) {
-
+        if (rollbackError) {
           console.error(
             "Erro ao desfazer criação no Auth:",
             rollbackError
           );
-
         }
-
-
 
         return res
           .status(500)
           .json({
-
             error:
               "Não foi possível salvar os dados profissionais do usuário.",
-
             details:
               profileError.message
-
           });
-
       }
-
-
-
-      // ====================================================
-      // SUCESSO
-      // ====================================================
 
       return res
         .status(201)
         .json({
-
           message:
-
             perfil ===
             "admin_setor"
-
               ? "Administrador criado com sucesso."
-
               : "Funcionário criado com sucesso.",
-
 
           usuario:
             profileData
-
         });
 
-
-    } catch (
-      error
-    ) {
-
+    } catch (error) {
       console.error(
         "Erro inesperado ao criar usuário:",
         error
       );
 
-
-
-      // ====================================================
-      // ROLLBACK EXTRA
-      // ====================================================
-      //
-      // Caso aconteça um erro inesperado DEPOIS
-      // da criação no Auth, tentamos remover
-      // o usuário criado.
-      //
-      // ====================================================
-
-      if (
-        createdAuthUserId
-      ) {
-
+      if (createdAuthUserId) {
         try {
-
           await supabaseAdmin
             .auth
             .admin
@@ -1505,37 +726,770 @@ router.post(
         } catch (
           rollbackError
         ) {
-
           console.error(
             "Erro no rollback do Auth:",
             rollbackError
           );
-
         }
-
       }
-
-
 
       return res
         .status(500)
         .json({
-
           error:
             "Erro interno ao criar usuário."
-
         });
-
     }
-
   }
 );
 
+/* ==========================================================
+   PUT /api/usuarios/:id
 
+   Edita um colaborador existente.
 
-// ==========================================================
-// EXPORTAR ROUTER
-// ==========================================================
+   REGRAS:
+   - somente administradores;
+   - somente colaboradores;
+   - somente colaboradores do próprio setor;
+   - setor e perfil não podem ser alterados;
+   - senha é atualizada somente no Supabase Auth;
+   - senha nunca é armazenada na tabela usuario.
+========================================================== */
 
-module.exports =
-  router;
+router.put(
+  "/:id",
+  async (req, res) => {
+    try {
+      const authResult =
+        await getLoggedUser(req);
+
+      if (authResult.error) {
+        return res
+          .status(
+            authResult.status
+          )
+          .json({
+            error:
+              authResult.error
+          });
+      }
+
+      const loggedAdmin =
+        authResult.user;
+
+      if (!isAdmin(loggedAdmin)) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Você não possui permissão para editar funcionários."
+          });
+      }
+
+      if (!loggedAdmin.setor) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "O administrador não possui um setor definido."
+          });
+      }
+
+      const userId =
+        normalizeText(
+          req.params.id
+        );
+
+      if (!userId) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Usuário não informado."
+          });
+      }
+
+      if (
+        String(userId) ===
+        String(loggedAdmin.id)
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Esta rota não pode ser utilizada para editar sua própria conta."
+          });
+      }
+
+      const {
+        data: targetUser,
+        error: targetError
+      } =
+        await supabaseAdmin
+          .from("usuario")
+          .select(`
+            id,
+            nome,
+            email,
+            matricula,
+            cargo,
+            setor,
+            perfil,
+            ativo
+          `)
+          .eq(
+            "id",
+            userId
+          )
+          .maybeSingle();
+
+      if (targetError) {
+        console.error(
+          "Erro ao buscar colaborador:",
+          targetError
+        );
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível localizar o colaborador.",
+            details:
+              targetError.message
+          });
+      }
+
+      if (!targetUser) {
+        return res
+          .status(404)
+          .json({
+            error:
+              "Colaborador não encontrado."
+          });
+      }
+
+      if (
+        targetUser.perfil !==
+        "colaborador"
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Administradores não podem ser editados pela área de funcionários."
+          });
+      }
+
+      if (
+        targetUser.ativo ===
+        false
+      ) {
+        return res
+          .status(409)
+          .json({
+            error:
+              "Este colaborador está inativo."
+          });
+      }
+
+      /*
+       * Proteção principal:
+       * independentemente do frontend, o Admin não
+       * consegue editar alguém de outro setor.
+       */
+      if (
+        targetUser.setor !==
+        loggedAdmin.setor
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Você não possui permissão para editar colaboradores de outro setor."
+          });
+      }
+
+      let {
+        nome,
+        matricula,
+        email,
+        cargo,
+        senha
+      } = req.body;
+
+      nome =
+        normalizeText(nome);
+
+      matricula =
+        normalizeText(
+          matricula
+        );
+
+      email =
+        normalizeEmail(email);
+
+      cargo =
+        normalizeText(cargo);
+
+      senha =
+        senha === undefined ||
+        senha === null
+          ? ""
+          : String(senha);
+
+      if (
+        !nome ||
+        !matricula ||
+        !email ||
+        !cargo
+      ) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Preencha todos os dados obrigatórios do colaborador."
+          });
+      }
+
+      if (!isValidEmail(email)) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Informe um e-mail válido."
+          });
+      }
+
+      if (
+        senha &&
+        senha.length < 6
+      ) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "A nova senha precisa possuir pelo menos 6 caracteres."
+          });
+      }
+
+      /* Verificar e-mail duplicado */
+
+      const {
+        data: emailOwner,
+        error: emailCheckError
+      } =
+        await supabaseAdmin
+          .from("usuario")
+          .select("id")
+          .eq(
+            "email",
+            email
+          )
+          .neq(
+            "id",
+            targetUser.id
+          )
+          .maybeSingle();
+
+      if (emailCheckError) {
+        console.error(
+          "Erro ao verificar novo e-mail:",
+          emailCheckError
+        );
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível validar o e-mail.",
+            details:
+              emailCheckError.message
+          });
+      }
+
+      if (emailOwner) {
+        return res
+          .status(409)
+          .json({
+            error:
+              "Já existe outro usuário cadastrado com este e-mail."
+          });
+      }
+
+      /* Verificar matrícula duplicada */
+
+      const {
+        data: registrationOwner,
+        error:
+          registrationCheckError
+      } =
+        await supabaseAdmin
+          .from("usuario")
+          .select("id")
+          .eq(
+            "matricula",
+            matricula
+          )
+          .neq(
+            "id",
+            targetUser.id
+          )
+          .maybeSingle();
+
+      if (
+        registrationCheckError
+      ) {
+        console.error(
+          "Erro ao verificar nova matrícula:",
+          registrationCheckError
+        );
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível validar a matrícula.",
+            details:
+              registrationCheckError.message
+          });
+      }
+
+      if (registrationOwner) {
+        return res
+          .status(409)
+          .json({
+            error:
+              "Já existe outro usuário cadastrado com esta matrícula."
+          });
+      }
+
+      /*
+       * O setor nunca é recebido do frontend.
+       * O colaborador continua no mesmo setor do Admin.
+       */
+      const updatedProfile = {
+        nome,
+        matricula,
+        email,
+        cargo,
+        setor:
+          loggedAdmin.setor
+      };
+
+      /*
+       * Atualizamos primeiro o perfil profissional.
+       * Caso o Auth falhe em seguida, fazemos rollback.
+       */
+      const {
+        data: updatedUser,
+        error: updateProfileError
+      } =
+        await supabaseAdmin
+          .from("usuario")
+          .update(
+            updatedProfile
+          )
+          .eq(
+            "id",
+            targetUser.id
+          )
+          .select(`
+            id,
+            nome,
+            email,
+            matricula,
+            cargo,
+            setor,
+            perfil,
+            ativo,
+            criado_por,
+            created_at
+          `)
+          .single();
+
+      if (updateProfileError) {
+        console.error(
+          "Erro ao atualizar perfil:",
+          updateProfileError
+        );
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível atualizar os dados do colaborador.",
+            details:
+              updateProfileError.message
+          });
+      }
+
+      const authUpdate = {
+        email,
+
+        user_metadata: {
+          nome,
+          matricula,
+          cargo,
+          setor:
+            loggedAdmin.setor,
+          perfil:
+            "colaborador"
+        }
+      };
+
+      if (senha) {
+        authUpdate.password =
+          senha;
+      }
+
+      const {
+        error: authUpdateError
+      } =
+        await supabaseAdmin
+          .auth
+          .admin
+          .updateUserById(
+            targetUser.id,
+            authUpdate
+          );
+
+      if (authUpdateError) {
+        console.error(
+          "Erro ao atualizar usuário no Auth:",
+          authUpdateError
+        );
+
+        /*
+         * Rollback dos dados profissionais.
+         * A tabela volta aos valores anteriores caso
+         * a atualização no Auth não seja concluída.
+         */
+        const {
+          error: rollbackError
+        } =
+          await supabaseAdmin
+            .from("usuario")
+            .update({
+              nome:
+                targetUser.nome,
+
+              matricula:
+                targetUser.matricula,
+
+              email:
+                targetUser.email,
+
+              cargo:
+                targetUser.cargo,
+
+              setor:
+                targetUser.setor
+            })
+            .eq(
+              "id",
+              targetUser.id
+            );
+
+        if (rollbackError) {
+          console.error(
+            "Erro ao restaurar perfil após falha no Auth:",
+            rollbackError
+          );
+        }
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível atualizar os dados de acesso do colaborador.",
+            details:
+              authUpdateError.message
+          });
+      }
+
+      return res.json({
+        message:
+          senha
+            ? "Dados e senha do colaborador atualizados com sucesso."
+            : "Dados do colaborador atualizados com sucesso.",
+
+        usuario:
+          updatedUser
+      });
+
+    } catch (error) {
+      console.error(
+        "Erro inesperado ao editar colaborador:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json({
+          error:
+            "Erro interno ao editar colaborador."
+        });
+    }
+  }
+);
+
+/* ==========================================================
+   DELETE /api/usuarios/:id
+
+   Exclusão lógica:
+   - perfil permanece no banco para preservar histórico;
+   - usuario.ativo passa para false;
+   - acesso no Supabase Auth é removido.
+
+   Somente colaboradores do próprio setor podem ser
+   removidos através desta rota.
+========================================================== */
+
+router.delete(
+  "/:id",
+  async (req, res) => {
+    try {
+      const authResult =
+        await getLoggedUser(req);
+
+      if (authResult.error) {
+        return res
+          .status(
+            authResult.status
+          )
+          .json({
+            error:
+              authResult.error
+          });
+      }
+
+      const loggedAdmin =
+        authResult.user;
+
+      if (!isAdmin(loggedAdmin)) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Você não possui permissão para excluir usuários."
+          });
+      }
+
+      const userId =
+        normalizeText(
+          req.params.id
+        );
+
+      if (!userId) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Usuário não informado."
+          });
+      }
+
+      if (
+        String(userId) ===
+        String(loggedAdmin.id)
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Você não pode excluir sua própria conta."
+          });
+      }
+
+      const {
+        data: targetUser,
+        error: targetError
+      } =
+        await supabaseAdmin
+          .from("usuario")
+          .select(`
+            id,
+            nome,
+            email,
+            setor,
+            perfil,
+            ativo
+          `)
+          .eq(
+            "id",
+            userId
+          )
+          .maybeSingle();
+
+      if (targetError) {
+        console.error(
+          "Erro ao buscar usuário para exclusão:",
+          targetError
+        );
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível localizar o usuário.",
+            details:
+              targetError.message
+          });
+      }
+
+      if (!targetUser) {
+        return res
+          .status(404)
+          .json({
+            error:
+              "Usuário não encontrado."
+          });
+      }
+
+      if (
+        targetUser.perfil !==
+        "colaborador"
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Administradores não podem ser excluídos pela área de funcionários."
+          });
+      }
+
+      if (
+        !loggedAdmin.setor ||
+        targetUser.setor !==
+          loggedAdmin.setor
+      ) {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Você não possui permissão para excluir colaboradores de outro setor."
+          });
+      }
+
+      if (
+        targetUser.ativo ===
+        false
+      ) {
+        return res
+          .status(409)
+          .json({
+            error:
+              "Este usuário já está inativo."
+          });
+      }
+
+      /*
+       * Desativamos primeiro o perfil.
+       * O registro permanece para preservar históricos.
+       */
+      const {
+        error: disableError
+      } =
+        await supabaseAdmin
+          .from("usuario")
+          .update({
+            ativo: false
+          })
+          .eq(
+            "id",
+            targetUser.id
+          );
+
+      if (disableError) {
+        console.error(
+          "Erro ao desativar usuário:",
+          disableError
+        );
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível excluir o funcionário.",
+            details:
+              disableError.message
+          });
+      }
+
+      /*
+       * Remove o acesso do usuário ao sistema.
+       */
+      const {
+        error: authDeleteError
+      } =
+        await supabaseAdmin
+          .auth
+          .admin
+          .deleteUser(
+            targetUser.id
+          );
+
+      if (authDeleteError) {
+        console.error(
+          "Erro ao excluir usuário do Auth:",
+          authDeleteError
+        );
+
+        /*
+         * Rollback:
+         * se o Auth não for removido, o perfil volta
+         * a ficar ativo.
+         */
+        const {
+          error: rollbackError
+        } =
+          await supabaseAdmin
+            .from("usuario")
+            .update({
+              ativo: true
+            })
+            .eq(
+              "id",
+              targetUser.id
+            );
+
+        if (rollbackError) {
+          console.error(
+            "Erro ao reativar usuário após falha no Auth:",
+            rollbackError
+          );
+        }
+
+        return res
+          .status(500)
+          .json({
+            error:
+              "Não foi possível remover o acesso do funcionário.",
+            details:
+              authDeleteError.message
+          });
+      }
+
+      return res.json({
+        message:
+          "Funcionário excluído com sucesso."
+      });
+
+    } catch (error) {
+      console.error(
+        "Erro inesperado ao excluir funcionário:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json({
+          error:
+            "Erro interno ao excluir funcionário."
+        });
+    }
+  }
+);
+
+module.exports = router;

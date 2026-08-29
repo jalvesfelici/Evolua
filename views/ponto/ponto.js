@@ -2,6 +2,8 @@ const accessToken = localStorage.getItem("access_token");
 
 let loggedUser = null;
 let selectedDocument = null;
+let currentSchedule = null;
+let pointHistory = [];
 
 try {
     const storedUser = localStorage.getItem("usuario_logado");
@@ -44,72 +46,26 @@ const punchTypes = [
     }
 ];
 
-let todayPoint = {
-    entrada: null,
-    intervalo: null,
-    retorno: null,
-    saida: null,
-    documentos: [],
-    observacoes: []
-};
+let todayPoint = createEmptyPoint();
 
-let pointHistory = [
-    {
-        date: "27/08/2026",
-        entrada: "08:02",
-        intervalo: "12:01",
-        retorno: "13:00",
-        saida: "17:08",
-        worked: "8h 07min",
-        status: "normal",
-        statusLabel: "Normal",
-        document: null
-    },
-    {
-        date: "26/08/2026",
-        entrada: "08:19",
-        intervalo: "12:03",
-        retorno: "13:04",
-        saida: "17:13",
-        worked: "7h 57min",
-        status: "delay",
-        statusLabel: "Atraso",
-        document: null
-    },
-    {
-        date: "25/08/2026",
-        entrada: "07:55",
-        intervalo: "12:00",
-        retorno: "13:00",
-        saida: "18:12",
-        worked: "9h 17min",
-        status: "overtime",
-        statusLabel: "Hora extra",
-        document: null
-    },
-    {
-        date: "24/08/2026",
-        entrada: "--",
-        intervalo: "--",
-        retorno: "--",
-        saida: "--",
-        worked: "0h 00min",
-        status: "absence",
-        statusLabel: "Falta justificada",
-        document: "atestado-medico.pdf"
-    },
-    {
-        date: "21/08/2026",
-        entrada: "08:00",
-        intervalo: "12:00",
-        retorno: "13:00",
-        saida: "17:00",
-        worked: "8h 00min",
-        status: "normal",
-        statusLabel: "Normal",
-        document: null
-    }
-];
+function createEmptyPoint() {
+    return {
+        id: null,
+        data: null,
+        entrada: null,
+        intervalo: null,
+        retorno: null,
+        saida: null,
+        horas_trabalhadas: 0,
+        horas_extras: 0,
+        atraso_entrada_minutos: 0,
+        atraso_retorno_minutos: 0,
+        status: "",
+        documento_url: null,
+        documento_nome: null,
+        observacao_admin: null
+    };
+}
 
 function clearSession() {
     localStorage.removeItem("access_token");
@@ -142,13 +98,51 @@ function validateSession() {
     return true;
 }
 
+function getAuthHeaders(includeJson = false) {
+    const headers = {
+        Authorization: `Bearer ${accessToken}`
+    };
+
+    if (includeJson) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    return headers;
+}
+
+function handleUnauthorized(response) {
+    if (response.status !== 401) {
+        return false;
+    }
+
+    clearSession();
+
+    alert(
+        "Sua sessão expirou. Faça login novamente."
+    );
+
+    window.location.href = "/login/";
+
+    return true;
+}
+
+async function getResponseData(response) {
+    try {
+        return await response.json();
+    } catch {
+        return {};
+    }
+}
+
 function getInitials(name) {
     const parts = String(name || "")
         .trim()
         .split(/\s+/)
         .filter(Boolean);
 
-    if (!parts.length) return "--";
+    if (!parts.length) {
+        return "--";
+    }
 
     if (parts.length === 1) {
         return parts[0]
@@ -163,7 +157,9 @@ function getInitials(name) {
 }
 
 function renderLoggedUser() {
-    if (!loggedUser) return;
+    if (!loggedUser) {
+        return;
+    }
 
     setText(
         "userAvatar",
@@ -221,28 +217,169 @@ function updateClock() {
 }
 
 function formatLongDate(date) {
-    const formatted = date.toLocaleDateString(
-        "pt-BR",
-        {
-            weekday: "long",
-            day: "2-digit",
-            month: "long",
-            year: "numeric"
-        }
-    );
+    const formatted =
+        date.toLocaleDateString(
+            "pt-BR",
+            {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric"
+            }
+        );
 
-    return formatted.charAt(0).toUpperCase() +
-        formatted.slice(1);
+    return (
+        formatted.charAt(0).toUpperCase() +
+        formatted.slice(1)
+    );
+}
+
+function formatDate(value) {
+    if (!value) {
+        return "-";
+    }
+
+    const parts =
+        String(value)
+            .substring(0, 10)
+            .split("-");
+
+    if (parts.length !== 3) {
+        return String(value);
+    }
+
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 function getCurrentTime() {
-    return new Date().toLocaleTimeString(
-        "pt-BR",
-        {
-            hour: "2-digit",
-            minute: "2-digit"
-        }
-    );
+    return new Date()
+        .toLocaleTimeString(
+            "pt-BR",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+            }
+        );
+}
+
+function normalizeTime(value) {
+    if (!value) {
+        return null;
+    }
+
+    return String(value)
+        .substring(0, 5);
+}
+
+function normalizeSchedule(schedule) {
+    if (!schedule) {
+        return null;
+    }
+
+    return {
+        id:
+            schedule.id || null,
+
+        entrada_prevista:
+            normalizeTime(
+                schedule.entrada_prevista
+            ),
+
+        intervalo_inicio:
+            normalizeTime(
+                schedule.intervalo_inicio
+            ),
+
+        retorno_previsto:
+            normalizeTime(
+                schedule.retorno_previsto
+            ),
+
+        saida_prevista:
+            normalizeTime(
+                schedule.saida_prevista
+            ),
+
+        tolerancia_minutos:
+            Number(
+                schedule.tolerancia_minutos ??
+                10
+            )
+    };
+}
+
+function mapApiPoint(point) {
+    if (!point) {
+        return createEmptyPoint();
+    }
+
+    return {
+        id:
+            point.id || null,
+
+        data:
+            point.data || null,
+
+        entrada:
+            normalizeTime(
+                point.entrada
+            ),
+
+        intervalo:
+            normalizeTime(
+                point.intervalo
+            ),
+
+        retorno:
+            normalizeTime(
+                point.retorno
+            ),
+
+        saida:
+            normalizeTime(
+                point.saida
+            ),
+
+        horas_trabalhadas:
+            Number(
+                point.horas_trabalhadas ||
+                0
+            ),
+
+        horas_extras:
+            Number(
+                point.horas_extras ||
+                0
+            ),
+
+        atraso_entrada_minutos:
+            Number(
+                point.atraso_entrada_minutos ||
+                0
+            ),
+
+        atraso_retorno_minutos:
+            Number(
+                point.atraso_retorno_minutos ||
+                0
+            ),
+
+        status:
+            point.status || "",
+
+        documento_url:
+            point.documento_url ||
+            null,
+
+        documento_nome:
+            point.documento_nome ||
+            null,
+
+        observacao_admin:
+            point.observacao_admin ||
+            null
+    };
 }
 
 function getNextPunch() {
@@ -263,6 +400,92 @@ function getNextPunch() {
     }
 
     return null;
+}
+
+async function loadTodayPoint(
+    showError = true
+) {
+    try {
+        const response =
+            await fetch(
+                `/api/ponto/${encodeURIComponent(
+                    loggedUser.id
+                )}`,
+                {
+                    method: "GET",
+                    headers:
+                        getAuthHeaders()
+                }
+            );
+
+        if (
+            handleUnauthorized(
+                response
+            )
+        ) {
+            return;
+        }
+
+        const result =
+            await getResponseData(
+                response
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                result.error ||
+                result.details ||
+                "Não foi possível carregar o ponto de hoje."
+            );
+        }
+
+        currentSchedule =
+            normalizeSchedule(
+                result.jornada
+            );
+
+        todayPoint =
+            mapApiPoint(
+                result.ponto
+            );
+
+        if (result.usuario) {
+            loggedUser = {
+                ...loggedUser,
+                ...result.usuario
+            };
+        }
+
+        syncHistoryWithToday();
+
+        renderLoggedUser();
+        renderTodayPoint();
+        renderMonthlySummary();
+        renderHistory();
+
+    } catch (error) {
+        console.error(
+            "Erro ao carregar ponto:",
+            error
+        );
+
+        todayPoint =
+            createEmptyPoint();
+
+        currentSchedule = null;
+        pointHistory = [];
+
+        renderTodayPoint();
+        renderMonthlySummary();
+        renderHistory();
+
+        if (showError) {
+            showGlobalMessage(
+                error.message,
+                "error"
+            );
+        }
+    }
 }
 
 function renderTodayPoint() {
@@ -296,7 +519,9 @@ function renderTodayPoint() {
 
     setText(
         "todayDocuments",
-        todayPoint.documentos.length
+        todayPoint.documento_url
+            ? 1
+            : 0
     );
 }
 
@@ -306,14 +531,18 @@ function renderTimelineItem(
     value
 ) {
     const item =
-        document.getElementById(itemId);
+        document.getElementById(
+            itemId
+        );
 
     setText(
         timeId,
         value || "--:--"
     );
 
-    if (!item) return;
+    if (!item) {
+        return;
+    }
 
     item.classList.toggle(
         "completed",
@@ -336,6 +565,76 @@ function renderTimelineItem(
     }
 }
 
+function timeToMinutes(value) {
+    if (!value) {
+        return null;
+    }
+
+    const [
+        hour,
+        minute
+    ] =
+        String(value)
+            .substring(0, 5)
+            .split(":")
+            .map(Number);
+
+    if (
+        !Number.isInteger(hour) ||
+        !Number.isInteger(minute)
+    ) {
+        return null;
+    }
+
+    return (
+        hour * 60 +
+        minute
+    );
+}
+
+function isEntryDelayed(time) {
+    if (
+        !time ||
+        !currentSchedule?.entrada_prevista
+    ) {
+        return (
+            Number(
+                todayPoint
+                    .atraso_entrada_minutos ||
+                0
+            ) > 0
+        );
+    }
+
+    const expected =
+        timeToMinutes(
+            currentSchedule
+                .entrada_prevista
+        );
+
+    const actual =
+        timeToMinutes(time);
+
+    const tolerance =
+        Number(
+            currentSchedule
+                .tolerancia_minutos ??
+            10
+        );
+
+    if (
+        expected === null ||
+        actual === null
+    ) {
+        return false;
+    }
+
+    return (
+        actual >
+        expected + tolerance
+    );
+}
+
 function renderEntryStatus() {
     const timelineEntry =
         document.getElementById(
@@ -348,27 +647,26 @@ function renderEntryStatus() {
             "Não registrado"
         );
 
-        timelineEntry?.classList.remove(
-            "delay"
-        );
+        timelineEntry
+            ?.classList
+            .remove("delay");
 
         return;
     }
 
-    const delayed =
+    if (
         isEntryDelayed(
             todayPoint.entrada
-        );
-
-    if (delayed) {
+        )
+    ) {
         setText(
             "entryStatus",
             "Entrada com atraso"
         );
 
-        timelineEntry?.classList.add(
-            "delay"
-        );
+        timelineEntry
+            ?.classList
+            .add("delay");
 
         return;
     }
@@ -378,19 +676,9 @@ function renderEntryStatus() {
         "Registrado no horário"
     );
 
-    timelineEntry?.classList.remove(
-        "delay"
-    );
-}
-
-function isEntryDelayed(time) {
-    if (!time) return false;
-
-    const [hour, minute] =
-        time.split(":").map(Number);
-
-    return hour > 8 ||
-        (hour === 8 && minute > 10);
+    timelineEntry
+        ?.classList
+        .remove("delay");
 }
 
 function renderNextPunch() {
@@ -402,7 +690,37 @@ function renderNextPunch() {
             "registerPointButton"
         );
 
-    if (!button) return;
+    if (!button) {
+        return;
+    }
+
+    if (!currentSchedule) {
+        setText(
+            "nextPunchText",
+            "Jornada não configurada"
+        );
+
+        setText(
+            "nextPunchDescription",
+            "Solicite ao administrador a configuração da sua jornada."
+        );
+
+        setText(
+            "registerPointButtonText",
+            "Jornada não configurada"
+        );
+
+        setText(
+            "daySituation",
+            "Aguardando configuração"
+        );
+
+        button.disabled = true;
+
+        setTodayBadge();
+
+        return;
+    }
 
     if (!next) {
         setText(
@@ -420,12 +738,12 @@ function renderNextPunch() {
             "Ponto concluído"
         );
 
-        button.disabled = true;
-
         setText(
             "daySituation",
             getTodaySituation()
         );
+
+        button.disabled = true;
 
         setTodayBadge();
 
@@ -449,17 +767,12 @@ function renderNextPunch() {
 
     button.disabled = false;
 
-    if (!todayPoint.entrada) {
-        setText(
-            "daySituation",
-            "Aguardando entrada"
-        );
-    } else {
-        setText(
-            "daySituation",
-            "Jornada em andamento"
-        );
-    }
+    setText(
+        "daySituation",
+        todayPoint.entrada
+            ? "Jornada em andamento"
+            : "Aguardando entrada"
+    );
 
     setTodayBadge();
 }
@@ -470,7 +783,19 @@ function setTodayBadge() {
             "todayStatusBadge"
         );
 
-    if (!badge) return;
+    if (!badge) {
+        return;
+    }
+
+    if (!currentSchedule) {
+        badge.className =
+            "status-badge neutral";
+
+        badge.textContent =
+            "Sem jornada";
+
+        return;
+    }
 
     if (!todayPoint.entrada) {
         badge.className =
@@ -483,18 +808,44 @@ function setTodayBadge() {
     }
 
     if (todayPoint.saida) {
-        const overtime =
-            calculateWorkedMinutes() > 480;
+        const status =
+            String(
+                todayPoint.status ||
+                ""
+            ).toLowerCase();
+
+        if (status === "delay") {
+            badge.className =
+                "status-badge warning";
+
+            badge.textContent =
+                "Atraso";
+
+            return;
+        }
+
+        if (
+            status === "overtime" ||
+            Number(
+                todayPoint
+                    .horas_extras ||
+                0
+            ) > 0
+        ) {
+            badge.className =
+                "status-badge info";
+
+            badge.textContent =
+                "Hora extra";
+
+            return;
+        }
 
         badge.className =
-            overtime
-                ? "status-badge info"
-                : "status-badge success";
+            "status-badge success";
 
         badge.textContent =
-            overtime
-                ? "Hora extra"
-                : "Concluído";
+            "Concluído";
 
         return;
     }
@@ -519,22 +870,56 @@ function setTodayBadge() {
 }
 
 function getTodaySituation() {
+    const status =
+        String(
+            todayPoint.status ||
+            ""
+        ).toLowerCase();
+
+    if (status === "delay") {
+        return "Jornada concluída com atraso";
+    }
+
     if (
-        calculateWorkedMinutes() >
-        480
+        status === "overtime" ||
+        Number(
+            todayPoint
+                .horas_extras ||
+            0
+        ) > 0
     ) {
         return "Jornada com hora extra";
     }
 
-    if (
-        isEntryDelayed(
-            todayPoint.entrada
-        )
-    ) {
-        return "Jornada concluída com atraso";
+    if (status === "incomplete") {
+        return "Jornada incompleta";
     }
 
     return "Jornada concluída";
+}
+
+function getMinutesDifference(
+    start,
+    end
+) {
+    const startMinutes =
+        timeToMinutes(start);
+
+    const endMinutes =
+        timeToMinutes(end);
+
+    if (
+        startMinutes === null ||
+        endMinutes === null
+    ) {
+        return 0;
+    }
+
+    return Math.max(
+        0,
+        endMinutes -
+        startMinutes
+    );
 }
 
 function calculateWorkedMinutes() {
@@ -548,20 +933,22 @@ function calculateWorkedMinutes() {
         todayPoint.intervalo ||
         getCurrentTime();
 
-    total += getMinutesDifference(
-        todayPoint.entrada,
-        firstEnd
-    );
+    total +=
+        getMinutesDifference(
+            todayPoint.entrada,
+            firstEnd
+        );
 
     if (todayPoint.retorno) {
         const secondEnd =
             todayPoint.saida ||
             getCurrentTime();
 
-        total += getMinutesDifference(
-            todayPoint.retorno,
-            secondEnd
-        );
+        total +=
+            getMinutesDifference(
+                todayPoint.retorno,
+                secondEnd
+            );
     }
 
     return Math.max(
@@ -570,29 +957,24 @@ function calculateWorkedMinutes() {
     );
 }
 
-function getMinutesDifference(
-    start,
-    end
-) {
-    if (!start || !end) return 0;
+function getExpectedWorkMinutes() {
+    if (!currentSchedule) {
+        return 0;
+    }
 
-    const [startHour, startMinute] =
-        start.split(":").map(Number);
-
-    const [endHour, endMinute] =
-        end.split(":").map(Number);
-
-    const startTotal =
-        startHour * 60 +
-        startMinute;
-
-    const endTotal =
-        endHour * 60 +
-        endMinute;
-
-    return Math.max(
-        0,
-        endTotal - startTotal
+    return (
+        getMinutesDifference(
+            currentSchedule
+                .entrada_prevista,
+            currentSchedule
+                .intervalo_inicio
+        ) +
+        getMinutesDifference(
+            currentSchedule
+                .retorno_previsto,
+            currentSchedule
+                .saida_prevista
+        )
     );
 }
 
@@ -601,7 +983,8 @@ function formatMinutes(minutes) {
         Math.max(
             0,
             Math.floor(
-                Number(minutes) || 0
+                Number(minutes) ||
+                0
             )
         );
 
@@ -618,23 +1001,50 @@ function formatMinutes(minutes) {
     ).padStart(2, "0")}min`;
 }
 
+function decimalHoursToMinutes(value) {
+    return Math.round(
+        Number(value || 0) *
+        60
+    );
+}
+
 function renderWorkedHours() {
-    const worked =
+    const calculatedWorked =
         calculateWorkedMinutes();
 
+    const worked =
+        todayPoint.saida
+            ? decimalHoursToMinutes(
+                todayPoint
+                    .horas_trabalhadas
+            )
+            : calculatedWorked;
+
+    const expected =
+        getExpectedWorkMinutes();
+
     const overtime =
-        Math.max(
-            0,
-            worked - 480
-        );
+        todayPoint.saida
+            ? decimalHoursToMinutes(
+                todayPoint
+                    .horas_extras
+            )
+            : Math.max(
+                0,
+                worked - expected
+            );
 
     const percentage =
-        Math.min(
-            100,
-            Math.round(
-                worked / 480 * 100
+        expected > 0
+            ? Math.min(
+                100,
+                Math.round(
+                    worked /
+                    expected *
+                    100
+                )
             )
-        );
+            : 0;
 
     setText(
         "todayWorkedHours",
@@ -662,6 +1072,130 @@ function renderWorkedHours() {
     }
 }
 
+function syncHistoryWithToday() {
+    pointHistory = [];
+
+    if (!todayPoint.id) {
+        return;
+    }
+
+    const status =
+        getPointStatusData(
+            todayPoint
+        );
+
+    pointHistory.push({
+        date:
+            formatDate(
+                todayPoint.data
+            ),
+
+        entrada:
+            todayPoint.entrada ||
+            "--",
+
+        intervalo:
+            todayPoint.intervalo ||
+            "--",
+
+        retorno:
+            todayPoint.retorno ||
+            "--",
+
+        saida:
+            todayPoint.saida ||
+            "--",
+
+        worked:
+            formatMinutes(
+                decimalHoursToMinutes(
+                    todayPoint
+                        .horas_trabalhadas
+                )
+            ),
+
+        overtimeMinutes:
+            decimalHoursToMinutes(
+                todayPoint
+                    .horas_extras
+            ),
+
+        status:
+            status.className,
+
+        statusLabel:
+            status.label,
+
+        document:
+            todayPoint
+                .documento_url,
+
+        documentName:
+            todayPoint
+                .documento_nome ||
+            "Documento anexado"
+    });
+}
+
+function getPointStatusData(point) {
+    const status =
+        String(
+            point.status ||
+            ""
+        ).toLowerCase();
+
+    if (status === "absence") {
+        return {
+            className: "absence",
+            label: "Falta"
+        };
+    }
+
+    if (
+        status === "delay" ||
+        Number(
+            point
+                .atraso_entrada_minutos ||
+            0
+        ) > 0 ||
+        Number(
+            point
+                .atraso_retorno_minutos ||
+            0
+        ) > 0
+    ) {
+        return {
+            className: "delay",
+            label: "Atraso"
+        };
+    }
+
+    if (
+        status === "overtime" ||
+        Number(
+            point.horas_extras ||
+            0
+        ) > 0
+    ) {
+        return {
+            className: "overtime",
+            label: "Hora extra"
+        };
+    }
+
+    if (status === "incomplete") {
+        return {
+            className: "incomplete",
+            label: "Incompleto"
+        };
+    }
+
+    return {
+        className: "normal",
+        label: "Normal"
+    };
+}
+
 function renderMonthlySummary() {
     const delays =
         pointHistory.filter(
@@ -677,21 +1211,20 @@ function renderMonthlySummary() {
                 "absence"
         ).length;
 
-    let overtimeMinutes = 0;
-
-    pointHistory.forEach(item => {
-        if (
-            item.status !==
-            "overtime"
-        ) {
-            return;
-        }
-
-        overtimeMinutes +=
-            parseWorkedMinutes(
-                item.worked
-            ) - 480;
-    });
+    const overtimeMinutes =
+        pointHistory.reduce(
+            (
+                total,
+                item
+            ) =>
+                total +
+                Number(
+                    item
+                        .overtimeMinutes ||
+                    0
+                ),
+            0
+        );
 
     setText(
         "monthlyDelays",
@@ -706,26 +1239,8 @@ function renderMonthlySummary() {
     setText(
         "monthlyOvertime",
         formatMinutes(
-            Math.max(
-                overtimeMinutes,
-                0
-            )
+            overtimeMinutes
         )
-    );
-}
-
-function parseWorkedMinutes(value) {
-    const match =
-        String(value)
-            .match(
-                /(\d+)h\s*(\d+)min/
-            );
-
-    if (!match) return 0;
-
-    return (
-        Number(match[1]) * 60 +
-        Number(match[2])
     );
 }
 
@@ -735,7 +1250,9 @@ function renderHistory() {
             "pointHistoryBody"
         );
 
-    if (!body) return;
+    if (!body) {
+        return;
+    }
 
     if (!pointHistory.length) {
         body.innerHTML = `
@@ -751,64 +1268,90 @@ function renderHistory() {
 
     body.innerHTML =
         pointHistory
-            .map(item => `
-                <tr>
-                    <td>
-                        ${item.date}
-                    </td>
+            .map(
+                item => `
+                    <tr>
 
-                    <td>
-                        ${item.entrada}
-                    </td>
+                        <td>
+                            ${escapeHTML(
+                                item.date
+                            )}
+                        </td>
 
-                    <td>
-                        ${item.intervalo}
-                    </td>
+                        <td>
+                            ${escapeHTML(
+                                item.entrada
+                            )}
+                        </td>
 
-                    <td>
-                        ${item.retorno}
-                    </td>
+                        <td>
+                            ${escapeHTML(
+                                item.intervalo
+                            )}
+                        </td>
 
-                    <td>
-                        ${item.saida}
-                    </td>
+                        <td>
+                            ${escapeHTML(
+                                item.retorno
+                            )}
+                        </td>
 
-                    <td>
-                        ${item.worked}
-                    </td>
+                        <td>
+                            ${escapeHTML(
+                                item.saida
+                            )}
+                        </td>
 
-                    <td>
-                        <span
-                            class="history-status ${item.status}"
-                        >
-                            ${item.statusLabel}
-                        </span>
-                    </td>
+                        <td>
+                            ${escapeHTML(
+                                item.worked
+                            )}
+                        </td>
 
-                    <td>
-                        ${
-                            item.document
-                                ? `
-                                    <button
-                                        type="button"
-                                        class="document-button"
-                                        data-document="${escapeHTML(
-                                            item.document
-                                        )}"
-                                    >
-                                        <i class="fa-solid fa-paperclip"></i>
-                                        Ver
-                                    </button>
-                                `
-                                : `
-                                    <span class="no-document">
-                                        -
-                                    </span>
-                                `
-                        }
-                    </td>
-                </tr>
-            `)
+                        <td>
+                            <span
+                                class="
+                                    history-status
+                                    ${escapeHTML(
+                                        item.status
+                                    )}
+                                "
+                            >
+                                ${escapeHTML(
+                                    item.statusLabel
+                                )}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${
+                                item.document
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="document-button"
+                                            data-document="${escapeHTML(
+                                                item.document
+                                            )}"
+                                            data-document-name="${escapeHTML(
+                                                item.documentName
+                                            )}"
+                                        >
+                                            <i class="fa-solid fa-paperclip"></i>
+                                            Ver
+                                        </button>
+                                    `
+                                    : `
+                                        <span class="no-document">
+                                            -
+                                        </span>
+                                    `
+                            }
+                        </td>
+
+                    </tr>
+                `
+            )
             .join("");
 
     body
@@ -816,11 +1359,18 @@ function renderHistory() {
             "[data-document]"
         )
         .forEach(button => {
+
             button.addEventListener(
                 "click",
                 () => {
+
                     openDocumentModal(
-                        button.dataset.document
+                        button.dataset
+                            .documentName ||
+                        "Documento",
+
+                        button.dataset
+                            .document
                     );
                 }
             );
@@ -831,7 +1381,12 @@ function openPointModal() {
     const next =
         getNextPunch();
 
-    if (!next) return;
+    if (
+        !next ||
+        !currentSchedule
+    ) {
+        return;
+    }
 
     setText(
         "pointModalTitle",
@@ -852,9 +1407,8 @@ function openPointModal() {
         .getElementById(
             "pointModal"
         )
-        ?.classList.add(
-            "show"
-        );
+        ?.classList
+        .add("show");
 
     document
         .getElementById(
@@ -874,14 +1428,15 @@ function closePointModal() {
             "pointModal"
         );
 
-    modal?.classList.remove(
-        "show"
-    );
+    modal
+        ?.classList
+        .remove("show");
 
-    modal?.setAttribute(
-        "aria-hidden",
-        "true"
-    );
+    modal
+        ?.setAttribute(
+            "aria-hidden",
+            "true"
+        );
 
     clearPointForm();
 }
@@ -952,6 +1507,7 @@ function handleDocumentSelection() {
         );
 
         input.value = "";
+        selectedDocument = null;
 
         return;
     }
@@ -966,6 +1522,7 @@ function handleDocumentSelection() {
         );
 
         input.value = "";
+        selectedDocument = null;
 
         return;
     }
@@ -980,51 +1537,136 @@ function handleDocumentSelection() {
     hideModalMessage();
 }
 
-function confirmPoint() {
+async function confirmPoint() {
     const next =
         getNextPunch();
 
-    if (!next) return;
+    if (!next) {
+        return;
+    }
 
-    const time =
-        getCurrentTime();
+    if (!currentSchedule) {
+        showModalMessage(
+            "Sua jornada ainda não foi configurada pelo administrador.",
+            "error"
+        );
 
-    const observation =
-        document
-            .getElementById(
-                "pointObservation"
+        return;
+    }
+
+    const button =
+        document.getElementById(
+            "confirmPointButton"
+        );
+
+    const original =
+        button?.innerHTML;
+
+    if (button) {
+        button.disabled = true;
+
+        button.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Registrando...
+        `;
+    }
+
+    hideModalMessage();
+
+    try {
+        const response =
+            await fetch(
+                "/api/ponto",
+                {
+                    method: "POST",
+
+                    headers:
+                        getAuthHeaders(
+                            true
+                        ),
+
+                    body:
+                        JSON.stringify({
+                            tipo:
+                                next.key
+                        })
+                }
+            );
+
+        if (
+            handleUnauthorized(
+                response
             )
-            ?.value
-            .trim() || "";
+        ) {
+            return;
+        }
 
-    todayPoint[next.key] =
-        time;
+        const result =
+            await getResponseData(
+                response
+            );
 
-    if (observation) {
-        todayPoint.observacoes.push({
-            tipo: next.key,
-            texto: observation
-        });
+        if (!response.ok) {
+            throw new Error(
+                result.error ||
+                result.details ||
+                "Não foi possível registrar o ponto."
+            );
+        }
+
+        todayPoint =
+            mapApiPoint(
+                result.ponto
+            );
+
+        currentSchedule =
+            normalizeSchedule(
+                result.jornada
+            ) ||
+            currentSchedule;
+
+        syncHistoryWithToday();
+
+        closePointModal();
+
+        renderTodayPoint();
+        renderMonthlySummary();
+        renderHistory();
+
+        const registeredTime =
+            todayPoint[next.key] ||
+            getCurrentTime();
+
+        showGlobalMessage(
+            `${next.label} registrada às ${registeredTime} e salva com sucesso.`,
+            "success"
+        );
+
+    } catch (error) {
+        console.error(
+            "Erro ao registrar ponto:",
+            error
+        );
+
+        showModalMessage(
+            error.message,
+            "error"
+        );
+
+    } finally {
+        if (button) {
+            button.disabled = false;
+
+            button.innerHTML =
+                original;
+        }
     }
-
-    if (selectedDocument) {
-        todayPoint.documentos.push({
-            tipo: next.key,
-            nome: selectedDocument.name
-        });
-    }
-
-    closePointModal();
-
-    renderTodayPoint();
-
-    showGlobalMessage(
-        `${next.label} registrada às ${time}.`,
-        "success"
-    );
 }
 
-function openDocumentModal(name) {
+function openDocumentModal(
+    name,
+    url = null
+) {
     setText(
         "documentModalName",
         name || "Documento"
@@ -1035,14 +1677,23 @@ function openDocumentModal(name) {
             "documentModal"
         );
 
-    modal?.classList.add(
-        "show"
-    );
+    modal
+        ?.classList
+        .add("show");
 
-    modal?.setAttribute(
-        "aria-hidden",
-        "false"
-    );
+    modal
+        ?.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+    if (url) {
+        window.open(
+            url,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    }
 }
 
 function closeDocumentModal() {
@@ -1051,14 +1702,15 @@ function closeDocumentModal() {
             "documentModal"
         );
 
-    modal?.classList.remove(
-        "show"
-    );
+    modal
+        ?.classList
+        .remove("show");
 
-    modal?.setAttribute(
-        "aria-hidden",
-        "true"
-    );
+    modal
+        ?.setAttribute(
+            "aria-hidden",
+            "true"
+        );
 }
 
 function showGlobalMessage(
@@ -1070,7 +1722,9 @@ function showGlobalMessage(
             "globalMessage"
         );
 
-    if (!element) return;
+    if (!element) {
+        return;
+    }
 
     element.textContent =
         message;
@@ -1081,10 +1735,11 @@ function showGlobalMessage(
     window.setTimeout(
         () => {
             element.textContent = "";
+
             element.className =
                 "global-message";
         },
-        4000
+        4500
     );
 }
 
@@ -1097,7 +1752,9 @@ function showModalMessage(
             "pointModalMessage"
         );
 
-    if (!element) return;
+    if (!element) {
+        return;
+    }
 
     element.textContent =
         message;
@@ -1112,20 +1769,40 @@ function hideModalMessage() {
             "pointModalMessage"
         );
 
-    if (!element) return;
+    if (!element) {
+        return;
+    }
 
     element.textContent = "";
+
     element.className =
         "modal-message";
 }
 
 function escapeHTML(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    return String(
+        value ?? ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 }
 
 function setText(id, value) {
@@ -1195,11 +1872,24 @@ function configureEvents() {
 
     document
         .getElementById(
+            "historyMonth"
+        )
+        ?.addEventListener(
+            "change",
+            () => {
+                renderMonthlySummary();
+                renderHistory();
+            }
+        );
+
+    document
+        .getElementById(
             "logoutButton"
         )
         ?.addEventListener(
             "click",
             () => {
+
                 if (
                     !confirm(
                         "Deseja sair do Evolua+?"
@@ -1222,6 +1912,7 @@ function configureEvents() {
         ?.addEventListener(
             "click",
             event => {
+
                 if (
                     event.target.id ===
                     "pointModal"
@@ -1238,6 +1929,7 @@ function configureEvents() {
         ?.addEventListener(
             "click",
             event => {
+
                 if (
                     event.target.id ===
                     "documentModal"
@@ -1250,6 +1942,7 @@ function configureEvents() {
     document.addEventListener(
         "keydown",
         event => {
+
             if (
                 event.key !==
                 "Escape"
@@ -1269,7 +1962,9 @@ function configureCurrentMonth() {
             "historyMonth"
         );
 
-    if (!input) return;
+    if (!input) {
+        return;
+    }
 
     const now =
         new Date();
@@ -1280,19 +1975,20 @@ function configureCurrentMonth() {
         ).padStart(2, "0")}`;
 }
 
-function initializePointPage() {
+async function initializePointPage() {
     if (!validateSession()) {
         return;
     }
 
     renderLoggedUser();
+
     configureEvents();
+
     configureCurrentMonth();
 
     updateClock();
-    renderTodayPoint();
-    renderMonthlySummary();
-    renderHistory();
+
+    await loadTodayPoint();
 
     window.setInterval(
         () => {

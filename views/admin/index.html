@@ -1,3264 +1,2624 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 
 <head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <meta charset="UTF-8">
+    <title>Evolua+ | Administração</title>
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+    <link
+        rel="stylesheet"
+        href="/css/global.css"
+    >
 
-  <title>
-    Evolua+ | Administração
-  </title>
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-
-  <!-- =====================================================
-       CSS
-  ====================================================== -->
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
-
-  <!-- =====================================================
-       ÍCONES
-  ====================================================== -->
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  >
-
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 </head>
-
-
 
 <body>
 
+    <aside class="sidebar">
 
-  <!-- =====================================================
-       =====================================================
-       SIDEBAR
-       =====================================================
-  ====================================================== -->
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
 
-  <aside class="sidebar">
+            <div>
+                <h2>Evolua+</h2>
+                <span>Portal de Carreiras</span>
+            </div>
+        </div>
 
+        <div class="admin-badge">
+            <i class="fa-solid fa-shield-halved"></i>
 
-    <!-- ===================================================
-         LOGO
-    ==================================================== -->
+            <div>
+                <strong>Área Administrativa</strong>
+                <span id="adminSector">Carregando...</span>
+            </div>
+        </div>
 
-    <div class="logo">
+        <nav class="menu">
 
-      <div class="logo-icon">
+            <button
+                type="button"
+                class="menu-item active"
+                data-page="dashboard"
+            >
+                <i class="fa-solid fa-house"></i>
+                <span>Visão Geral</span>
+            </button>
 
-        <i class="fa-solid fa-chart-line"></i>
+            <button
+                type="button"
+                class="menu-item"
+                data-page="employees"
+            >
+                <i class="fa-solid fa-users"></i>
+                <span>Funcionários</span>
+            </button>
 
-      </div>
+            <button
+                type="button"
+                class="menu-item"
+                data-page="vacations"
+            >
+                <i class="fa-solid fa-umbrella-beach"></i>
+                <span>Férias</span>
 
+                <span
+                    class="menu-counter"
+                    id="vacationMenuCounter"
+                >
+                    0
+                </span>
+            </button>
 
-      <div>
+            <button
+                type="button"
+                class="menu-item"
+                data-page="trainings"
+            >
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Treinamentos</span>
+            </button>
 
-        <h2>
-          Evolua+
-        </h2>
+            <button
+                type="button"
+                class="menu-item"
+                data-page="evaluations"
+            >
+                <i class="fa-solid fa-clipboard-check"></i>
+                <span>Avaliações</span>
 
-        <span>
-          Portal de Carreiras
-        </span>
+                <span
+                    class="menu-counter"
+                    id="evaluationMenuCounter"
+                >
+                    0
+                </span>
+            </button>
 
-      </div>
+            <button
+                type="button"
+                class="menu-item"
+                data-page="feedbacks"
+            >
+                <i class="fa-solid fa-comments"></i>
+                <span>Feedbacks</span>
 
-    </div>
+                <span
+                    class="menu-counter"
+                    id="feedbackMenuCounter"
+                >
+                    0
+                </span>
+            </button>
 
+            <button
+                type="button"
+                class="menu-item"
+                data-page="point"
+            >
+                <i class="fa-solid fa-clock"></i>
+                <span>Ponto</span>
+            </button>
 
+        </nav>
 
-    <!-- ===================================================
-         IDENTIFICAÇÃO ADMINISTRATIVA
-    ==================================================== -->
+        <div class="sidebar-user">
 
-    <div class="admin-badge">
+            <div
+                class="avatar"
+                id="adminAvatar"
+            >
+                --
+            </div>
 
-      <i class="fa-solid fa-shield-halved"></i>
+            <div class="user-info">
+                <strong id="adminName">
+                    Carregando...
+                </strong>
 
+                <span id="adminRole">
+                    Administrador
+                </span>
+            </div>
 
-      <div>
+            <button
+                type="button"
+                class="logout-button"
+                id="logoutButton"
+                title="Sair"
+            >
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
 
-        <strong>
-          Área Administrativa
-        </strong>
+        </div>
 
-        <span id="adminSector">
-          Carregando...
-        </span>
+    </aside>
 
-      </div>
+    <main class="main-content">
 
-    </div>
+        <header class="page-header">
 
+            <div>
+                <p class="eyebrow">
+                    Administração
+                </p>
 
+                <h1 id="pageTitle">
+                    Visão Geral
+                </h1>
 
-    <!-- ===================================================
-         MENU
-    ==================================================== -->
+                <p id="pageSubtitle">
+                    Acompanhe as principais informações do seu setor.
+                </p>
+            </div>
 
-    <nav class="menu">
+        </header>
 
+        <div
+            class="global-message"
+            id="globalMessage"
+            role="alert"
+        ></div>
 
-      <!-- VISÃO GERAL -->
+        <!-- DASHBOARD -->
 
-      <button
-        type="button"
-        class="menu-item active"
-        data-page="dashboard"
-      >
-
-        <i class="fa-solid fa-house"></i>
-
-        <span>
-          Visão Geral
-        </span>
-
-      </button>
-
-
-
-      <!-- FUNCIONÁRIOS -->
-
-      <button
-        type="button"
-        class="menu-item"
-        data-page="employees"
-      >
-
-        <i class="fa-solid fa-users"></i>
-
-        <span>
-          Funcionários
-        </span>
-
-      </button>
-
-
-
-      <!-- FÉRIAS -->
-
-      <button
-        type="button"
-        class="menu-item"
-        data-page="vacations"
-      >
-
-        <i class="fa-solid fa-umbrella-beach"></i>
-
-        <span>
-          Férias
-        </span>
-
-
-        <span
-          class="menu-counter"
-          id="vacationMenuCounter"
+        <section
+            class="page-section active-page"
+            id="dashboardPage"
         >
-          0
-        </span>
 
-      </button>
-
-
-
-      <!-- TREINAMENTOS -->
-
-      <button
-        type="button"
-        class="menu-item"
-        data-page="trainings"
-      >
-
-        <i class="fa-solid fa-graduation-cap"></i>
-
-        <span>
-          Treinamentos
-        </span>
-
-      </button>
-
-
-
-      <!-- AVALIAÇÕES -->
-
-      <button
-        type="button"
-        class="menu-item"
-        data-page="evaluations"
-      >
-
-        <i class="fa-solid fa-clipboard-check"></i>
-
-        <span>
-          Avaliações
-        </span>
-
-
-        <span
-          class="menu-counter"
-          id="evaluationMenuCounter"
-        >
-          0
-        </span>
-
-      </button>
-
-
-
-      <!-- FEEDBACKS -->
-
-      <button
-        type="button"
-        class="menu-item"
-        data-page="feedbacks"
-      >
-
-        <i class="fa-solid fa-comments"></i>
-
-        <span>
-          Feedbacks
-        </span>
-
-
-        <span
-          class="menu-counter"
-          id="feedbackMenuCounter"
-        >
-          0
-        </span>
-
-      </button>
-
-
-
-      <!-- DIVISOR -->
-
-      <div class="menu-divider">
-        Gestão
-      </div>
-
-
-
-      <!-- PONTO -->
-
-      <button
-        type="button"
-        class="menu-item disabled"
-        disabled
-      >
-
-        <i class="fa-solid fa-clock"></i>
-
-        <span>
-          Ponto
-        </span>
-
-      </button>
-
-
-
-      <!-- DESEMPENHO -->
-
-      <button
-        type="button"
-        class="menu-item disabled"
-        disabled
-      >
-
-        <i class="fa-solid fa-chart-column"></i>
-
-        <span>
-          Desempenho
-        </span>
-
-      </button>
-
-
-
-      <!-- CARREIRA -->
-
-      <button
-        type="button"
-        class="menu-item disabled"
-        disabled
-      >
-
-        <i class="fa-solid fa-briefcase"></i>
-
-        <span>
-          Carreira
-        </span>
-
-      </button>
-
-    </nav>
-
-
-
-    <!-- ===================================================
-         ADMIN LOGADO
-    ==================================================== -->
-
-    <div class="sidebar-user">
-
-      <div
-        class="avatar"
-        id="adminAvatar"
-      >
-        --
-      </div>
-
-
-      <div class="user-info">
-
-        <strong id="adminName">
-          Carregando...
-        </strong>
-
-        <span id="adminRole">
-          Administrador
-        </span>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="logout-button"
-        id="logoutButton"
-        title="Sair"
-      >
-
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-
-      </button>
-
-    </div>
-
-  </aside>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       CONTEÚDO PRINCIPAL
-       =====================================================
-  ====================================================== -->
-
-  <main class="main-content">
-
-
-    <!-- ===================================================
-         TOPBAR
-    ==================================================== -->
-
-    <header class="topbar">
-
-      <div>
-
-        <p class="eyebrow">
-          Administração
-        </p>
-
-
-        <h1 id="pageTitle">
-          Visão Geral
-        </h1>
-
-
-        <p id="pageSubtitle">
-          Acompanhe as principais informações do seu setor.
-        </p>
-
-      </div>
-
-    </header>
-
-
-
-    <!-- ===================================================
-         MENSAGEM GLOBAL
-    ==================================================== -->
-
-    <div
-      class="global-message"
-      id="globalMessage"
-      role="alert"
-    >
-    </div>
-
-
-
-    <!-- =====================================================
-         =====================================================
-         DASHBOARD
-         =====================================================
-    ====================================================== -->
-
-    <section
-      class="page-section active-page"
-      id="dashboardPage"
-    >
-
-
-      <!-- =================================================
-           RESUMO
-      ================================================== -->
-
-      <div class="summary-grid">
-
+            <div class="summary-grid">
+
+                <article class="summary-card">
+                    <div class="summary-icon purple">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+
+                    <div>
+                        <span>Funcionários</span>
+                        <strong id="dashboardEmployees">0</strong>
+                        <small>No seu setor</small>
+                    </div>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon blue">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+
+                    <div>
+                        <span>Treinamentos</span>
+                        <strong id="dashboardTrainings">0</strong>
+                        <small>Cursos ativos</small>
+                    </div>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon orange">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+
+                    <div>
+                        <span>Avaliações</span>
+                        <strong id="dashboardEvaluations">0</strong>
+                        <small>Aguardando análise</small>
+                    </div>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon green">
+                        <i class="fa-solid fa-umbrella-beach"></i>
+                    </div>
+
+                    <div>
+                        <span>Férias</span>
+                        <strong id="dashboardVacations">0</strong>
+                        <small>Solicitações pendentes</small>
+                    </div>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon purple">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+
+                    <div>
+                        <span>Feedbacks</span>
+                        <strong id="dashboardFeedbacks">0</strong>
+                        <small>Solicitações pendentes</small>
+                    </div>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon blue">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+
+                    <div>
+                        <span>Ponto</span>
+                        <strong id="dashboardPointRecords">0</strong>
+                        <small>Registros realizados hoje</small>
+                    </div>
+                </article>
+
+            </div>
+
+            <div class="dashboard-grid">
+
+                <section class="panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <h2>Avaliações pendentes</h2>
+                            <p>Treinamentos aguardando análise do seu setor.</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="link-button"
+                            onclick="changePage('evaluations')"
+                        >
+                            Ver todas
+                        </button>
+                    </div>
+
+                    <div
+                        class="simple-list"
+                        id="dashboardEvaluationList"
+                    >
+                        <div class="loading-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Carregando avaliações...</span>
+                        </div>
+                    </div>
+
+                </section>
+
+                <section class="panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <h2>Solicitações de férias</h2>
+                            <p>Pedidos dos colaboradores do seu setor.</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="link-button"
+                            onclick="changePage('vacations')"
+                        >
+                            Ver todas
+                        </button>
+                    </div>
+
+                    <div
+                        class="simple-list"
+                        id="dashboardVacationList"
+                    >
+                        <div class="loading-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Carregando solicitações...</span>
+                        </div>
+                    </div>
+
+                </section>
+
+            </div>
+
+            <section class="panel dashboard-actions-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h2>Ações rápidas</h2>
+                        <p>Acesse as funções administrativas mais utilizadas.</p>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        onclick="openUserModal('colaborador')"
+                    >
+                        <div class="quick-icon purple">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+
+                        <div>
+                            <strong>Novo funcionário</strong>
+                            <span>Criar colaborador do seu setor</span>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        onclick="openUserModal('admin_setor')"
+                    >
+                        <div class="quick-icon green">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+
+                        <div>
+                            <strong>Novo administrador</strong>
+                            <span>Criar administrador de setor</span>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        onclick="openCourseModal()"
+                    >
+                        <div class="quick-icon blue">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+
+                        <div>
+                            <strong>Novo treinamento</strong>
+                            <span>Criar treinamento do seu setor</span>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        onclick="changePage('evaluations')"
+                    >
+                        <div class="quick-icon orange">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </div>
+
+                        <div>
+                            <strong>Avaliar treinamentos</strong>
+                            <span>Analisar entregas pendentes</span>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        onclick="changePage('feedbacks')"
+                    >
+                        <div class="quick-icon purple">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+
+                        <div>
+                            <strong>Gerenciar feedbacks</strong>
+                            <span>Responder solicitações e enviar feedbacks</span>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="quick-action"
+                        onclick="changePage('point')"
+                    >
+                        <div class="quick-icon blue">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+
+                        <div>
+                            <strong>Gerenciar ponto</strong>
+                            <span>Consultar, configurar e corrigir jornadas</span>
+                        </div>
+                    </button>
+
+                </div>
+
+            </section>
+
+            <section class="panel dashboard-training-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <h2>Treinamentos recentes</h2>
+                        <p>Cursos publicados pelo seu setor.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="link-button"
+                        onclick="changePage('trainings')"
+                    >
+                        Gerenciar treinamentos
+                    </button>
+                </div>
+
+                <div
+                    class="training-mini-grid"
+                    id="dashboardTrainingList"
+                ></div>
+
+            </section>
+
+        </section>
 
         <!-- FUNCIONÁRIOS -->
 
-        <article class="summary-card">
+        <section
+            class="page-section"
+            id="employeesPage"
+        >
 
-          <div class="summary-icon purple">
+            <div class="section-toolbar">
 
-            <i class="fa-solid fa-users"></i>
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
 
-          </div>
+                    <input
+                        type="text"
+                        id="employeeSearch"
+                        placeholder="Pesquisar funcionário..."
+                    >
+                </div>
 
+                <div class="toolbar-user-actions">
 
-          <div>
+                    <button
+                        type="button"
+                        class="outline-button toolbar-button"
+                        onclick="openUserModal('admin_setor')"
+                    >
+                        <i class="fa-solid fa-user-shield"></i>
+                        Novo administrador
+                    </button>
 
-            <span>
-              Funcionários
-            </span>
+                    <button
+                        type="button"
+                        class="primary-button toolbar-button"
+                        onclick="openUserModal('colaborador')"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Novo funcionário
+                    </button>
 
-            <strong id="dashboardEmployees">
-              0
-            </strong>
+                </div>
 
-            <small>
-              No seu setor
-            </small>
+            </div>
 
-          </div>
+            <div class="information-banner">
 
-        </article>
+                <i class="fa-solid fa-circle-info"></i>
 
+                <div>
+                    <strong>Gestão da equipe</strong>
 
+                    <span>
+                        Você pode alterar os dados, redefinir a senha e configurar
+                        a jornada dos colaboradores pertencentes ao seu setor.
+                    </span>
+                </div>
 
-        <!-- CURSOS -->
+            </div>
 
-        <article class="summary-card">
+            <section class="panel">
 
-          <div class="summary-icon blue">
+                <div class="panel-header">
+                    <div>
+                        <h2>Funcionários do setor</h2>
 
-            <i class="fa-solid fa-graduation-cap"></i>
+                        <p>
+                            Gerencie os colaboradores sob responsabilidade do seu setor.
+                        </p>
+                    </div>
+                </div>
 
-          </div>
+                <div class="table-wrapper">
 
+                    <table>
 
-          <div>
+                        <thead>
+                            <tr>
+                                <th>Funcionário</th>
+                                <th>Matrícula</th>
+                                <th>E-mail</th>
+                                <th>Cargo</th>
+                                <th>Setor</th>
+                                <th>Jornada</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
 
-            <span>
-              Treinamentos
-            </span>
+                        <tbody id="employeesTableBody">
 
-            <strong id="dashboardTrainings">
-              0
-            </strong>
+                            <tr>
+                                <td colspan="8">
+                                    <div class="table-loading">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        Carregando funcionários...
+                                    </div>
+                                </td>
+                            </tr>
 
-            <small>
-              Cursos ativos
-            </small>
+                        </tbody>
 
-          </div>
+                    </table>
 
-        </article>
+                </div>
 
+            </section>
 
-
-        <!-- AVALIAÇÕES -->
-
-        <article class="summary-card">
-
-          <div class="summary-icon orange">
-
-            <i class="fa-solid fa-clipboard-check"></i>
-
-          </div>
-
-
-          <div>
-
-            <span>
-              Avaliações
-            </span>
-
-            <strong id="dashboardEvaluations">
-              0
-            </strong>
-
-            <small>
-              Aguardando análise
-            </small>
-
-          </div>
-
-        </article>
-
-
+        </section>
 
         <!-- FÉRIAS -->
 
-        <article class="summary-card">
+        <section
+            class="page-section"
+            id="vacationsPage"
+        >
 
-          <div class="summary-icon green">
+            <div class="vacation-admin-summary">
 
-            <i class="fa-solid fa-umbrella-beach"></i>
+                <article class="mini-summary-card">
+                    <span>Solicitações pendentes</span>
+                    <strong id="vacationPendingCount">0</strong>
+                </article>
 
-          </div>
+                <article class="mini-summary-card">
+                    <span>Setor</span>
+                    <strong id="vacationAdminSector">-</strong>
+                </article>
 
+            </div>
 
-          <div>
+            <section class="panel">
 
-            <span>
-              Férias
-            </span>
+                <div class="panel-header">
+                    <div>
+                        <h2>Solicitações de férias</h2>
 
-            <strong id="dashboardVacations">
-              0
-            </strong>
+                        <p>
+                            Aprove, recuse ou aprove com ressalvas os pedidos do seu setor.
+                        </p>
+                    </div>
 
-            <small>
-              Solicitações pendentes
-            </small>
+                    <button
+                        type="button"
+                        class="outline-button"
+                        id="refreshVacationButton"
+                    >
+                        <i class="fa-solid fa-rotate"></i>
+                        Atualizar
+                    </button>
+                </div>
 
-          </div>
+                <div
+                    class="vacation-request-list"
+                    id="vacationRequestList"
+                >
+                    <div class="loading-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Carregando solicitações...</span>
+                    </div>
+                </div>
 
-        </article>
+            </section>
 
+        </section>
 
+        <!-- TREINAMENTOS -->
+
+        <section
+            class="page-section"
+            id="trainingsPage"
+        >
+
+            <div class="section-toolbar">
+
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="text"
+                        id="trainingSearch"
+                        placeholder="Pesquisar treinamento..."
+                    >
+                </div>
+
+                <button
+                    type="button"
+                    class="primary-button toolbar-button"
+                    onclick="openCourseModal()"
+                >
+                    <i class="fa-solid fa-plus"></i>
+                    Novo treinamento
+                </button>
+
+            </div>
+
+            <div class="information-banner">
+                <i class="fa-solid fa-circle-info"></i>
+
+                <div>
+                    <strong>Treinamentos do seu setor</strong>
+
+                    <span>
+                        Todo treinamento criado será associado automaticamente
+                        ao setor do administrador.
+                    </span>
+                </div>
+            </div>
+
+            <div
+                class="admin-training-grid"
+                id="adminTrainingGrid"
+            >
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando treinamentos...</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- AVALIAÇÕES -->
+
+        <section
+            class="page-section"
+            id="evaluationsPage"
+        >
+
+            <div class="section-toolbar">
+
+                <div>
+                    <h2>Avaliações pendentes</h2>
+
+                    <p>
+                        Analise os treinamentos concluídos pelos colaboradores.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="outline-button"
+                    id="refreshEvaluationsButton"
+                >
+                    <i class="fa-solid fa-rotate"></i>
+                    Atualizar
+                </button>
+
+            </div>
+
+            <div class="information-banner">
+                <i class="fa-solid fa-circle-info"></i>
+
+                <div>
+                    <strong>Avaliações do setor</strong>
+
+                    <span>
+                        Aqui são exibidas as atividades enviadas pelos colaboradores
+                        nos treinamentos do seu setor.
+                    </span>
+                </div>
+            </div>
+
+            <div
+                class="evaluation-list"
+                id="evaluationList"
+            >
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando avaliações...</span>
+                </div>
+            </div>
+
+        </section>
 
         <!-- FEEDBACKS -->
 
-        <article class="summary-card">
+        <section
+            class="page-section"
+            id="feedbacksPage"
+        >
 
-          <div class="summary-icon purple">
+            <div class="feedback-admin-summary">
 
-            <i class="fa-solid fa-comments"></i>
+                <article class="mini-summary-card">
+                    <span>Solicitações pendentes</span>
+                    <strong id="feedbackPendingRequestsCount">0</strong>
+                </article>
 
-          </div>
+                <article class="mini-summary-card">
+                    <span>Aguardando colaborador</span>
+                    <strong id="feedbackWaitingEmployeeCount">0</strong>
+                </article>
 
+                <article class="mini-summary-card">
+                    <span>Respondidos</span>
+                    <strong id="feedbackAnsweredCount">0</strong>
+                </article>
 
-          <div>
-
-            <span>
-              Feedbacks
-            </span>
-
-            <strong id="dashboardFeedbacks">
-              0
-            </strong>
-
-            <small>
-              Solicitações pendentes
-            </small>
-
-          </div>
-
-        </article>
-
-      </div>
-
-
-
-      <!-- =================================================
-           LINHA PRINCIPAL
-      ================================================== -->
-
-      <div class="dashboard-grid">
-
-
-        <!-- ===============================================
-             AVALIAÇÕES PENDENTES
-        ================================================ -->
-
-        <section class="panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h2>
-                Avaliações pendentes
-              </h2>
-
-              <p>
-                Treinamentos enviados para o seu setor.
-              </p>
+                <article class="mini-summary-card">
+                    <span>Setor</span>
+                    <strong id="feedbackAdminSector">-</strong>
+                </article>
 
             </div>
 
+            <section class="panel">
 
-            <button
-              type="button"
-              class="link-button"
-              onclick="changePage('evaluations')"
-            >
-              Ver todas
-            </button>
+                <div class="panel-header">
 
-          </div>
+                    <div>
+                        <h2>Feedbacks</h2>
 
+                        <p>
+                            Responda solicitações e envie feedbacks para sua equipe.
+                        </p>
+                    </div>
 
-          <div
-            class="simple-list"
-            id="dashboardEvaluationList"
-          >
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="newFeedbackButton"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Novo feedback
+                    </button>
 
-            <div class="loading-state">
+                </div>
 
-              <i class="fa-solid fa-spinner fa-spin"></i>
+                <div class="feedback-admin-tabs">
 
-              <span>
-                Carregando avaliações...
-              </span>
+                    <button
+                        type="button"
+                        class="feedback-admin-tab active"
+                        data-feedback-admin-tab="requests"
+                        id="feedbackRequestsTabButton"
+                    >
+                        <i class="fa-solid fa-inbox"></i>
 
-            </div>
+                        Solicitações recebidas
 
-          </div>
+                        <span
+                            class="tab-counter"
+                            id="feedbackRequestsTabCounter"
+                        >
+                            0
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="feedback-admin-tab"
+                        data-feedback-admin-tab="sent"
+                        id="feedbackSentTabButton"
+                    >
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                        Feedbacks enviados
+
+                        <span
+                            class="tab-counter"
+                            id="feedbackSentTabCounter"
+                        >
+                            0
+                        </span>
+                    </button>
+
+                </div>
+
+                <div class="feedback-admin-toolbar">
+
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+
+                        <input
+                            type="text"
+                            id="feedbackAdminSearch"
+                            placeholder="Pesquisar feedback..."
+                        >
+                    </div>
+
+                    <select id="feedbackAdminStatusFilter">
+                        <option value="">Todos os status</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="visualizado">Visualizado</option>
+                        <option value="aguardando_resposta">Aguardando resposta</option>
+                        <option value="respondido">Respondido</option>
+                        <option value="ciente">Ciente</option>
+                    </select>
+
+                    <button
+                        type="button"
+                        class="outline-button"
+                        id="refreshFeedbackAdminButton"
+                    >
+                        <i class="fa-solid fa-rotate"></i>
+                        Atualizar
+                    </button>
+
+                </div>
+
+                <div
+                    class="feedback-admin-tab-content active"
+                    id="feedbackRequestsContent"
+                >
+
+                    <div class="section-heading">
+                        <div>
+                            <h3>Solicitações recebidas</h3>
+                            <p>Pedidos feitos pelos colaboradores do seu setor.</p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="feedback-admin-list"
+                        id="feedbackRequestsList"
+                    >
+                        <div class="loading-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Carregando solicitações...</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div
+                    class="feedback-admin-tab-content"
+                    id="feedbackSentContent"
+                >
+
+                    <div class="section-heading">
+                        <div>
+                            <h3>Feedbacks enviados</h3>
+                            <p>Histórico dos feedbacks enviados aos colaboradores.</p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="feedback-admin-list"
+                        id="feedbackSentList"
+                    >
+                        <div class="loading-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Carregando feedbacks...</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
 
         </section>
 
-
-
-        <!-- ===============================================
-             FÉRIAS PENDENTES
-        ================================================ -->
-
-        <section class="panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <h2>
-                Solicitações de férias
-              </h2>
-
-              <p>
-                Pedidos dos colaboradores do seu setor.
-              </p>
-
-            </div>
-
-
-            <button
-              type="button"
-              class="link-button"
-              onclick="changePage('vacations')"
-            >
-              Ver todas
-            </button>
-
-          </div>
-
-
-          <div
-            class="simple-list"
-            id="dashboardVacationList"
-          >
-
-            <div class="loading-state">
-
-              <i class="fa-solid fa-spinner fa-spin"></i>
-
-              <span>
-                Carregando solicitações...
-              </span>
-
-            </div>
-
-          </div>
-
-        </section>
-
-      </div>
-
-
-
-      <!-- =================================================
-           AÇÕES RÁPIDAS
-      ================================================== -->
-
-      <section class="panel dashboard-actions-panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <h2>
-              Ações rápidas
-            </h2>
-
-            <p>
-              Acesse as funções administrativas mais utilizadas.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="quick-actions">
-
-
-          <!-- NOVO FUNCIONÁRIO -->
-
-          <button
-            type="button"
-            class="quick-action"
-            onclick="openUserModal('colaborador')"
-          >
-
-            <div class="quick-icon purple">
-
-              <i class="fa-solid fa-user-plus"></i>
-
-            </div>
-
-
-            <div>
-
-              <strong>
-                Novo funcionário
-              </strong>
-
-              <span>
-                Criar colaborador do seu setor
-              </span>
-
-            </div>
-
-          </button>
-
-
-
-          <!-- NOVO ADMIN -->
-
-          <button
-            type="button"
-            class="quick-action"
-            onclick="openUserModal('admin_setor')"
-          >
-
-            <div class="quick-icon green">
-
-              <i class="fa-solid fa-user-shield"></i>
-
-            </div>
-
-
-            <div>
-
-              <strong>
-                Novo administrador
-              </strong>
-
-              <span>
-                Criar administrador de setor
-              </span>
-
-            </div>
-
-          </button>
-
-
-
-          <!-- NOVO CURSO -->
-
-          <button
-            type="button"
-            class="quick-action"
-            onclick="openCourseModal()"
-          >
-
-            <div class="quick-icon blue">
-
-              <i class="fa-solid fa-plus"></i>
-
-            </div>
-
-
-            <div>
-
-              <strong>
-                Novo treinamento
-              </strong>
-
-              <span>
-                Criar curso do seu setor
-              </span>
-
-            </div>
-
-          </button>
-
-
-
-          <!-- AVALIAR -->
-
-          <button
-            type="button"
-            class="quick-action"
-            onclick="changePage('evaluations')"
-          >
-
-            <div class="quick-icon orange">
-
-              <i class="fa-solid fa-clipboard-check"></i>
-
-            </div>
-
-
-            <div>
-
-              <strong>
-                Avaliar treinamentos
-              </strong>
-
-              <span>
-                Analisar entregas pendentes
-              </span>
-
-            </div>
-
-          </button>
-
-
-
-          <!-- FEEDBACKS -->
-
-          <button
-            type="button"
-            class="quick-action"
-            onclick="changePage('feedbacks')"
-          >
-
-            <div class="quick-icon purple">
-
-              <i class="fa-solid fa-comments"></i>
-
-            </div>
-
-
-            <div>
-
-              <strong>
-                Gerenciar feedbacks
-              </strong>
-
-              <span>
-                Responder solicitações e enviar feedbacks
-              </span>
-
-            </div>
-
-          </button>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- =================================================
-           CURSOS RECENTES
-      ================================================== -->
-
-      <section class="panel dashboard-training-panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <h2>
-              Treinamentos recentes
-            </h2>
-
-            <p>
-              Cursos publicados pelo seu setor.
-            </p>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="link-button"
-            onclick="changePage('trainings')"
-          >
-            Gerenciar treinamentos
-          </button>
-
-        </div>
-
-
-        <div
-          class="training-mini-grid"
-          id="dashboardTrainingList"
-        >
-        </div>
-
-      </section>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         =====================================================
-         FUNCIONÁRIOS
-         =====================================================
-    ====================================================== -->
-
-    <section
-      class="page-section"
-      id="employeesPage"
-    >
-
-
-      <div class="section-toolbar">
-
-
-        <div class="search-box">
-
-          <i class="fa-solid fa-magnifying-glass"></i>
-
-          <input
-            type="text"
-            id="employeeSearch"
-            placeholder="Pesquisar funcionário..."
-          >
-
-        </div>
-
-
-
-        <div class="toolbar-user-actions">
-
-          <button
-            type="button"
-            class="outline-button toolbar-button"
-            onclick="openUserModal('admin_setor')"
-          >
-
-            <i class="fa-solid fa-user-shield"></i>
-
-            Novo administrador
-
-          </button>
-
-
-          <button
-            type="button"
-            class="primary-button toolbar-button"
-            onclick="openUserModal('colaborador')"
-          >
-
-            <i class="fa-solid fa-plus"></i>
-
-            Novo funcionário
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <section class="panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <h2>
-              Funcionários do setor
-            </h2>
-
-            <p>
-              Somente colaboradores sob responsabilidade do seu setor.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="table-wrapper">
-
-          <table>
-
-            <thead>
-
-              <tr>
-
-                <th>
-                  Funcionário
-                </th>
-
-                <th>
-                  Matrícula
-                </th>
-
-                <th>
-                  E-mail
-                </th>
-
-                <th>
-                  Cargo
-                </th>
-
-                <th>
-                  Setor
-                </th>
-
-                <th>
-                  Status
-                </th>
-
-                <th>
-                  Ações
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody id="employeesTableBody">
-
-              <tr>
-
-                <td colspan="7">
-
-                  <div class="table-loading">
-
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-
-                    Carregando funcionários...
-
-                  </div>
-
-                </td>
-
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </section>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         =====================================================
-         FÉRIAS
-         =====================================================
-    ====================================================== -->
-
-    <section
-      class="page-section"
-      id="vacationsPage"
-    >
-
-
-      <div class="vacation-admin-summary">
-
-        <article class="mini-summary-card">
-
-          <span>
-            Solicitações pendentes
-          </span>
-
-          <strong id="vacationPendingCount">
-            0
-          </strong>
-
-        </article>
-
-
-        <article class="mini-summary-card">
-
-          <span>
-            Setor responsável
-          </span>
-
-          <strong id="vacationAdminSector">
-            -
-          </strong>
-
-        </article>
-
-      </div>
-
-
-
-      <section class="panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <h2>
-              Solicitações de férias
-            </h2>
-
-            <p>
-              Aprove, recuse ou aprove com ressalvas os pedidos do seu setor.
-            </p>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="outline-button"
-            id="refreshVacationButton"
-          >
-
-            <i class="fa-solid fa-rotate"></i>
-
-            Atualizar
-
-          </button>
-
-        </div>
-
-
-        <div
-          class="vacation-request-list"
-          id="vacationRequestList"
-        >
-
-          <div class="loading-state">
-
-            <i class="fa-solid fa-spinner fa-spin"></i>
-
-            <span>
-              Carregando solicitações...
-            </span>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         =====================================================
-         TREINAMENTOS
-         =====================================================
-    ====================================================== -->
-
-    <section
-      class="page-section"
-      id="trainingsPage"
-    >
-
-
-      <div class="section-toolbar">
-
-
-        <div class="search-box">
-
-          <i class="fa-solid fa-magnifying-glass"></i>
-
-          <input
-            type="text"
-            id="trainingSearch"
-            placeholder="Pesquisar treinamento..."
-          >
-
-        </div>
-
-
-
-        <div class="toolbar-right">
-
-
-          <select id="trainingAreaFilter">
-
-            <option value="">
-              Todas as áreas
-            </option>
-
-          </select>
-
-
-
-          <button
-            type="button"
-            class="primary-button toolbar-button"
-            onclick="openCourseModal()"
-          >
-
-            <i class="fa-solid fa-plus"></i>
-
-            Novo treinamento
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="information-banner">
-
-        <i class="fa-solid fa-circle-info"></i>
-
-
-        <div>
-
-          <strong>
-            Cursos do seu setor
-          </strong>
-
-          <span>
-            Você pode criar e administrar apenas treinamentos cujo setor responsável seja o seu.
-          </span>
-
-        </div>
-
-      </div>
-
-
-
-      <div
-        class="admin-training-grid"
-        id="adminTrainingGrid"
-      >
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando treinamentos...
-          </span>
-
-        </div>
-
-      </div>
-
-    </section>
-
-        <!-- =====================================================
-         =====================================================
-         AVALIAÇÕES
-         =====================================================
-    ====================================================== -->
-
-    <section
-      class="page-section"
-      id="evaluationsPage"
-    >
-
-
-      <div class="section-toolbar">
-
-        <div>
-
-          <h2>
-            Avaliações pendentes
-          </h2>
-
-          <p>
-            Analise os treinamentos concluídos e enviados para o seu setor.
-          </p>
-
-        </div>
-
-
-        <button
-          type="button"
-          class="outline-button"
-          id="refreshEvaluationsButton"
-        >
-
-          <i class="fa-solid fa-rotate"></i>
-
-          Atualizar
-
-        </button>
-
-      </div>
-
-
-
-      <div class="information-banner">
-
-        <i class="fa-solid fa-circle-info"></i>
-
-
-        <div>
-
-          <strong>
-            Regra das avaliações
-          </strong>
-
-          <span>
-            Você recebe avaliações de qualquer colaborador que tenha concluído um curso cujo setor responsável seja o seu.
-          </span>
-
-        </div>
-
-      </div>
-
-
-
-      <div
-        class="evaluation-list"
-        id="evaluationList"
-      >
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando avaliações...
-          </span>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- =====================================================
-         =====================================================
-         FEEDBACKS
-         =====================================================
-    ====================================================== -->
-
-    <section
-      class="page-section"
-      id="feedbacksPage"
-    >
-
-
-      <!-- =================================================
-           RESUMO
-      ================================================== -->
-
-      <div class="feedback-admin-summary">
-
-
-        <!-- SOLICITAÇÕES PENDENTES -->
-
-        <article class="mini-summary-card">
-
-          <span>
-            Solicitações pendentes
-          </span>
-
-          <strong id="feedbackPendingRequestsCount">
-            0
-          </strong>
-
-        </article>
-
-
-
-        <!-- AGUARDANDO COLABORADOR -->
-
-        <article class="mini-summary-card">
-
-          <span>
-            Aguardando colaborador
-          </span>
-
-          <strong id="feedbackWaitingEmployeeCount">
-            0
-          </strong>
-
-        </article>
-
-
-
-        <!-- RESPONDIDOS -->
-
-        <article class="mini-summary-card">
-
-          <span>
-            Respondidos
-          </span>
-
-          <strong id="feedbackAnsweredCount">
-            0
-          </strong>
-
-        </article>
-
-
-
-        <!-- SETOR -->
-
-        <article class="mini-summary-card">
-
-          <span>
-            Setor responsável
-          </span>
-
-          <strong id="feedbackAdminSector">
-            -
-          </strong>
-
-        </article>
-
-      </div>
-
-
-
-      <!-- =================================================
-           PAINEL PRINCIPAL
-      ================================================== -->
-
-      <section class="panel">
-
-
-        <!-- ===============================================
-             CABEÇALHO
-        ================================================ -->
-
-        <div class="panel-header">
-
-          <div>
-
-            <h2>
-              Feedbacks
-            </h2>
-
-            <p>
-              Responda solicitações dos colaboradores e envie novos feedbacks para sua equipe.
-            </p>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="primary-button"
-            id="newFeedbackButton"
-          >
-
-            <i class="fa-solid fa-plus"></i>
-
-            Novo feedback
-
-          </button>
-
-        </div>
-
-
-
-        <!-- ===============================================
-             ABAS
-        ================================================ -->
-
-        <div class="feedback-admin-tabs">
-
-
-          <!-- SOLICITAÇÕES RECEBIDAS -->
-
-          <button
-            type="button"
-            class="feedback-admin-tab active"
-            data-feedback-admin-tab="requests"
-            id="feedbackRequestsTabButton"
-          >
-
-            <i class="fa-solid fa-inbox"></i>
-
-            Solicitações recebidas
-
-
-            <span
-              class="tab-counter"
-              id="feedbackRequestsTabCounter"
-            >
-              0
-            </span>
-
-          </button>
-
-
-
-          <!-- FEEDBACKS ENVIADOS -->
-
-          <button
-            type="button"
-            class="feedback-admin-tab"
-            data-feedback-admin-tab="sent"
-            id="feedbackSentTabButton"
-          >
-
-            <i class="fa-solid fa-paper-plane"></i>
-
-            Feedbacks enviados
-
-
-            <span
-              class="tab-counter"
-              id="feedbackSentTabCounter"
-            >
-              0
-            </span>
-
-          </button>
-
-        </div>
-
-
-
-        <!-- ===============================================
-             TOOLBAR
-        ================================================ -->
-
-        <div class="feedback-admin-toolbar">
-
-
-          <div class="search-box">
-
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <input
-              type="text"
-              id="feedbackAdminSearch"
-              placeholder="Pesquisar feedback..."
-            >
-
-          </div>
-
-
-
-          <select id="feedbackAdminStatusFilter">
-
-            <option value="">
-              Todos os status
-            </option>
-
-            <option value="pendente">
-              Pendente
-            </option>
-
-            <option value="visualizado">
-              Visualizado
-            </option>
-
-            <option value="aguardando_resposta">
-              Aguardando resposta
-            </option>
-
-            <option value="respondido">
-              Respondido
-            </option>
-
-            <option value="ciente">
-              Ciente
-            </option>
-
-          </select>
-
-
-
-          <button
-            type="button"
-            class="outline-button"
-            id="refreshFeedbackAdminButton"
-          >
-
-            <i class="fa-solid fa-rotate"></i>
-
-            Atualizar
-
-          </button>
-
-        </div>
-
-
-
-        <!-- ===============================================
-             CONTEÚDO - SOLICITAÇÕES RECEBIDAS
-        ================================================ -->
-
-        <div
-          class="feedback-admin-tab-content active"
-          id="feedbackRequestsContent"
-        >
-
-          <div class="section-heading">
-
-            <div>
-
-              <h3>
-                Solicitações recebidas
-              </h3>
-
-              <p>
-                Pedidos de feedback feitos pelos colaboradores do seu setor.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div
-            class="feedback-admin-list"
-            id="feedbackRequestsList"
-          >
-
-            <div class="loading-state">
-
-              <i class="fa-solid fa-spinner fa-spin"></i>
-
-              <span>
-                Carregando solicitações...
-              </span>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-
-        <!-- ===============================================
-             CONTEÚDO - FEEDBACKS ENVIADOS
-        ================================================ -->
-
-        <div
-          class="feedback-admin-tab-content"
-          id="feedbackSentContent"
-        >
-
-          <div class="section-heading">
-
-            <div>
-
-              <h3>
-                Feedbacks enviados
-              </h3>
-
-              <p>
-                Histórico dos feedbacks enviados aos colaboradores do seu setor.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div
-            class="feedback-admin-list"
-            id="feedbackSentList"
-          >
-
-            <div class="loading-state">
-
-              <i class="fa-solid fa-spinner fa-spin"></i>
-
-              <span>
-                Carregando feedbacks...
-              </span>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </section>
-
-
-
-  </main>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - NOVO USUÁRIO
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="employeeModal"
-  >
-
-    <div class="modal standard-modal">
-
-
-      <!-- FECHAR -->
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('employeeModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <!-- CABEÇALHO -->
-
-      <div class="modal-header">
-
-        <div class="modal-title-icon">
-
-          <i
-            class="fa-solid fa-user-plus"
-            id="employeeModalIcon"
-          ></i>
-
-        </div>
-
-
-        <div>
-
-          <h2 id="employeeModalTitle">
-            Novo funcionário
-          </h2>
-
-
-          <p id="employeeModalDescription">
-            Cadastre um colaborador para o seu próprio setor.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- FORM -->
-
-      <form
-        id="employeeForm"
-        onsubmit="createEmployee(event)"
-      >
-
-
-        <!-- PERFIL -->
-
-        <input
-          type="hidden"
-          id="employeeProfile"
-          value="colaborador"
-        >
-
-
-
-        <!-- NOME -->
-
-        <div class="form-group">
-
-          <label for="employeeName">
-            Nome completo
-          </label>
-
-
-          <input
-            type="text"
-            id="employeeName"
-            placeholder="Digite o nome completo"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- MATRÍCULA -->
-
-        <div class="form-group">
-
-          <label for="employeeRegistration">
-            Matrícula
-          </label>
-
-
-          <input
-            type="text"
-            id="employeeRegistration"
-            placeholder="Ex.: 000123"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- EMAIL -->
-
-        <div class="form-group">
-
-          <label for="employeeEmail">
-            E-mail
-          </label>
-
-
-          <input
-            type="email"
-            id="employeeEmail"
-            placeholder="nome@empresa.com"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- SENHA -->
-
-        <div class="form-group">
-
-          <label for="employeePassword">
-            Senha inicial
-          </label>
-
-
-          <input
-            type="password"
-            id="employeePassword"
-            placeholder="Defina a senha inicial"
-            minlength="6"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- CARGO -->
-
-        <div class="form-group">
-
-          <label for="employeeRole">
-            Cargo
-          </label>
-
-
-          <input
-            type="text"
-            id="employeeRole"
-            placeholder="Ex.: Desenvolvedor Júnior"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- SETOR -->
-
-        <div class="form-group">
-
-          <label for="employeeSector">
-            Setor
-          </label>
-
-
-          <select
-            id="employeeSector"
-            required
-          >
-          </select>
-
-        </div>
-
-
-
-        <!-- AÇÕES -->
-
-        <div class="modal-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('employeeModal')"
-          >
-            Cancelar
-          </button>
-
-
-          <button
-            type="submit"
-            class="primary-button"
-            id="employeeSubmitButton"
-          >
-
-            <i class="fa-solid fa-check"></i>
-
-            Criar usuário
-
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - CONFIGURAR PERÍODO DE FÉRIAS
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="vacationPeriodModal"
-  >
-
-    <div class="modal standard-modal">
-
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('vacationPeriodModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <div class="modal-header">
-
-        <div class="modal-title-icon">
-
-          <i class="fa-solid fa-umbrella-beach"></i>
-
-        </div>
-
-
-        <div>
-
-          <h2>
-            Configurar férias
-          </h2>
-
-
-          <p>
-            Defina o período aquisitivo e os dados atuais do colaborador.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="employee-modal-highlight">
-
-        <span>
-          Funcionário
-        </span>
-
-        <strong id="vacationEmployeeName">
-          -
-        </strong>
-
-      </div>
-
-
-
-      <form id="vacationPeriodForm">
-
-
-        <input
-          type="hidden"
-          id="vacationEmployeeId"
-        >
-
-
-
-        <div class="form-grid">
-
-
-          <!-- INÍCIO -->
-
-          <div class="form-group">
-
-            <label for="vacationPeriodStart">
-              Início do período aquisitivo
-            </label>
-
-
-            <input
-              type="date"
-              id="vacationPeriodStart"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- FIM -->
-
-          <div class="form-group">
-
-            <label for="vacationPeriodEnd">
-              Fim do período aquisitivo
-            </label>
-
-
-            <input
-              type="date"
-              id="vacationPeriodEnd"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- DIAS USADOS -->
-
-          <div class="form-group">
-
-            <label for="vacationUsedDays">
-              Dias já utilizados
-            </label>
-
-
-            <input
-              type="number"
-              id="vacationUsedDays"
-              min="0"
-              max="30"
-              value="0"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- VENCIMENTO -->
-
-          <div class="form-group">
-
-            <label for="vacationExpirationDate">
-              Data de vencimento
-            </label>
-
-
-            <input
-              type="date"
-              id="vacationExpirationDate"
-              required
-            >
-
-          </div>
-
-        </div>
-
-
-
-        <!-- PREVIEW -->
-
-        <div class="vacation-preview-grid">
-
-
-          <div class="vacation-preview-card">
-
-            <span>
-              Direito
-            </span>
-
-            <strong id="vacationPreviewRights">
-              0 dias
-            </strong>
-
-          </div>
-
-
-
-          <div class="vacation-preview-card">
-
-            <span>
-              Saldo
-            </span>
-
-            <strong id="vacationPreviewBalance">
-              0 dias
-            </strong>
-
-          </div>
-
-
-
-          <div class="vacation-preview-card">
-
-            <span>
-              Status
-            </span>
-
-            <strong id="vacationPreviewStatus">
-              Aguardando dados
-            </strong>
-
-          </div>
-
-        </div>
-
-
-
-        <div class="modal-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('vacationPeriodModal')"
-          >
-            Cancelar
-          </button>
-
-
-          <button
-            type="submit"
-            class="primary-button"
-            id="saveVacationPeriodButton"
-          >
-
-            <i class="fa-solid fa-floppy-disk"></i>
-
-            Salvar período
-
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - DECISÃO DE FÉRIAS
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="vacationDecisionModal"
-  >
-
-    <div class="modal vacation-decision-modal">
-
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('vacationDecisionModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-      <div id="vacationDecisionContent">
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando solicitação...
-          </span>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <!-- =====================================================
-       =====================================================
-       MODAL - NOVO CURSO
-       =====================================================
-  ====================================================== -->
-
-  <div
-    class="modal-overlay"
-    id="courseModal"
-  >
-
-    <div class="modal large-modal">
-
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('courseModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-
-      <div class="modal-header">
-
-        <div class="modal-title-icon">
-
-          <i class="fa-solid fa-graduation-cap"></i>
-
-        </div>
-
-
-        <div>
-
-          <h2>
-            Novo treinamento
-          </h2>
-
-
-          <p>
-            Crie um treinamento interno ou cadastre um curso externo.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <form
-        id="courseForm"
-        onsubmit="createCourse(event)"
-      >
-
-
-        <!-- TÍTULO -->
-
-        <div class="form-group">
-
-          <label for="courseTitle">
-            Título
-          </label>
-
-
-          <input
-            type="text"
-            id="courseTitle"
-            placeholder="Ex.: Segurança da Informação"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- DESCRIÇÃO -->
-
-        <div class="form-group">
-
-          <label for="courseDescription">
-            Descrição
-          </label>
-
-
-          <textarea
-            id="courseDescription"
-            rows="4"
-            placeholder="Descreva o objetivo e conteúdo do treinamento..."
-            required
-          ></textarea>
-
-        </div>
-
-
-
-        <!-- GRID -->
-
-        <div class="form-grid">
-
-
-          <!-- CARGA HORÁRIA -->
-
-          <div class="form-group">
-
-            <label for="courseHours">
-              Carga horária
-            </label>
-
-
-            <input
-              type="number"
-              id="courseHours"
-              min="1"
-              step="1"
-              placeholder="Ex.: 8"
-              required
-            >
-
-          </div>
-
-
-
-          <!-- ÁREA -->
-
-          <div class="form-group">
-
-            <label for="courseArea">
-              Área
-            </label>
-
-
-            <select
-              id="courseArea"
-              required
-            >
-
-              <option value="">
-                Selecione
-              </option>
-
-              <option value="Tecnologia">
-                Tecnologia
-              </option>
-
-              <option value="Desenvolvimento">
-                Desenvolvimento
-              </option>
-
-              <option value="Comunicação">
-                Comunicação
-              </option>
-
-              <option value="Compliance">
-                Compliance
-              </option>
-
-              <option value="Financeiro">
-                Financeiro
-              </option>
-
-              <option value="Logística">
-                Logística
-              </option>
-
-              <option value="Marketing">
-                Marketing
-              </option>
-
-              <option value="RH">
-                RH
-              </option>
-
-              <option value="Liderança">
-                Liderança
-              </option>
-
-              <option value="Outro">
-                Outro
-              </option>
-
-            </select>
-
-          </div>
-
-
-
-          <!-- NÍVEL -->
-
-          <div class="form-group">
-
-            <label for="courseLevel">
-              Nível
-            </label>
-
-
-            <select
-              id="courseLevel"
-              required
-            >
-
-              <option value="">
-                Selecione
-              </option>
-
-              <option value="Básico">
-                Básico
-              </option>
-
-              <option value="Intermediário">
-                Intermediário
-              </option>
-
-              <option value="Avançado">
-                Avançado
-              </option>
-
-            </select>
-
-          </div>
-
-
-
-          <!-- SETOR RESPONSÁVEL -->
-
-          <div class="form-group">
-
-            <label for="courseResponsibleSector">
-              Setor responsável
-            </label>
-
-
-            <input
-              type="text"
-              id="courseResponsibleSector"
-              readonly
-            >
-
-          </div>
-
-
-
-          <!-- SETOR DESTINO -->
-
-          <div class="form-group">
-
-            <label for="courseTargetSector">
-              Setor recomendado/obrigatório
-            </label>
-
-
-            <select
-              id="courseTargetSector"
-              required
-            >
-            </select>
-
-          </div>
-
-
-
-          <!-- CLASSIFICAÇÃO -->
-
-          <div class="form-group">
-
-            <label for="courseRequirement">
-              Classificação
-            </label>
-
-
-            <select
-              id="courseRequirement"
-              required
-            >
-
-              <option value="Recomendado">
-                Recomendado
-              </option>
-
-              <option value="Obrigatório">
-                Obrigatório
-              </option>
-
-            </select>
-
-          </div>
-
-        </div>
-
-
-
-        <!-- CURSO EXTERNO -->
-
-        <label class="checkbox-card">
-
-          <input
-            type="checkbox"
-            id="externalCourse"
-            onchange="toggleExternalCourse()"
-          >
-
-
-          <div>
-
-            <strong>
-              Curso externo
-            </strong>
-
-            <span>
-              O treinamento é realizado em outra plataforma.
-            </span>
-
-          </div>
-
-        </label>
-
-
-
-        <!-- LINK EXTERNO -->
-
-        <div
-          class="external-link-area"
-          id="externalLinkArea"
-        >
-
-          <div class="form-group">
-
-            <label for="externalCourseLink">
-              Link do curso externo
-            </label>
-
-
-            <input
-              type="url"
-              id="externalCourseLink"
-              placeholder="https://..."
-            >
-
-          </div>
-
-        </div>
-
-
-
-        <!-- =================================================
-             ATIVIDADES
-        ================================================== -->
+        <!-- PONTO -->
 
         <section
-          class="course-activities-section"
-          id="courseActivitiesSection"
+            class="page-section"
+            id="pointPage"
         >
 
-          <div class="activity-section-header">
+            <div class="point-admin-summary">
 
-            <div>
+                <article class="mini-summary-card">
+                    <span>Registros hoje</span>
+                    <strong id="pointTodayCount">0</strong>
+                </article>
 
-              <h3>
-                Atividades
-              </h3>
+                <article class="mini-summary-card">
+                    <span>Atrasos no mês</span>
+                    <strong id="pointDelayCount">0</strong>
+                </article>
 
-              <p>
-                Defina as atividades que o colaborador deverá realizar.
-              </p>
+                <article class="mini-summary-card">
+                    <span>Faltas no mês</span>
+                    <strong id="pointAbsenceCount">0</strong>
+                </article>
 
-            </div>
-
-
-            <button
-              type="button"
-              class="outline-button"
-              onclick="addActivity()"
-            >
-
-              <i class="fa-solid fa-plus"></i>
-
-              Adicionar atividade
-
-            </button>
-
-          </div>
-
-
-          <div
-            class="activity-builder-list"
-            id="activityBuilderList"
-          >
-
-            <div class="empty-activities">
-
-              <i class="fa-regular fa-clipboard"></i>
-
-              <strong>
-                Nenhuma atividade adicionada
-              </strong>
-
-              <span>
-                Clique em "Adicionar atividade" para começar.
-              </span>
+                <article class="mini-summary-card">
+                    <span>Horas extras</span>
+                    <strong id="pointOvertimeTotal">0h 00min</strong>
+                </article>
 
             </div>
 
-          </div>
+            <div class="information-banner">
+
+                <i class="fa-solid fa-circle-info"></i>
+
+                <div>
+                    <strong>Gestão de ponto</strong>
+
+                    <span>
+                        Os registros serão comparados com a jornada configurada
+                        para cada colaborador. Entrada e retorno do intervalo
+                        possuem tolerância de 10 minutos.
+                    </span>
+                </div>
+
+            </div>
+
+            <section class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h2>Registros de ponto</h2>
+
+                        <p>
+                            Consulte a jornada dos colaboradores por funcionário e período.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="outline-button"
+                        id="refreshPointButton"
+                    >
+                        <i class="fa-solid fa-rotate"></i>
+                        Atualizar
+                    </button>
+
+                </div>
+
+                <div class="point-toolbar">
+
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+
+                        <input
+                            type="text"
+                            id="pointEmployeeSearch"
+                            placeholder="Pesquisar colaborador..."
+                        >
+                    </div>
+
+                    <div class="point-filter-group">
+                        <label for="pointEmployeeFilter">
+                            Colaborador
+                        </label>
+
+                        <select id="pointEmployeeFilter">
+                            <option value="">
+                                Todos os colaboradores
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="point-filter-group">
+                        <label for="pointMonthFilter">
+                            Mês
+                        </label>
+
+                        <input
+                            type="month"
+                            id="pointMonthFilter"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="point-admin-table">
+
+                        <thead>
+                            <tr>
+                                <th>Colaborador</th>
+                                <th>Jornada prevista</th>
+                                <th>Data</th>
+                                <th>Entrada</th>
+                                <th>Intervalo</th>
+                                <th>Retorno</th>
+                                <th>Saída</th>
+                                <th>Trabalhado</th>
+                                <th>Hora extra</th>
+                                <th>Situação</th>
+                                <th>Documento</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="pointRecordsTableBody">
+
+                            <tr>
+                                <td colspan="12">
+                                    <div class="table-loading">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        Carregando registros...
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
 
         </section>
 
+    </main>
 
+    <!-- CRIAR USUÁRIO -->
 
-        <!-- AÇÕES -->
+    <div
+        class="modal-overlay"
+        id="employeeModal"
+    >
 
-        <div class="modal-actions">
+        <div class="modal standard-modal">
 
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('courseModal')"
-          >
-            Cancelar
-          </button>
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('employeeModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
+            <div class="modal-header">
 
-          <button
-            type="submit"
-            class="primary-button"
-            id="courseSubmitButton"
-          >
+                <div class="modal-title-icon">
+                    <i
+                        class="fa-solid fa-user-plus"
+                        id="employeeModalIcon"
+                    ></i>
+                </div>
 
-            <i class="fa-solid fa-paper-plane"></i>
+                <div>
+                    <h2 id="employeeModalTitle">
+                        Novo funcionário
+                    </h2>
 
-            Publicar treinamento
+                    <p id="employeeModalDescription">
+                        Cadastre um colaborador para o seu setor.
+                    </p>
+                </div>
 
-          </button>
+            </div>
+
+            <form
+                id="employeeForm"
+                onsubmit="createEmployee(event)"
+            >
+
+                <input
+                    type="hidden"
+                    id="employeeProfile"
+                    value="colaborador"
+                >
+
+                <div class="form-group">
+                    <label for="employeeName">
+                        Nome completo
+                    </label>
+
+                    <input
+                        type="text"
+                        id="employeeName"
+                        placeholder="Digite o nome completo"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeRegistration">
+                        Matrícula
+                    </label>
+
+                    <input
+                        type="text"
+                        id="employeeRegistration"
+                        placeholder="Ex.: 000123"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeEmail">
+                        E-mail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="employeeEmail"
+                        placeholder="nome@empresa.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="employeePassword">
+                        Senha inicial
+                    </label>
+
+                    <input
+                        type="password"
+                        id="employeePassword"
+                        placeholder="Defina a senha inicial"
+                        minlength="6"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeRole">
+                        Cargo
+                    </label>
+
+                    <input
+                        type="text"
+                        id="employeeRole"
+                        placeholder="Ex.: Desenvolvedor Júnior"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeSector">
+                        Setor
+                    </label>
+
+                    <select
+                        id="employeeSector"
+                        required
+                    ></select>
+                </div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('employeeModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="employeeSubmitButton"
+                    >
+                        <i class="fa-solid fa-check"></i>
+                        Criar usuário
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
-
-      </form>
 
     </div>
 
-  </div>
+    <!-- EDITAR COLABORADOR -->
 
-    <!-- =====================================================
-       =====================================================
-       MODAL - DETALHES DO CURSO
-       =====================================================
-  ====================================================== -->
+    <div
+        class="modal-overlay"
+        id="employeeEditModal"
+    >
 
-  <div
-    class="modal-overlay"
-    id="courseDetailsModal"
-  >
+        <div class="modal standard-modal">
 
-    <div class="modal large-modal">
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('employeeEditModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
+            <div class="modal-header">
 
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('courseDetailsModal')"
-      >
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-user-pen"></i>
+                </div>
 
-        <i class="fa-solid fa-xmark"></i>
+                <div>
+                    <h2>Editar funcionário</h2>
 
-      </button>
+                    <p>
+                        Altere os dados do colaborador do seu setor.
+                    </p>
+                </div>
 
+            </div>
 
-      <div id="courseDetailsContent">
+            <form id="employeeEditForm">
 
-        <div class="loading-state">
+                <input
+                    type="hidden"
+                    id="employeeEditId"
+                >
 
-          <i class="fa-solid fa-spinner fa-spin"></i>
+                <div class="form-group">
+                    <label for="employeeEditName">
+                        Nome completo
+                    </label>
 
-          <span>
-            Carregando treinamento...
-          </span>
+                    <input
+                        type="text"
+                        id="employeeEditName"
+                        required
+                    >
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="employeeEditRegistration">
+                            Matrícula
+                        </label>
+
+                        <input
+                            type="text"
+                            id="employeeEditRegistration"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeEditRole">
+                            Cargo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="employeeEditRole"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <label for="employeeEditEmail">
+                        E-mail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="employeeEditEmail"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+
+                    <label for="employeeEditPassword">
+                        Nova senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="employeeEditPassword"
+                        minlength="6"
+                        autocomplete="new-password"
+                        placeholder="Deixe em branco para manter a senha atual"
+                    >
+
+                    <small>
+                        Preencha somente se desejar redefinir a senha do colaborador.
+                    </small>
+
+                </div>
+
+                <div class="information-banner compact">
+
+                    <i class="fa-solid fa-lock"></i>
+
+                    <div>
+                        <strong>Redefinição de senha</strong>
+
+                        <span>
+                            A senha não será armazenada na tabela de usuários.
+                            A alteração será realizada diretamente no sistema de
+                            autenticação.
+                        </span>
+                    </div>
+
+                </div>
+
+                <div
+                    class="modal-message"
+                    id="employeeEditMessage"
+                ></div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('employeeEditModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="saveEmployeeEditButton"
+                    >
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Salvar alterações
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
-
-      </div>
 
     </div>
 
-  </div>
+    <!-- CONFIGURAR JORNADA -->
 
+    <div
+        class="modal-overlay"
+        id="workScheduleModal"
+    >
 
+        <div class="modal standard-modal">
 
-  <!-- =====================================================
-       =====================================================
-       MODAL - CONFIRMAR REMOÇÃO DE CURSO
-       =====================================================
-  ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('workScheduleModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-  <div
-    class="modal-overlay"
-    id="confirmationModal"
-  >
+            <div class="modal-header">
 
-    <div class="modal confirmation-modal">
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-business-time"></i>
+                </div>
 
+                <div>
+                    <h2>Configurar jornada</h2>
 
-      <div class="confirmation-icon danger">
+                    <p>
+                        Defina os horários esperados para o registro de ponto.
+                    </p>
+                </div>
 
-        <i class="fa-solid fa-trash"></i>
+            </div>
 
-      </div>
+            <div class="employee-modal-highlight">
+                <span>Funcionário</span>
 
+                <strong id="workScheduleEmployeeName">
+                    -
+                </strong>
 
-      <h2>
-        Remover treinamento?
-      </h2>
+                <small>
+                    Tolerância automática de 10 minutos para entrada e retorno.
+                </small>
+            </div>
 
+            <form id="workScheduleForm">
 
-      <p>
-        O treinamento deixará de ficar disponível, mas o histórico dos colaboradores será preservado.
-      </p>
+                <input
+                    type="hidden"
+                    id="workScheduleEmployeeId"
+                >
 
+                <div class="form-grid">
 
-      <div class="modal-actions">
+                    <div class="form-group">
+                        <label for="workScheduleEntry">
+                            Entrada prevista
+                        </label>
 
-        <button
-          type="button"
-          class="secondary-button"
-          id="cancelDeleteButton"
-        >
-          Cancelar
-        </button>
+                        <input
+                            type="time"
+                            id="workScheduleEntry"
+                            required
+                        >
+                    </div>
 
+                    <div class="form-group">
+                        <label for="workScheduleBreak">
+                            Início do intervalo
+                        </label>
 
-        <button
-          type="button"
-          class="danger-button"
-          id="confirmDeleteButton"
-        >
+                        <input
+                            type="time"
+                            id="workScheduleBreak"
+                            required
+                        >
+                    </div>
 
-          <i class="fa-solid fa-trash"></i>
+                    <div class="form-group">
+                        <label for="workScheduleReturn">
+                            Retorno previsto
+                        </label>
 
-          Remover treinamento
+                        <input
+                            type="time"
+                            id="workScheduleReturn"
+                            required
+                        >
+                    </div>
 
-        </button>
+                    <div class="form-group">
+                        <label for="workScheduleExit">
+                            Saída prevista
+                        </label>
 
-      </div>
+                        <input
+                            type="time"
+                            id="workScheduleExit"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="workScheduleTolerance">
+                        Tolerância
+                    </label>
+
+                    <div class="schedule-tolerance-field">
+
+                        <input
+                            type="number"
+                            id="workScheduleTolerance"
+                            value="10"
+                            readonly
+                        >
+
+                        <span>
+                            minutos
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="information-banner compact">
+
+                    <i class="fa-solid fa-clock"></i>
+
+                    <div>
+                        <strong>Como o atraso será calculado</strong>
+
+                        <span>
+                            Se a entrada prevista for 12:00, registros até 12:10
+                            serão considerados dentro da tolerância. A partir de
+                            12:11 será registrado atraso. A mesma regra será
+                            aplicada ao retorno do intervalo.
+                        </span>
+                    </div>
+
+                </div>
+
+                <div
+                    class="modal-message"
+                    id="workScheduleMessage"
+                ></div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('workScheduleModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="saveWorkScheduleButton"
+                    >
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Salvar jornada
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
 
     </div>
 
-  </div>
+    <!-- EXCLUIR USUÁRIO -->
 
+    <div
+        class="modal-overlay"
+        id="userDeleteModal"
+    >
 
+        <div class="modal confirmation-modal">
 
-  <!-- =====================================================
-       =====================================================
-       MODAL - AVALIAÇÃO DE TREINAMENTO
-       =====================================================
-  ====================================================== -->
+            <div class="confirmation-icon danger">
+                <i class="fa-solid fa-user-xmark"></i>
+            </div>
 
-  <div
-    class="modal-overlay"
-    id="evaluationModal"
-  >
+            <h2>Excluir usuário?</h2>
 
-    <div class="modal evaluation-modal">
+            <p>
+                O usuário será removido da plataforma. Os históricos que
+                precisem ser preservados não deverão ser apagados.
+            </p>
 
+            <div class="confirmation-highlight">
+                <span>Usuário</span>
+                <strong id="deleteUserName">-</strong>
+            </div>
 
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('evaluationModal')"
-      >
+            <input
+                type="hidden"
+                id="deleteUserId"
+            >
 
-        <i class="fa-solid fa-xmark"></i>
+            <div class="modal-actions">
 
-      </button>
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelUserDeleteButton"
+                >
+                    Cancelar
+                </button>
 
+                <button
+                    type="button"
+                    class="danger-button"
+                    id="confirmUserDeleteButton"
+                >
+                    <i class="fa-solid fa-trash"></i>
+                    Excluir usuário
+                </button>
 
-      <div id="evaluationModalContent">
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando avaliação...
-          </span>
+            </div>
 
         </div>
-
-      </div>
 
     </div>
 
-  </div>
+    <!-- CONFIGURAR FÉRIAS -->
 
+    <div
+        class="modal-overlay"
+        id="vacationPeriodModal"
+    >
 
+        <div class="modal standard-modal">
 
-  <!-- =====================================================
-       =====================================================
-       MODAL - NOVO FEEDBACK
-       =====================================================
-  ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('vacationPeriodModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-  <div
-    class="modal-overlay"
-    id="newFeedbackModal"
-  >
+            <div class="modal-header">
 
-    <div class="modal standard-modal">
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-umbrella-beach"></i>
+                </div>
 
+                <div>
+                    <h2>Configurar férias</h2>
 
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('newFeedbackModal')"
-      >
+                    <p>
+                        Defina o período aquisitivo e os dados atuais do colaborador.
+                    </p>
+                </div>
 
-        <i class="fa-solid fa-xmark"></i>
+            </div>
 
-      </button>
+            <div class="employee-modal-highlight">
+                <span>Funcionário</span>
+                <strong id="vacationEmployeeName">-</strong>
+            </div>
 
+            <form id="vacationPeriodForm">
 
+                <input
+                    type="hidden"
+                    id="vacationEmployeeId"
+                >
 
-      <div class="modal-header">
+                <div class="form-grid">
 
-        <div class="modal-title-icon">
+                    <div class="form-group">
+                        <label for="vacationPeriodStart">
+                            Início do período aquisitivo
+                        </label>
 
-          <i class="fa-solid fa-comment-dots"></i>
+                        <input
+                            type="date"
+                            id="vacationPeriodStart"
+                            required
+                        >
+                    </div>
 
-        </div>
+                    <div class="form-group">
+                        <label for="vacationPeriodEnd">
+                            Fim do período aquisitivo
+                        </label>
 
+                        <input
+                            type="date"
+                            id="vacationPeriodEnd"
+                            required
+                        >
+                    </div>
 
-        <div>
+                    <div class="form-group">
+                        <label for="vacationUsedDays">
+                            Dias já utilizados
+                        </label>
 
-          <h2>
-            Novo feedback
-          </h2>
+                        <input
+                            type="number"
+                            id="vacationUsedDays"
+                            min="0"
+                            max="30"
+                            value="0"
+                            required
+                        >
+                    </div>
 
+                    <div class="form-group">
+                        <label for="vacationExpirationDate">
+                            Data de vencimento
+                        </label>
 
-          <p>
-            Envie um feedback para um colaborador do seu setor.
-          </p>
+                        <input
+                            type="date"
+                            id="vacationExpirationDate"
+                            required
+                        >
+                    </div>
 
-        </div>
+                </div>
 
-      </div>
+                <div class="vacation-preview-grid">
 
+                    <div class="vacation-preview-card">
+                        <span>Direito</span>
+                        <strong id="vacationPreviewRights">0 dias</strong>
+                    </div>
 
+                    <div class="vacation-preview-card">
+                        <span>Saldo</span>
+                        <strong id="vacationPreviewBalance">0 dias</strong>
+                    </div>
 
-      <form id="newFeedbackForm">
+                    <div class="vacation-preview-card">
+                        <span>Status</span>
+                        <strong id="vacationPreviewStatus">Aguardando dados</strong>
+                    </div>
 
+                </div>
 
-        <!-- COLABORADOR -->
+                <div class="modal-actions">
 
-        <div class="form-group">
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('vacationPeriodModal')"
+                    >
+                        Cancelar
+                    </button>
 
-          <label for="feedbackEmployee">
-            Colaborador
-          </label>
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="saveVacationPeriodButton"
+                    >
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Salvar período
+                    </button>
 
+                </div>
 
-          <select
-            id="feedbackEmployee"
-            required
-          >
-
-            <option value="">
-              Selecione um colaborador
-            </option>
-
-          </select>
-
-        </div>
-
-
-
-        <!-- TIPO -->
-
-        <div class="form-group">
-
-          <label for="feedbackType">
-            Tipo
-          </label>
-
-
-          <select
-            id="feedbackType"
-            required
-          >
-
-            <option value="">
-              Selecione
-            </option>
-
-            <option value="positivo">
-              Positivo
-            </option>
-
-            <option value="desenvolvimento">
-              Desenvolvimento
-            </option>
-
-            <option value="atencao">
-              Atenção
-            </option>
-
-          </select>
-
-        </div>
-
-
-
-        <!-- TÍTULO -->
-
-        <div class="form-group">
-
-          <label for="feedbackTitle">
-            Título
-          </label>
-
-
-          <input
-            type="text"
-            id="feedbackTitle"
-            maxlength="120"
-            placeholder="Ex.: Evolução nas últimas entregas"
-            required
-          >
-
-        </div>
-
-
-
-        <!-- MENSAGEM -->
-
-        <div class="form-group">
-
-          <label for="feedbackMessage">
-            Mensagem
-          </label>
-
-
-          <textarea
-            id="feedbackMessage"
-            rows="6"
-            maxlength="1500"
-            placeholder="Descreva o feedback de forma clara e objetiva..."
-            required
-          ></textarea>
+            </form>
 
         </div>
-
-
-
-        <!-- EXIGE RESPOSTA -->
-
-        <label class="checkbox-card">
-
-          <input
-            type="checkbox"
-            id="feedbackRequiresResponse"
-          >
-
-
-          <div>
-
-            <strong>
-              Exigir resposta do colaborador
-            </strong>
-
-            <span>
-              O feedback ficará aguardando uma resposta antes de ser concluído.
-            </span>
-
-          </div>
-
-        </label>
-
-
-
-        <div class="modal-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('newFeedbackModal')"
-          >
-            Cancelar
-          </button>
-
-
-          <button
-            type="submit"
-            class="primary-button"
-            id="submitNewFeedbackButton"
-          >
-
-            <i class="fa-solid fa-paper-plane"></i>
-
-            Enviar feedback
-
-          </button>
-
-        </div>
-
-      </form>
 
     </div>
 
-  </div>
+    <!-- DECISÃO DE FÉRIAS -->
 
+    <div
+        class="modal-overlay"
+        id="vacationDecisionModal"
+    >
 
+        <div class="modal vacation-decision-modal">
 
-  <!-- =====================================================
-       =====================================================
-       MODAL - SOLICITAÇÃO DE FEEDBACK
-       =====================================================
-  ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('vacationDecisionModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-  <div
-    class="modal-overlay"
-    id="feedbackRequestDetailsModal"
-  >
+            <div id="vacationDecisionContent">
 
-    <div class="modal feedback-details-modal">
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando solicitação...</span>
+                </div>
 
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('feedbackRequestDetailsModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-      <div id="feedbackRequestDetailsContent">
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando solicitação...
-          </span>
+            </div>
 
         </div>
-
-      </div>
 
     </div>
 
-  </div>
+    <!-- CURSO -->
 
+    <div
+        class="modal-overlay"
+        id="courseModal"
+    >
 
+        <div class="modal large-modal">
 
-  <!-- =====================================================
-       =====================================================
-       MODAL - RESPONDER SOLICITAÇÃO
-       =====================================================
-  ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('courseModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-  <div
-    class="modal-overlay"
-    id="answerFeedbackRequestModal"
-  >
+            <div class="modal-header">
 
-    <div class="modal standard-modal">
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
 
+                <div>
+                    <h2>Novo treinamento</h2>
 
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('answerFeedbackRequestModal')"
-      >
+                    <p>
+                        Crie um treinamento interno ou cadastre um curso externo
+                        para o seu setor.
+                    </p>
+                </div>
 
-        <i class="fa-solid fa-xmark"></i>
+            </div>
 
-      </button>
+            <div class="course-sector-information">
 
+                <i class="fa-solid fa-building"></i>
 
+                <div>
+                    <span>Setor do treinamento</span>
 
-      <div class="modal-header">
+                    <strong id="courseAdminSector">
+                        Definido automaticamente
+                    </strong>
+                </div>
 
-        <div class="modal-title-icon">
+            </div>
 
-          <i class="fa-solid fa-reply"></i>
+            <form
+                id="courseForm"
+                onsubmit="createCourse(event)"
+            >
+
+                <div class="form-group">
+                    <label for="courseTitle">
+                        Título
+                    </label>
+
+                    <input
+                        type="text"
+                        id="courseTitle"
+                        placeholder="Ex.: Segurança da Informação"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="courseDescription">
+                        Descrição
+                    </label>
+
+                    <textarea
+                        id="courseDescription"
+                        rows="4"
+                        placeholder="Descreva o objetivo e conteúdo do treinamento..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="courseHours">
+                            Carga horária
+                        </label>
+
+                        <input
+                            type="number"
+                            id="courseHours"
+                            min="1"
+                            step="1"
+                            placeholder="Ex.: 8"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="courseLevel">
+                            Nível
+                        </label>
+
+                        <select
+                            id="courseLevel"
+                            required
+                        >
+                            <option value="">Selecione</option>
+                            <option value="Básico">Básico</option>
+                            <option value="Intermediário">Intermediário</option>
+                            <option value="Avançado">Avançado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="courseRequirement">
+                            Classificação
+                        </label>
+
+                        <select
+                            id="courseRequirement"
+                            required
+                        >
+                            <option value="Recomendado">Recomendado</option>
+                            <option value="Obrigatório">Obrigatório</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <label class="checkbox-card">
+
+                    <input
+                        type="checkbox"
+                        id="externalCourse"
+                        onchange="toggleExternalCourse()"
+                    >
+
+                    <div>
+                        <strong>Curso externo</strong>
+                        <span>O treinamento é realizado em outra plataforma.</span>
+                    </div>
+
+                </label>
+
+                <div
+                    class="external-link-area"
+                    id="externalLinkArea"
+                >
+
+                    <div class="form-group">
+                        <label for="externalCourseLink">
+                            Link do curso externo
+                        </label>
+
+                        <input
+                            type="url"
+                            id="externalCourseLink"
+                            placeholder="https://..."
+                        >
+                    </div>
+
+                </div>
+
+                <section
+                    class="course-activities-section"
+                    id="courseActivitiesSection"
+                >
+
+                    <div class="activity-section-header">
+
+                        <div>
+                            <h3>Atividades</h3>
+
+                            <p>
+                                Defina as atividades que o colaborador deverá realizar.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="outline-button"
+                            onclick="addActivity()"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            Adicionar atividade
+                        </button>
+
+                    </div>
+
+                    <div
+                        class="activity-builder-list"
+                        id="activityBuilderList"
+                    >
+
+                        <div class="empty-activities">
+                            <i class="fa-regular fa-clipboard"></i>
+
+                            <strong>Nenhuma atividade adicionada</strong>
+
+                            <span>
+                                Clique em "Adicionar atividade" para começar.
+                            </span>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('courseModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="courseSubmitButton"
+                    >
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Publicar treinamento
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
-
-
-        <div>
-
-          <h2>
-            Responder solicitação
-          </h2>
-
-
-          <p>
-            Envie um retorno sobre o ponto solicitado pelo colaborador.
-          </p>
-
-        </div>
-
-      </div>
-
-
-
-      <div
-        class="feedback-context-box"
-        id="feedbackRequestContext"
-      >
-      </div>
-
-
-
-      <form id="answerFeedbackRequestForm">
-
-
-        <input
-          type="hidden"
-          id="answerFeedbackRequestId"
-        >
-
-
-
-        <div class="form-group">
-
-          <label for="answerFeedbackRequestText">
-            Sua resposta
-          </label>
-
-
-          <textarea
-            id="answerFeedbackRequestText"
-            rows="7"
-            maxlength="1500"
-            placeholder="Escreva o feedback para o colaborador..."
-            required
-          ></textarea>
-
-        </div>
-
-
-
-        <div class="modal-actions">
-
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="closeModal('answerFeedbackRequestModal')"
-          >
-            Cancelar
-          </button>
-
-
-          <button
-            type="submit"
-            class="primary-button"
-            id="submitFeedbackRequestAnswerButton"
-          >
-
-            <i class="fa-solid fa-paper-plane"></i>
-
-            Enviar resposta
-
-          </button>
-
-        </div>
-
-      </form>
 
     </div>
 
-  </div>
+    <!-- DETALHES DO CURSO -->
 
+    <div
+        class="modal-overlay"
+        id="courseDetailsModal"
+    >
 
+        <div class="modal large-modal">
 
-  <!-- =====================================================
-       =====================================================
-       MODAL - DETALHES DO FEEDBACK ENVIADO
-       =====================================================
-  ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('courseDetailsModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-  <div
-    class="modal-overlay"
-    id="sentFeedbackDetailsModal"
-  >
+            <div id="courseDetailsContent">
 
-    <div class="modal feedback-details-modal">
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando treinamento...</span>
+                </div>
 
-
-      <button
-        type="button"
-        class="close-modal"
-        onclick="closeModal('sentFeedbackDetailsModal')"
-      >
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-
-      <div id="sentFeedbackDetailsContent">
-
-        <div class="loading-state">
-
-          <i class="fa-solid fa-spinner fa-spin"></i>
-
-          <span>
-            Carregando feedback...
-          </span>
+            </div>
 
         </div>
 
-      </div>
+    </div>
+
+    <!-- CONFIRMAR REMOÇÃO DE CURSO -->
+
+    <div
+        class="modal-overlay"
+        id="confirmationModal"
+    >
+
+        <div class="modal confirmation-modal">
+
+            <div class="confirmation-icon danger">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+
+            <h2>Remover treinamento?</h2>
+
+            <p>
+                O treinamento deixará de ficar disponível, mas o histórico
+                dos colaboradores será preservado.
+            </p>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="cancelDeleteButton"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="danger-button"
+                    id="confirmDeleteButton"
+                >
+                    <i class="fa-solid fa-trash"></i>
+                    Remover treinamento
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 
-  </div>
+    <!-- AVALIAÇÃO -->
 
+    <div
+        class="modal-overlay"
+        id="evaluationModal"
+    >
 
+        <div class="modal evaluation-modal">
 
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('evaluationModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
-  <script src="app.js"></script>
+            <div id="evaluationModalContent">
+
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando avaliação...</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- NOVO FEEDBACK -->
+
+    <div
+        class="modal-overlay"
+        id="newFeedbackModal"
+    >
+
+        <div class="modal standard-modal">
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('newFeedbackModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </div>
+
+                <div>
+                    <h2>Novo feedback</h2>
+
+                    <p>
+                        Envie um feedback para um colaborador do seu setor.
+                    </p>
+                </div>
+
+            </div>
+
+            <form id="newFeedbackForm">
+
+                <div class="form-group">
+                    <label for="feedbackEmployee">
+                        Colaborador
+                    </label>
+
+                    <select
+                        id="feedbackEmployee"
+                        required
+                    >
+                        <option value="">
+                            Selecione um colaborador
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackType">
+                        Tipo
+                    </label>
+
+                    <select
+                        id="feedbackType"
+                        required
+                    >
+                        <option value="">Selecione</option>
+                        <option value="positivo">Positivo</option>
+                        <option value="desenvolvimento">Desenvolvimento</option>
+                        <option value="atencao">Atenção</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackTitle">
+                        Título
+                    </label>
+
+                    <input
+                        type="text"
+                        id="feedbackTitle"
+                        maxlength="120"
+                        placeholder="Ex.: Evolução nas últimas entregas"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackMessage">
+                        Mensagem
+                    </label>
+
+                    <textarea
+                        id="feedbackMessage"
+                        rows="6"
+                        maxlength="1500"
+                        placeholder="Descreva o feedback de forma clara e objetiva..."
+                        required
+                    ></textarea>
+                </div>
+
+                <label class="checkbox-card">
+
+                    <input
+                        type="checkbox"
+                        id="feedbackRequiresResponse"
+                    >
+
+                    <div>
+                        <strong>
+                            Exigir resposta do colaborador
+                        </strong>
+
+                        <span>
+                            O feedback ficará aguardando uma resposta antes de ser concluído.
+                        </span>
+                    </div>
+
+                </label>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('newFeedbackModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="submitNewFeedbackButton"
+                    >
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Enviar feedback
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- DETALHES DA SOLICITAÇÃO -->
+
+    <div
+        class="modal-overlay"
+        id="feedbackRequestDetailsModal"
+    >
+
+        <div class="modal feedback-details-modal">
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('feedbackRequestDetailsModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div id="feedbackRequestDetailsContent">
+
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando solicitação...</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RESPONDER FEEDBACK -->
+
+    <div
+        class="modal-overlay"
+        id="answerFeedbackRequestModal"
+    >
+
+        <div class="modal standard-modal">
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('answerFeedbackRequestModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-reply"></i>
+                </div>
+
+                <div>
+                    <h2>Responder solicitação</h2>
+
+                    <p>
+                        Envie o retorno solicitado pelo colaborador.
+                    </p>
+                </div>
+
+            </div>
+
+            <div
+                class="feedback-context-box"
+                id="feedbackRequestContext"
+            ></div>
+
+            <form id="answerFeedbackRequestForm">
+
+                <input
+                    type="hidden"
+                    id="answerFeedbackRequestId"
+                >
+
+                <div class="form-group">
+                    <label for="answerFeedbackRequestText">
+                        Sua resposta
+                    </label>
+
+                    <textarea
+                        id="answerFeedbackRequestText"
+                        rows="7"
+                        maxlength="1500"
+                        placeholder="Escreva o feedback para o colaborador..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('answerFeedbackRequestModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="submitFeedbackRequestAnswerButton"
+                    >
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Enviar resposta
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- FEEDBACK ENVIADO -->
+
+    <div
+        class="modal-overlay"
+        id="sentFeedbackDetailsModal"
+    >
+
+        <div class="modal feedback-details-modal">
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('sentFeedbackDetailsModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div id="sentFeedbackDetailsContent">
+
+                <div class="loading-state">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Carregando feedback...</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- EDITAR REGISTRO DE PONTO -->
+
+    <div
+        class="modal-overlay"
+        id="pointEditModal"
+    >
+
+        <div class="modal standard-modal point-edit-modal">
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeModal('pointEditModal')"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-title-icon">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+
+                <div>
+                    <h2>Alterar registro de ponto</h2>
+
+                    <p>
+                        Corrija os horários registrados pelo colaborador.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="employee-modal-highlight">
+
+                <span>Colaborador</span>
+
+                <strong id="pointEditEmployeeName">
+                    -
+                </strong>
+
+                <small id="pointEditDate">
+                    -
+                </small>
+
+            </div>
+
+            <form id="pointEditForm">
+
+                <input
+                    type="hidden"
+                    id="pointEditRecordId"
+                >
+
+                <input
+                    type="hidden"
+                    id="pointEditEmployeeId"
+                >
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="pointEditEntry">
+                            Entrada
+                        </label>
+
+                        <input
+                            type="time"
+                            id="pointEditEntry"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pointEditBreak">
+                            Início do intervalo
+                        </label>
+
+                        <input
+                            type="time"
+                            id="pointEditBreak"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pointEditReturn">
+                            Retorno
+                        </label>
+
+                        <input
+                            type="time"
+                            id="pointEditReturn"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pointEditExit">
+                            Saída
+                        </label>
+
+                        <input
+                            type="time"
+                            id="pointEditExit"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="pointEditObservation">
+                        Motivo da alteração
+                    </label>
+
+                    <textarea
+                        id="pointEditObservation"
+                        rows="4"
+                        maxlength="500"
+                        placeholder="Informe o motivo da correção realizada pelo administrador..."
+                        required
+                    ></textarea>
+
+                </div>
+
+                <div
+                    class="point-document-box"
+                    id="pointEditDocumentArea"
+                >
+
+                    <div>
+
+                        <i class="fa-solid fa-paperclip"></i>
+
+                        <div>
+                            <span>Documento anexado</span>
+
+                            <strong id="pointEditDocumentName">
+                                Nenhum documento
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="outline-button"
+                        id="pointEditOpenDocumentButton"
+                        disabled
+                    >
+                        Visualizar
+                    </button>
+
+                </div>
+
+                <div class="information-banner compact">
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <div>
+                        <strong>Alteração administrativa</strong>
+
+                        <span>
+                            A modificação será identificada como uma correção
+                            realizada pela administração.
+                        </span>
+                    </div>
+
+                </div>
+
+                <div
+                    class="modal-message"
+                    id="pointEditMessage"
+                ></div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeModal('pointEditModal')"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="savePointEditButton"
+                    >
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Salvar alteração
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
 
 </body>
 
